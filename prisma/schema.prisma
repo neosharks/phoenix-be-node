@@ -8,25 +8,49 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  firstName      String
-  lastName       String
-  email          String    @unique
-  username       String    @unique
-  password       String
-  profileImage   String?
-  coverImage     String?
-  gender         GENDER?
-  role           ROLE[]    @default([PATRON])
-  bio            String?
-  country        COUNTRY   @default(INDIA)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  dob            DateTime?
-  industry       INDUSTRY?
+  id           String    @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  username     String    @unique
+  password     String
+  profileImage String?
+  coverImage   String?
+  gender       GENDER?
+  role         ROLE[]    @default([PATRON])
+  bio          String?
+  country      COUNTRY   @default(INDIA)
+  dob          DateTime?
+  industry     INDUSTRY?
+  packages     Package[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   Message        Message[]
   participantOne Chat[]    @relation("participantOne")
   participantTwo Chat[]    @relation("participantTwo")
+}
+
+model Tier {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Package     Package[]
+}
+
+model Package {
+  id        String   @id @default(uuid())
+  tiers     Tier     @relation(fields: [tierId], references: [id])
+  name      String
+  price     Int
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tierId    String   @unique
 }
 
 model Message {
@@ -47,6 +71,8 @@ model Chat {
   participantOneId String
   participantTwoId String
   Message          Message[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 enum ROLE {
