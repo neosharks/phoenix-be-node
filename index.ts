@@ -6,6 +6,6 @@ const port = config.main.port;
 
 app
   .listen(port, () => {
-    Logger.info(`server running on port : ${port}`);
+    Logger.info(`SERVER RUNNING ON PORT : ${port} 🚀`);
   })
   .on("error", (e) => Logger.error("Error in starting server", e));

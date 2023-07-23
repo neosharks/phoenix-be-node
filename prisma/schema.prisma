@@ -30,13 +30,14 @@ model User {
 }
 
 model Message {
-  id          String   @id @default(uuid())
-  chat        Chat     @relation(fields: [userChatsId], references: [id])
-  senderId    User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  userChatsId String
+  id        String   @id @default(uuid())
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id])
+  message   String
+  senderId  String
+  chatId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Chat {

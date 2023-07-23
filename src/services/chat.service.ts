@@ -2,11 +2,35 @@ import prisma from "../../prisma";
 
 class _ChatService {
   async getOneChat(query: any) {
-    return await prisma.chat.findUnique({ where: query });
+    return await prisma.chat.findFirst({
+      where: query,
+    });
   }
 
   async getAllChat(query: any) {
-    return await prisma.message.findMany({ where: query });
+    return await prisma.chat.findMany({
+      where: query,
+      include: {
+        participantOne: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+          },
+        },
+        participantTwo: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+    });
   }
 
   async createOneChat(participants: any) {
