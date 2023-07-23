@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String    @unique
+  username       String    @unique
+  password       String
+  profileImage   String?
+  coverImage     String?
+  gender         GENDER?
+  role           ROLE[]    @default([PATRON])
+  bio            String?
+  country        COUNTRY   @default(INDIA)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  dob            DateTime?
+  industry       INDUSTRY?
+  Message        Message[]
+  participantOne Chat[]    @relation("participantOne")
+  participantTwo Chat[]    @relation("participantTwo")
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  chat        Chat     @relation(fields: [userChatsId], references: [id])
+  senderId    User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  userChatsId String
+}
+
+model Chat {
+  id               String    @id @default(uuid())
+  participantOne   User      @relation("participantOne", fields: [participantOneId], references: [id])
+  participantTwo   User      @relation("participantTwo", fields: [participantTwoId], references: [id])
+  participantOneId String
+  participantTwoId String
+  Message          Message[]
+}
+
+enum ROLE {
+  PATRON
+  CREATOR
+  ADMIN
+}
+
+enum COUNTRY {
+  INDIA
+}
+
+enum INDUSTRY {
+  MUSIC
+  GAMING
+}
+
+enum GENDER {
+  MALE
+  FEMALE
+  OTHER
+}
