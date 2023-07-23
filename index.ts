@@ -1,4 +1,4 @@
-import Logger from "./src/core/Logger";
+import Logger from "./src/core/logger.core";
 import config from "./config";
 import app from "./server";
 

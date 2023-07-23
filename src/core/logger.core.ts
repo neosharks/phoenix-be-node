@@ -1,6 +1,6 @@
 import winston from "winston";
 
-const Logger = winston.createLogger({
+const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
       level: "debug",
@@ -23,7 +23,7 @@ winston.addColors({
   http: "blue",
 });
 
-Logger.add(
+logger.add(
   new winston.transports.File({
     level: "info",
     filename: "./logs/all-logs.log",
@@ -42,6 +42,6 @@ Logger.add(
   }),
 );
 
-Logger.info("logging started");
+logger.info("logging started");
 
-export default Logger;
+export default logger;

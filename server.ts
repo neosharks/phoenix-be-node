@@ -5,7 +5,7 @@ import morgan from "morgan";
 import authRoutes from "./src/routes/auth.route";
 //----------------------------------
 import config from "./config";
-import Logger from "./src/core/Logger";
+import Logger from "./src/core/logger.core";
 import chatRoutes from "./src/routes/chat.route";
 import packageRoutes from "./src/routes/package.routes";
 

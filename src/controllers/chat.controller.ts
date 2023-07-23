@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ChatService } from "../services/chat.service";
-import Logger from "../core/Logger";
+import Logger from "../core/logger.core";
 
 class _ChatController {
   async createChat(req: Request, res: Response) {

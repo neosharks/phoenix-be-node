@@ -10,4 +10,7 @@ export default {
   database: {
     dbURI: process.env.DB_URI ?? "",
   },
+  jwt: {
+    accessTokenKey: process.env.ACCESS_TOKEN_KEY ?? "dfadfasrdjsaf",
+  },
 };
