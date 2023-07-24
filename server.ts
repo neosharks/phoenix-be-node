@@ -8,6 +8,8 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 import chatRoutes from "./src/routes/chat.route";
 import packageRoutes from "./src/routes/package.routes";
+import userRoutes from "./src/routes/user.route";
+import { deserializeUserOnRequest } from "./src/middlewares/deserialise.middleware";
 
 process.on("uncaughtException", (e) => {
   Logger.error("-----uncaughtException-----", e);
@@ -26,6 +28,8 @@ app.use(
     origin: corsUrl,
   }),
 );
+
+app.use(deserializeUserOnRequest);
 
 app.use(
   morgan(function (tokens, req, res) {
@@ -48,6 +52,7 @@ app.get("/", (_, res) => res.send("<h1>Healthy server!</h1>"));
 app.get("/fail", (_, res) => res.send("<h1>Fail</h1>"));
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
+app.use("/user", userRoutes);
 app.use("/package", packageRoutes);
 
 export default app;

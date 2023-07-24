@@ -1,0 +1,202 @@
+{
+    "conversation": {
+        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2",
+        "participants": [
+            {
+                "status": "online",
+                "id": "8864c717-587d-472a-929a-8e5f298024da-0",
+                "role": "admin",
+                "email": "demo@minimals.cc",
+                "name": "Jaydon Frankie",
+                "lastActivity": "2023-07-24T21:03:48.431Z",
+                "address": "90210 Broadway Blvd",
+                "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_25.jpg",
+                "phoneNumber": "+40 777666555"
+            },
+            {
+                "status": "online",
+                "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2",
+                "role": "Data Analyst",
+                "email": "ashlynn_ohara62@gmail.com",
+                "name": "Lucian Obrien",
+                "lastActivity": "2023-07-23T20:03:48.431Z",
+                "address": "1147 Rohan Drive Suite 819 - Burlington, VT / 82021",
+                "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_2.jpg",
+                "phoneNumber": "904-966-2836"
+            }
+        ],
+        "type": "ONE_TO_ONE",
+        "unreadCount": 0,
+        "messages": [
+            {
+                "id": "1b296ecd-12b3-43bf-be10-f80e39136cd5",
+                "body": "She eagerly opened the gift, her eyes sparkling with excitement.",
+                "contentType": "text",
+                "attachments": [
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1",
+                        "name": "cover-2.jpg",
+                        "path": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_3.jpg",
+                        "preview": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_3.jpg",
+                        "size": 48000000,
+                        "createdAt": "2023-07-24T20:52:56.296Z",
+                        "modifiedAt": "2023-07-24T20:52:56.296Z",
+                        "type": "jpg"
+                    }
+                ],
+                "createdAt": "2023-07-24T11:03:48.432Z",
+                "senderId": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2"
+            },
+            {
+                "id": "4a91e12f-f2e2-4559-8b71-4cc94586ec6f",
+                "body": "The old oak tree stood tall and majestic, its branches swaying gently in the breeze.",
+                "contentType": "text",
+                "attachments": [
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2",
+                        "name": "design-suriname-2015.mp3",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/design_suriname_2015.mp3",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/design_suriname_2015.mp3",
+                        "size": 24000000,
+                        "createdAt": "2023-07-23T19:52:56.296Z",
+                        "modifiedAt": "2023-07-23T19:52:56.296Z",
+                        "type": "mp3"
+                    }
+                ],
+                "createdAt": "2023-07-24T19:03:48.432Z",
+                "senderId": "8864c717-587d-472a-929a-8e5f298024da-0"
+            },
+            {
+                "id": "2a09ec13-4be4-486d-8dfb-17f6298f5297",
+                "body": "The aroma of freshly brewed coffee filled the air, awakening my senses.",
+                "contentType": "text",
+                "attachments": [
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b3",
+                        "name": "expertise-2015-conakry-sao-tome-and-principe-gender.mp4",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/expertise_2015_conakry_sao-tome-and-principe_gender.mp4",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/expertise_2015_conakry_sao-tome-and-principe_gender.mp4",
+                        "size": 16000000,
+                        "createdAt": "2023-07-22T18:52:56.296Z",
+                        "modifiedAt": "2023-07-22T18:52:56.296Z",
+                        "type": "mp4"
+                    }
+                ],
+                "createdAt": "2023-07-24T20:55:48.432Z",
+                "senderId": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2"
+            },
+            {
+                "id": "e993044f-6503-4f7b-a274-7a86eb8036d2",
+                "body": "The children giggled with joy as they ran through the sprinklers on a hot summer day.",
+                "contentType": "text",
+                "attachments": [
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b4",
+                        "name": "money-popup-crack.pdf",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/money-popup-crack.pdf",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/money-popup-crack.pdf",
+                        "size": 12000000,
+                        "createdAt": "2023-07-21T17:52:56.296Z",
+                        "modifiedAt": "2023-07-21T17:52:56.296Z",
+                        "type": "pdf"
+                    },
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b5",
+                        "name": "cover-4.jpg",
+                        "path": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_4.jpg",
+                        "preview": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_4.jpg",
+                        "size": 9600000,
+                        "createdAt": "2023-07-20T16:52:56.296Z",
+                        "modifiedAt": "2023-07-20T16:52:56.296Z",
+                        "type": "jpg"
+                    },
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b6",
+                        "name": "cover-6.jpg",
+                        "path": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_6.jpg",
+                        "preview": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_6.jpg",
+                        "size": 8000000,
+                        "createdAt": "2023-07-19T15:52:56.296Z",
+                        "modifiedAt": "2023-07-19T15:52:56.296Z",
+                        "type": "jpg"
+                    }
+                ],
+                "createdAt": "2023-07-24T20:57:48.432Z",
+                "senderId": "8864c717-587d-472a-929a-8e5f298024da-0"
+            },
+            {
+                "id": "b4270ecf-8fdf-48fd-9871-9cae7c16482e",
+                "body": "He carefully crafted a beautiful sculpture out of clay, his hands skillfully shaping the intricate details.",
+                "contentType": "text",
+                "attachments": [
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b7",
+                        "name": "large-news.txt",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/large_news.txt",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/large_news.txt",
+                        "size": 6857142.857142857,
+                        "createdAt": "2023-07-18T14:52:56.296Z",
+                        "modifiedAt": "2023-07-18T14:52:56.296Z",
+                        "type": "txt"
+                    },
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b8",
+                        "name": "nauru-6015-small-fighter-left-gender.psd",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/nauru-6015-small-fighter-left-gender.psd",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/nauru-6015-small-fighter-left-gender.psd",
+                        "size": 6000000,
+                        "createdAt": "2023-07-17T13:52:56.296Z",
+                        "modifiedAt": "2023-07-17T13:52:56.296Z",
+                        "type": "psd"
+                    },
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b9",
+                        "name": "tv-xs.doc",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/tv-xs.doc",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/tv-xs.doc",
+                        "size": 5333333.333333333,
+                        "createdAt": "2023-07-16T12:52:56.296Z",
+                        "modifiedAt": "2023-07-16T12:52:56.296Z",
+                        "type": "doc"
+                    },
+                    {
+                        "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b10",
+                        "name": "gustavia-entertainment-productivity.docx",
+                        "path": "https://www.cloud.com/s/c218bo6kjuqyv66/gustavia-entertainment-productivity.docx",
+                        "preview": "https://www.cloud.com/s/c218bo6kjuqyv66/gustavia-entertainment-productivity.docx",
+                        "size": 4800000,
+                        "createdAt": "2023-07-15T11:52:56.296Z",
+                        "modifiedAt": "2023-07-15T11:52:56.296Z",
+                        "type": "docx"
+                    }
+                ],
+                "createdAt": "2023-07-24T20:59:48.432Z",
+                "senderId": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2"
+            },
+            {
+                "id": "b771a4cd-e259-44e5-926c-e8a9d2377c88",
+                "attachments": [],
+                "contentType": "image",
+                "body": "https://api-dev-minimal-v510.vercel.app/assets/images/cover/cover_5.jpg",
+                "createdAt": "2023-07-24T21:01:48.432Z",
+                "senderId": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b2"
+            },
+            {
+                "id": "fae67c7a-68c2-45b7-84d5-bf8ed8b8a324",
+                "contentType": "text",
+                "attachments": [],
+                "body": "The concert was a mesmerizing experience, with the music filling the venue and the crowd cheering in delight.",
+                "createdAt": "2023-07-24T21:01:48.432Z",
+                "senderId": "8864c717-587d-472a-929a-8e5f298024da-0"
+            },
+            {
+                "id": "00bd6751-d5b5-4e58-aa16-dead983949cc",
+                "body": "The waves crashed against the shore, creating a soothing symphony of sound.",
+                "contentType": "text",
+                "attachments": [],
+                "createdAt": "2023-07-24T21:01:48.433Z",
+                "senderId": "8864c717-587d-472a-929a-8e5f298024da-0"
+            }
+        ]
+    }
+}

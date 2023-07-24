@@ -13,6 +13,7 @@ model User {
   lastName     String
   email        String    @unique
   username     String    @unique
+  phone        Int?
   password     String
   profileImage String?
   coverImage   String?
@@ -27,9 +28,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Message        Message[]
-  participantOne Chat[]    @relation("participantOne")
-  participantTwo Chat[]    @relation("participantTwo")
+  Message          Message[]
+  participantOne   Chat[]         @relation("participantOne")
+  participantTwo   Chat[]         @relation("participantTwo")
+  aboutUser        Notification[] @relation("aboutUser")
+  notificationUser Notification[] @relation("notificationUser")
+
+  @@index([email, username])
 }
 
 model Tier {
@@ -54,14 +59,17 @@ model Package {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  sender    User     @relation(fields: [senderId], references: [id])
-  message   String
-  senderId  String
-  chatId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(uuid())
+  chat        Chat         @relation(fields: [chatId], references: [id])
+  sender      User         @relation(fields: [senderId], references: [id])
+  message     String
+  senderId    String
+  contentType MESSAGE_TYPE @default(TEXT)
+  chatId      String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([chatId])
 }
 
 model Chat {
@@ -70,9 +78,26 @@ model Chat {
   participantTwo   User      @relation("participantTwo", fields: [participantTwoId], references: [id])
   participantOneId String
   participantTwoId String
+  type             CHAT_TYPE @default(ONE_TO_ONE)
   Message          Message[]
+  unreadCount      Int       @default(0)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+}
+
+model Notification {
+  id                 String       @id @default(uuid())
+  aboutUser          User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
+  notificationUser   User         @relation("notificationUser", fields: [notificationUserId], references: [id])
+  aboutUserId        String
+  notificationUserId String
+  message            String
+  read               Boolean
+  link               String?
+  type               NOTIFICATION
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  userId             String
 }
 
 enum ROLE {
@@ -94,4 +119,20 @@ enum GENDER {
   MALE
   FEMALE
   OTHER
+}
+
+enum NOTIFICATION {
+  NEW_POST
+  MESSAGE
+  POLL
+}
+
+enum MESSAGE_TYPE {
+  TEXT
+  IMAGE
+  AUDIO
+}
+
+enum CHAT_TYPE {
+  ONE_TO_ONE
 }

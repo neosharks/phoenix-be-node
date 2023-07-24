@@ -4,6 +4,30 @@ class _ChatService {
   async getOneChat(query: any) {
     return await prisma.chat.findFirst({
       where: query,
+      include: {
+        participantOne: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+            role: true,
+          },
+        },
+        participantTwo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+            role: true,
+          },
+        },
+      },
     });
   }
 
@@ -13,20 +37,24 @@ class _ChatService {
       include: {
         participantOne: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             profileImage: true,
             email: true,
             username: true,
+            role: true,
           },
         },
         participantTwo: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             profileImage: true,
             email: true,
             username: true,
+            role: true,
           },
         },
       },
@@ -47,7 +75,9 @@ class _ChatService {
   }
 
   async getAllMessageForChat(query: any) {
-    return await prisma.message.findMany({ where: query });
+    return await prisma.message.findMany({
+      where: query,
+    });
   }
 
   async createOneMessage(data: any) {
