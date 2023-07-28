@@ -1,16 +1,21 @@
 import express from "express";
 import { PackageController } from "../controllers/package.controller";
+import fetchUser from "../middlewares/fetchUser.middleware";
 
 const packageRoutes = express.Router();
 
-packageRoutes.post("/createOnePackage", PackageController.createOnePackage);
+packageRoutes.post("/createOnePackage", fetchUser, PackageController.createOnePackage);
 
-packageRoutes.get("/getPackageByUser", PackageController.getPackageByUser);
+packageRoutes.get("/getPackageByUser", fetchUser, PackageController.getPackageByUser);
 
-packageRoutes.get("/getPackage", PackageController.getPackage);
+packageRoutes.get("/getPackage", fetchUser, PackageController.getPackage);
+
+packageRoutes.post("/buyPackage", fetchUser, PackageController.buyPackage);
 
 //-------------------
 
-packageRoutes.post("/createOneTier", PackageController.createOneTier);
+packageRoutes.post("/createOneTier", fetchUser, PackageController.createOneTier);
+
+packageRoutes.get("/getAllTier", fetchUser, PackageController.getAllTier);
 
 export default packageRoutes;

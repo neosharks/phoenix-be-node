@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
+  id           String    @id @default(cuid())
   firstName    String
   lastName     String
   email        String    @unique
   username     String    @unique
-  phone        Int?
+  phone        String?
+  countryCode  String    @default("+91")
   password     String
   profileImage String?
   coverImage   String?
@@ -29,16 +30,21 @@ model User {
   updatedAt DateTime @updatedAt
 
   Message          Message[]
-  participantOne   Chat[]         @relation("participantOne")
-  participantTwo   Chat[]         @relation("participantTwo")
-  aboutUser        Notification[] @relation("aboutUser")
-  notificationUser Notification[] @relation("notificationUser")
+  participantOne   Chat[]          @relation("participantOne")
+  participantTwo   Chat[]          @relation("participantTwo")
+  aboutUser        Notification[]  @relation("aboutUser")
+  notificationUser Notification[]  @relation("notificationUser")
+  Polls            Polls[]
+  Journey          Journey[]
+  creatorId        PatronCreator[] @relation("creatorId")
+  patronId         PatronCreator[] @relation("patronId")
 
   @@index([email, username])
 }
 
 model Tier {
-  id          String    @id @default(uuid())
+  id          String    @id @default(cuid())
+  tierType    TIER_TYPE @default(GENERAL_SUPPORT)
   name        String
   description String
   createdAt   DateTime  @default(now())
@@ -47,19 +53,21 @@ model Tier {
 }
 
 model Package {
-  id        String   @id @default(uuid())
-  tiers     Tier     @relation(fields: [tierId], references: [id])
-  name      String
-  price     Int
-  User      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tierId    String   @unique
+  id            String          @id @default(cuid())
+  tier          Tier[]
+  name          String
+  image         String
+  price         Int
+  description   String
+  User          User            @relation(fields: [userId], references: [id])
+  userId        String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  PatronCreator PatronCreator[]
 }
 
 model Message {
-  id          String       @id @default(uuid())
+  id          String       @id @default(cuid())
   chat        Chat         @relation(fields: [chatId], references: [id])
   sender      User         @relation(fields: [senderId], references: [id])
   message     String
@@ -73,7 +81,7 @@ model Message {
 }
 
 model Chat {
-  id               String    @id @default(uuid())
+  id               String    @id @default(cuid())
   participantOne   User      @relation("participantOne", fields: [participantOneId], references: [id])
   participantTwo   User      @relation("participantTwo", fields: [participantTwoId], references: [id])
   participantOneId String
@@ -86,7 +94,7 @@ model Chat {
 }
 
 model Notification {
-  id                 String       @id @default(uuid())
+  id                 String       @id @default(cuid())
   aboutUser          User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
   notificationUser   User         @relation("notificationUser", fields: [notificationUserId], references: [id])
   aboutUserId        String
@@ -98,6 +106,49 @@ model Notification {
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   userId             String
+
+  @@index([userId])
+}
+
+model Polls {
+  id              String   @id @default(cuid())
+  creatorId       User     @relation(fields: [userId], references: [id])
+  options         String[]
+  selectedOptions Json
+  userId          String
+  image           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Journey {
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  path      String
+  method    REQUEST_METHOD @default(GET)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model PatronCreator {
+  id        String   @id @default(cuid())
+  patron    User     @relation("patronId", fields: [patronId], references: [id])
+  patronId  String
+  creator   User     @relation("creatorId", fields: [creatorId], references: [id])
+  creatorId String
+  package   Package  @relation(fields: [packageId], references: [id])
+  packageId String
+  expiry    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TIER_TYPE {
+  GENERAL_SUPPORT
+  AD_FREE_CONTENT
+  BEHIND_THE_SCENES
+  DIGITAL_DOWNLOADS
 }
 
 enum ROLE {
@@ -135,4 +186,12 @@ enum MESSAGE_TYPE {
 
 enum CHAT_TYPE {
   ONE_TO_ONE
+}
+
+enum REQUEST_METHOD {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
 }
