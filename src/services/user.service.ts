@@ -1,9 +1,12 @@
 import prisma from "../../prisma";
 
 class _UserService {
+  // REMOVE PASSWORD FROM ALL API
+
   async getOneUser(query: any) {
     return await prisma.user.findUnique({ where: query });
   }
+
   async getAllUser() {
     return await prisma.user.findMany({
       select: {
@@ -20,6 +23,10 @@ class _UserService {
 
   async createOneUser(data: any) {
     return await prisma.user.create({ data: data });
+  }
+
+  async updateOneUser(query: any, data: any) {
+    return await prisma.user.update({ where: query, data: data });
   }
 }
 

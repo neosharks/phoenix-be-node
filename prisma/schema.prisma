@@ -15,7 +15,6 @@ model User {
   username     String    @unique
   phone        String?
   countryCode  String    @default("+91")
-  password     String
   profileImage String?
   coverImage   String?
   gender       GENDER?
@@ -24,7 +23,20 @@ model User {
   country      COUNTRY   @default(INDIA)
   dob          DateTime?
   industry     INDUSTRY?
-  packages     Package[]
+
+  password String?
+
+  emailVerified Boolean @default(false)
+  phoneVerified Boolean @default(false)
+
+  packages Package[]
+
+  googleAuthId   String? @unique
+  facebookAuthId String? @unique
+
+  verificationCode       Int?
+  verificationCodeSource VERIFICATION_CODE_SOURCE?
+  verificationCodeType   VERIFICATION_CODE_TYPE?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -194,4 +206,15 @@ enum REQUEST_METHOD {
   PUT
   PATCH
   DELETE
+}
+
+enum VERIFICATION_CODE_SOURCE {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+enum VERIFICATION_CODE_TYPE {
+  REGISTER
+  LOGIN
 }

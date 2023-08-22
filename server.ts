@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import passport from "passport";
 //----------------------------------
 import authRoutes from "./src/routes/auth.route";
 //----------------------------------
@@ -9,6 +10,7 @@ import Logger from "./src/core/logger.core";
 import chatRoutes from "./src/routes/chat.route";
 import packageRoutes from "./src/routes/package.routes";
 import userRoutes from "./src/routes/user.route";
+import "./src/middlewares/passport.middleware";
 import { deserializeUserOnRequest } from "./src/middlewares/deserialise.middleware";
 
 process.on("uncaughtException", (e) => {
@@ -22,6 +24,8 @@ const corsUrl = config.main.corsUrl;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(passport.initialize());
 
 app.use(
   cors({
