@@ -3,7 +3,7 @@ dotenv.config();
 
 export default {
   main: {
-    environment: process.env.NODE_ENV ?? "DEV",
+    environment: process.env.NODE_ENV ?? "DEVELOPMENT", // PRODUCTION | DEVELOPMENT | STAGING
     port: process.env.PORT ?? "3000",
     corsUrl: process.env.CORS_URL ?? "*",
     feUrl: process.env.FE_URL ?? "http://localhost:4000",

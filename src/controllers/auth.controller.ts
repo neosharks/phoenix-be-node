@@ -3,24 +3,34 @@ import bcrypt from "bcrypt";
 import { UserService } from "../services/user.service";
 import { signJwt } from "../core/jwt.core";
 import { generateRandomUsername } from "../lib/helper.lib";
+import { errorCode, errorMessage } from "../constant/api.constant";
+import logger from "../core/logger.core";
 
 class _AuthController {
   async register(req: Request, res: Response) {
-    const body = req.body;
-    const foundUser = await UserService.getOneUser({ email: body.email });
-    if (foundUser) return res.status(403).json({ message: "Email already exists" });
+    try {
+      const body = req.body;
+      const foundUser = await UserService.getOneUser({ email: body.email });
+      if (foundUser)
+        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.USER_EXISTS });
 
-    const saltRounds = 10;
-    const salt = await bcrypt.genSaltSync(saltRounds);
-    const hash = await bcrypt.hashSync(body.password, salt);
+      const saltRounds = 10;
+      const salt = await bcrypt.genSaltSync(saltRounds);
+      const hash = await bcrypt.hashSync(body.password, salt);
 
-    body.password = hash;
-    body.username = body.email.split("@")[0];
-    const randomNum = (Math.random() * 25) | 1;
-    const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-    const created = await UserService.createOneUser({ ...body, profileImage });
-    const accessToken = await signJwt(created);
-    return res.status(201).json({ messge: "success", accessToken, user: created });
+      body.password = hash;
+      body.username = body.email.split("@")[0];
+      const randomNum = (Math.random() * 25) | 1;
+      const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+      const created = await UserService.createOneUser({ ...body, profileImage });
+      const accessToken = await signJwt(created);
+      return res.status(201).json({ messge: "success", accessToken, user: created });
+    } catch (err) {
+      logger.error("Error in register");
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: err });
+    }
   }
 
   async login(req: Request, res: Response) {

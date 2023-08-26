@@ -4,7 +4,6 @@ import passport from "passport";
 import { AuthController } from "../controllers/auth.controller";
 //----------------------------------
 import config from "../../config";
-import logger from "../core/logger.core";
 import { signJwt } from "../core/jwt.core";
 
 const authRoutes = express.Router();

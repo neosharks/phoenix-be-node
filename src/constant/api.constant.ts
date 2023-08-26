@@ -1,0 +1,13 @@
+export const errorMessage = {
+  USER_EXISTS: "USER_EXISTS",
+  USER_NOT_ROUND: "USER_NOT_ROUND",
+  NOT_FOUND: "NOT_FOUND",
+  INTERNAL_SERVER: "INTERNAL_SERVER",
+};
+
+export const errorCode = {
+  GENERIC: 400,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER: 500,
+};
