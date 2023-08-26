@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { UserService } from "../services/user.service";
 import { signJwt } from "../core/jwt.core";
+import { generateRandomUsername } from "../lib/helper.lib";
 
 class _AuthController {
   async register(req: Request, res: Response) {
@@ -32,6 +33,63 @@ class _AuthController {
     if (!isMatch) return res.status(403).json({ message: "Wrong Password" });
     const accessToken = await signJwt(foundUser);
     return res.status(201).json({ messge: "success", accessToken, user: foundUser });
+  }
+
+  async sendOtp(req: Request, res: Response) {
+    const { phoneNumber } = req.body;
+    const foundUser = await UserService.getOneUser({ phoneNumber });
+    let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
+    const commonProps = {
+      verificationCode: otpGenerated,
+      verificationCodeSource: "SMS",
+    };
+    if (foundUser) await UserService.updateOneUser({ phoneNumber }, { ...commonProps });
+    else {
+      const username = generateRandomUsername();
+      const randomNum = (Math.random() * 25) | 1;
+      const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+      await UserService.createOneUser({
+        username,
+        phoneNumber,
+        profileImage,
+        ...commonProps,
+      });
+    }
+    return res.status(200).json({ message: "OTP successfully sent" });
+  }
+
+  async loginViaNumber(req: Request, res: Response) {
+    const { phoneNumber, otp } = req.body;
+    const foundUser = await UserService.getOneUser({ phoneNumber });
+    if (!foundUser) return res.status(403).json({ message: "User is not registered" });
+    let isMatch = false;
+    if (!foundUser.verificationCode) return res.status(403).json({ message: "Generate OTP first" });
+    if (foundUser.verificationCode) isMatch = otp === foundUser.verificationCode;
+    if (!isMatch) return res.status(403).json({ message: "Wrong OTP" });
+    let createdUser = {};
+    const commonProps = {
+      verificationCode: null,
+      verificationCodeSource: null,
+      verificationCodeType: null,
+      verificationCodeTimestamp: null,
+    };
+    if (!foundUser.phoneVerified) {
+      createdUser = await UserService.updateOneUser(
+        { phoneNumber },
+        {
+          phoneVerified: true,
+          ...commonProps,
+        },
+      );
+    } else
+      createdUser = await UserService.updateOneUser(
+        { phoneNumber },
+        {
+          ...commonProps,
+        },
+      );
+    const accessToken = await signJwt(createdUser);
+    return res.status(201).json({ messge: "success", accessToken, user: createdUser });
   }
 }
 

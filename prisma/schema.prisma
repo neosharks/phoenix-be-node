@@ -9,11 +9,11 @@ datasource db {
 
 model User {
   id           String    @id @default(cuid())
-  firstName    String
-  lastName     String
-  email        String    @unique
+  firstName    String?
+  lastName     String?
+  email        String?   @unique
   username     String    @unique
-  phone        String?
+  phoneNumber  String?   @unique
   countryCode  String    @default("+91")
   profileImage String?
   coverImage   String?
@@ -34,9 +34,10 @@ model User {
   googleAuthId   String? @unique
   facebookAuthId String? @unique
 
-  verificationCode       Int?
-  verificationCodeSource VERIFICATION_CODE_SOURCE?
-  verificationCodeType   VERIFICATION_CODE_TYPE?
+  verificationCode          Int?
+  verificationCodeTimestamp DateTime?                 @default(now())
+  verificationCodeSource    VERIFICATION_CODE_SOURCE?
+  verificationCodeType      VERIFICATION_CODE_TYPE?   @default(LOGIN)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,7 +52,7 @@ model User {
   creatorId        PatronCreator[] @relation("creatorId")
   patronId         PatronCreator[] @relation("patronId")
 
-  @@index([email, username])
+  @@index([email, username, phoneNumber])
 }
 
 model Tier {
@@ -215,6 +216,5 @@ enum VERIFICATION_CODE_SOURCE {
 }
 
 enum VERIFICATION_CODE_TYPE {
-  REGISTER
   LOGIN
 }

@@ -13,6 +13,10 @@ authRoutes.post("/register", AuthController.register);
 
 authRoutes.post("/login", AuthController.login);
 
+authRoutes.post("/sendOtp", AuthController.sendOtp);
+
+authRoutes.post("/loginViaNumber", AuthController.loginViaNumber);
+
 // GOOGLE OAUTH
 
 authRoutes.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
