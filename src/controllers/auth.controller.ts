@@ -46,21 +46,23 @@ class _AuthController {
   }
 
   async sendOtp(req: Request, res: Response) {
-    const { phoneNumber } = req.body;
-    const foundUser = await UserService.getOneUser({ phoneNumber });
+    const { number } = req.body;
+    if (!number)
+      return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const foundUser = await UserService.getOneUser({ phoneNumber: number });
     let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
     const commonProps = {
       verificationCode: otpGenerated,
       verificationCodeSource: "SMS",
     };
-    if (foundUser) await UserService.updateOneUser({ phoneNumber }, { ...commonProps });
+    if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
     else {
       const username = generateRandomUsername();
       const randomNum = (Math.random() * 25) | 1;
       const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
       await UserService.createOneUser({
         username,
-        phoneNumber,
+        phoneNumber: number,
         profileImage,
         ...commonProps,
       });
@@ -69,13 +71,15 @@ class _AuthController {
   }
 
   async loginViaNumber(req: Request, res: Response) {
-    const { phoneNumber, otp } = req.body;
-    const foundUser = await UserService.getOneUser({ phoneNumber });
+    const { number, otp } = req.body;
+    if (!number || !otp)
+      res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const foundUser = await UserService.getOneUser({ phoneNumber: number });
     if (!foundUser) return res.status(403).json({ message: "User is not registered" });
     let isMatch = false;
     if (!foundUser.verificationCode) return res.status(403).json({ message: "Generate OTP first" });
-    if (foundUser.verificationCode) isMatch = otp === foundUser.verificationCode;
-    if (!isMatch) return res.status(403).json({ message: "Wrong OTP" });
+    if (foundUser.verificationCode) isMatch = parseInt(otp) === foundUser.verificationCode;
+    if (!isMatch) return res.status(403).json({ message: "Incorrect OTP" });
     let createdUser = {};
     const commonProps = {
       verificationCode: null,
@@ -85,7 +89,7 @@ class _AuthController {
     };
     if (!foundUser.phoneVerified) {
       createdUser = await UserService.updateOneUser(
-        { phoneNumber },
+        { phoneNumber: number },
         {
           phoneVerified: true,
           ...commonProps,
@@ -93,7 +97,7 @@ class _AuthController {
       );
     } else
       createdUser = await UserService.updateOneUser(
-        { phoneNumber },
+        { phoneNumber: number },
         {
           ...commonProps,
         },
