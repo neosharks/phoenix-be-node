@@ -105,6 +105,10 @@ class _AuthController {
     const accessToken = await signJwt(createdUser);
     return res.status(201).json({ messge: "success", accessToken, user: createdUser });
   }
+
+  async logout(req: Request, res: Response) {
+    return res.status(200).json({ message: "Logged out" });
+  }
 }
 
 export const AuthController = new _AuthController();

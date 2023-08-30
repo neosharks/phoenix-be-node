@@ -26,7 +26,7 @@ winston.addColors({
 logger.add(
   new winston.transports.File({
     level: "info",
-    filename: "./logs/all-logs.log",
+    filename: "./logs/all-logs.json",
     handleExceptions: true,
     format: winston.format.combine(
       winston.format.timestamp({
@@ -41,7 +41,5 @@ logger.add(
     maxFiles: 5,
   }),
 );
-
-logger.info("logging started");
 
 export default logger;

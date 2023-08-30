@@ -28,8 +28,10 @@ authRoutes.get(
   }),
   async function (req: any, res: any) {
     const token = await signJwt(req.user);
-    res.redirect(`${config.main.feUrl}/dashboard`, token);
+    res.redirect(`${config.main.feUrl}/auth/jwt/googleCallback?token=${token}`);
   },
 );
+
+authRoutes.get("/logout", AuthController.logout);
 
 export default authRoutes;

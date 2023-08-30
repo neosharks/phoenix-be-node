@@ -43,8 +43,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   Message          Message[]
-  participantOne   Chat[]          @relation("participantOne")
-  participantTwo   Chat[]          @relation("participantTwo")
+  participantOne   Conversation[]  @relation("participantOne")
+  participantTwo   Conversation[]  @relation("participantTwo")
   aboutUser        Notification[]  @relation("aboutUser")
   notificationUser Notification[]  @relation("notificationUser")
   Polls            Polls[]
@@ -80,30 +80,30 @@ model Package {
 }
 
 model Message {
-  id          String       @id @default(cuid())
-  chat        Chat         @relation(fields: [chatId], references: [id])
-  sender      User         @relation(fields: [senderId], references: [id])
-  message     String
-  senderId    String
-  contentType MESSAGE_TYPE @default(TEXT)
-  chatId      String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation(fields: [senderId], references: [id])
+  message        String
+  senderId       String
+  contentType    MESSAGE_TYPE @default(TEXT)
+  conversationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@index([chatId])
+  @@index([conversationId])
 }
 
-model Chat {
-  id               String    @id @default(cuid())
-  participantOne   User      @relation("participantOne", fields: [participantOneId], references: [id])
-  participantTwo   User      @relation("participantTwo", fields: [participantTwoId], references: [id])
+model Conversation {
+  id               String            @id @default(cuid())
+  participantOne   User              @relation("participantOne", fields: [participantOneId], references: [id])
+  participantTwo   User              @relation("participantTwo", fields: [participantTwoId], references: [id])
   participantOneId String
   participantTwoId String
-  type             CHAT_TYPE @default(ONE_TO_ONE)
+  type             CONVERSATION_TYPE @default(ONE_TO_ONE)
   Message          Message[]
-  unreadCount      Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  unreadCount      Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Notification {
@@ -197,7 +197,7 @@ enum MESSAGE_TYPE {
   AUDIO
 }
 
-enum CHAT_TYPE {
+enum CONVERSATION_TYPE {
   ONE_TO_ONE
 }
 

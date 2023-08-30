@@ -16,6 +16,7 @@ class _UserService {
         profileImage: true,
         email: true,
         username: true,
+        phoneNumber: true,
         role: true,
       },
     });
