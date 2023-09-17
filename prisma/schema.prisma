@@ -8,21 +8,27 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  firstName    String?
-  lastName     String?
-  email        String?   @unique
-  username     String    @unique
-  phoneNumber  String?   @unique
-  countryCode  String    @default("+91")
-  profileImage String?
-  coverImage   String?
-  gender       GENDER?
-  role         ROLE[]    @default([PATRON])
-  bio          String?
-  country      COUNTRY   @default(INDIA)
-  dob          DateTime?
-  industry     INDUSTRY?
+  id              String    @id @default(cuid())
+  firstName       String?
+  lastName        String?
+  email           String?   @unique
+  username        String    @unique
+  phoneNumber     String?   @unique
+  countryCode     String    @default("+91")
+  profileImage    String?
+  coverImage      String?
+  isCreator       Boolean   @default(false)
+  gender          GENDER?
+  role            ROLE[]    @default([PATRON])
+  bio             String?
+  country         COUNTRY   @default(INDIA)
+  dob             DateTime?
+  industry        INDUSTRY?
+  pageName        String?
+  youtubeHandle   String?
+  facebookHandle  String?
+  twitterHandle   String?
+  instagramHandle String?
 
   password String?
 
@@ -48,7 +54,6 @@ model User {
   aboutUser        Notification[]  @relation("aboutUser")
   notificationUser Notification[]  @relation("notificationUser")
   Polls            Polls[]
-  Journey          Journey[]
   creatorId        PatronCreator[] @relation("creatorId")
   patronId         PatronCreator[] @relation("patronId")
 
@@ -134,16 +139,6 @@ model Polls {
   updatedAt       DateTime @updatedAt
 }
 
-model Journey {
-  id        String         @id @default(cuid())
-  user      User           @relation(fields: [userId], references: [id])
-  userId    String
-  path      String
-  method    REQUEST_METHOD @default(GET)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
 model PatronCreator {
   id        String   @id @default(cuid())
   patron    User     @relation("patronId", fields: [patronId], references: [id])
@@ -175,8 +170,52 @@ enum COUNTRY {
 }
 
 enum INDUSTRY {
+  BEAUTY_AND_MAKEUP
   MUSIC
+  COMEDY
+  PHOTOGRAPHY
+  POETRY
+  JOURNALISM
+  STREAMING
+  ESPORTS
+  MODELING
+  TECHNOLOGY_REVIEWS
+  SOFTWARE_DEVELOPMENT
+  FITNESS_TRAINING
+  NUTRITION
+  DIY_CRAFTS
+  HOME_RENOVATION
+  TRAVEL_BLOGGING
+  ADVENTURE
+  SCIENCE_COMMUNICATION
+  ONLINE_EDUCATION
+  LIFE_COACHING
+  SOCIAL_ACTIVISM
+  ANIMAL_WELFARE
+  CULTURAL_INFLUENCE
+  HANDMADE_CRAFTS
+  CAR_ENTHUSIASTS
+  COLLECTING
+  HOBBYISTS
+  ENTERTAINMENT_INDUSTRY
+  VISUAL_ARTS
+  WRITING_AND_PUBLISHING
   GAMING
+  FASHION_AND_BEAUTY
+  COOKING_AND_FOOD
+  TECHNOLOGY_AND_GADGETS
+  HEALTH_AND_FITNESS
+  DIY_AND_HOME_IMPROVEMENT
+  TRAVEL_AND_ADVENTURE
+  SCIENCE_AND_EDUCATION
+  PERSONAL_DEVELOPMENT_AND_MOTIVATION
+  PARENTING_AND_FAMILY
+  FINANCE_AND_INVESTMENT
+  PETS_AND_ANIMALS
+  LIFESTYLE_AND_CULTURE
+  ARTISANS_AND_CRAFTSMEN
+  AUTOMOTIVE_AND_DIY_MECHANICS
+  NICHE_HOBBIES
 }
 
 enum GENDER {

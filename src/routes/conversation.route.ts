@@ -1,6 +1,6 @@
 import express from "express";
 import { ConversationController } from "../controllers/conversation.controller";
-import fetchUser from "../middlewares/fetchUser.middleware";
+import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 
 const conversationRoutes = express.Router();
 
@@ -8,29 +8,29 @@ const conversationRoutes = express.Router();
 
 conversationRoutes.get(
   "/getAllConversationsByUser",
-  fetchUser,
+  checkRoleAuth(),
   ConversationController.getAllConversationsByUser,
 );
 
 conversationRoutes.get(
   "/getAllSearchableUsers",
-  fetchUser,
+  checkRoleAuth(),
   ConversationController.getAllSearchableUsers,
 );
 
 conversationRoutes.post(
   "/createConversation",
-  fetchUser,
+  checkRoleAuth(),
   ConversationController.createConversation,
 );
 
 //------------ Message ----------------
 
-conversationRoutes.post("/createMessage", fetchUser, ConversationController.createMessage);
+conversationRoutes.post("/createMessage", checkRoleAuth(), ConversationController.createMessage);
 
 conversationRoutes.get(
   "/getAllMessageByConversation",
-  fetchUser,
+  checkRoleAuth(),
   ConversationController.getAllMessageByConversation,
 );
 

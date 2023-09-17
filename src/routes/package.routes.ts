@@ -1,21 +1,25 @@
 import express from "express";
 import { PackageController } from "../controllers/package.controller";
-import fetchUser from "../middlewares/fetchUser.middleware";
+import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 
 const packageRoutes = express.Router();
 
-packageRoutes.post("/createOnePackage", fetchUser, PackageController.createOnePackage);
+packageRoutes.post(
+  "/createOnePackage",
+  checkRoleAuth(["ADMIN"]),
+  PackageController.createOnePackage,
+);
 
-packageRoutes.get("/getPackageByUser", fetchUser, PackageController.getPackageByUser);
+packageRoutes.get("/getPackageByUser", checkRoleAuth(), PackageController.getPackageByUser);
 
-packageRoutes.get("/getPackage", fetchUser, PackageController.getPackage);
+packageRoutes.get("/getPackage", checkRoleAuth(), PackageController.getPackage);
 
-packageRoutes.post("/buyPackage", fetchUser, PackageController.buyPackage);
+packageRoutes.post("/buyPackage", checkRoleAuth(), PackageController.buyPackage);
 
 //-------------------
 
-packageRoutes.post("/createOneTier", fetchUser, PackageController.createOneTier);
+packageRoutes.post("/createOneTier", checkRoleAuth(["ADMIN"]), PackageController.createOneTier);
 
-packageRoutes.get("/getAllTier", fetchUser, PackageController.getAllTier);
+packageRoutes.get("/getAllTier", checkRoleAuth(), PackageController.getAllTier);
 
 export default packageRoutes;

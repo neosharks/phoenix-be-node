@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import passport from "passport";
@@ -8,7 +8,6 @@ import routes from "./src/routes/index.route";
 import config from "./config";
 import Logger from "./src/core/logger.core";
 import "./src/middlewares/passport.middleware";
-import { deserializeUserOnRequest } from "./src/middlewares/deserialise.middleware";
 
 process.on("uncaughtException", (e) => {
   Logger.error("-----uncaughtException-----", e);
@@ -24,7 +23,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));
 app.use(passport.initialize());
-app.use(deserializeUserOnRequest);
 
 app.use(
   morgan((tokens, req, res) => {
