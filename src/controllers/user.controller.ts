@@ -8,6 +8,14 @@ class _UserController {
     return res.status(201).send({ message: "success", user: found });
   }
 
+  async getUserByUsername(req: Request, res: Response) {
+    const { username } = req.params;
+    if (!username) return res.status(400).send({ message: "provide username" });
+    const found = await UserService.getOneUser({ username });
+    if (!found) return res.status(404).send({ message: "user cannot be found" });
+    return res.status(200).send({ message: "success", user: found });
+  }
+
   async creatorOnboard(req: Request, res: Response) {
     const id = res.locals.user.id;
     const {

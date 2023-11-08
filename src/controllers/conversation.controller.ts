@@ -6,7 +6,6 @@ import { UserService } from "../services/user.service";
 class _ConversationController {
   async createConversation(req: Request, res: Response) {
     const { participants } = req.body;
-    console.log(req.body);
     const foundConversation = await ConversationService.getOneConversation({
       OR: [
         { participantOneId: participants[0], participantTwoId: participants[1] },

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import axios from "axios";
 import { UserService } from "../services/user.service";
 import { signJwt } from "../core/jwt.core";
 import { generateRandomUsername } from "../lib/helper.lib";
@@ -104,6 +105,38 @@ class _AuthController {
       );
     const accessToken = await signJwt(createdUser);
     return res.status(201).json({ messge: "success", accessToken, user: createdUser });
+  }
+
+  async googleAuth(req: Request, res: Response) {
+    const { googleAccessToken } = req.body;
+    if (!googleAccessToken)
+      return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const FetchResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: {
+        Authorization: `Bearer ${googleAccessToken}`,
+      },
+    });
+    const { email, picture, family_name, given_name, sub } = FetchResponse.data;
+    let foundUser = await UserService.getOneUser({ email });
+    if (!foundUser) {
+      const randomNum = (Math.random() * 25) | 1;
+      const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+      const user = {
+        googleAuthId: sub,
+        email: email,
+        firstName: given_name,
+        lastName: family_name,
+        profileImage: picture ? picture : profileImage,
+        username: email,
+        emailVerified: true,
+      };
+      foundUser = await UserService.createOneUser(user);
+      console.log(foundUser, "user created");
+    } else {
+      await UserService.updateOneUser({ email: email }, { googleAuthId: sub, emailVerified: true });
+    }
+    const token = await signJwt(foundUser);
+    return res.status(200).json({ message: "Success", accessToken: token, user: foundUser });
   }
 
   async logout(req: Request, res: Response) {

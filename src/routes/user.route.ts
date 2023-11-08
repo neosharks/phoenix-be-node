@@ -6,6 +6,8 @@ const userRoutes = express.Router();
 
 userRoutes.get("/get", checkRoleAuth(), UserController.getUser);
 
+userRoutes.get("/getByUsername/:username", UserController.getUserByUsername);
+
 userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboard);
 
 export default userRoutes;

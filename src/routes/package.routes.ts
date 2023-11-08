@@ -1,25 +1,36 @@
 import express from "express";
 import { PackageController } from "../controllers/package.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
+import { userRole } from "../constant/role.constant";
 
 const packageRoutes = express.Router();
 
 packageRoutes.post(
   "/createOnePackage",
-  checkRoleAuth(["ADMIN"]),
+  checkRoleAuth([userRole.CREATOR]),
   PackageController.createOnePackage,
 );
 
-packageRoutes.get("/getPackageByUser", checkRoleAuth(), PackageController.getPackageByUser);
+packageRoutes.get("/getAllPackagesByUser/:username", PackageController.getAllPackagesByUser);
 
-packageRoutes.get("/getPackage", checkRoleAuth(), PackageController.getPackage);
+packageRoutes.get("/getOnePackage", checkRoleAuth(), PackageController.getOnePackage);
 
 packageRoutes.post("/buyPackage", checkRoleAuth(), PackageController.buyPackage);
 
 //-------------------
 
-packageRoutes.post("/createOneTier", checkRoleAuth(["ADMIN"]), PackageController.createOneTier);
+packageRoutes.post(
+  "/createOneTier",
+  checkRoleAuth([userRole.ADMIN]),
+  PackageController.createOneTier,
+);
 
-packageRoutes.get("/getAllTier", checkRoleAuth(), PackageController.getAllTier);
+packageRoutes.post(
+  "/createManyTier",
+  checkRoleAuth([userRole.ADMIN]),
+  PackageController.createManyTier,
+);
+
+packageRoutes.get("/getAllTiers", checkRoleAuth(), PackageController.getAllTiers);
 
 export default packageRoutes;

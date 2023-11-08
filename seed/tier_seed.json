@@ -1,0 +1,32 @@
+[
+    {
+        "name": "General support",
+        "tierType": "GENERAL_SUPPORT",
+        "description": "Add this benefit to indicate that some or all of this tier is purely monetary support (i.e. patrons don’t receive anything in return) to ensure patrons pay the correct amount of sales tax for their pledge where applicable."
+    },
+    {
+        "name": "Behind-the-scenes content",
+        "tierType": "BEHIND_THE_SCENES",
+        "description": "Give patrons a glimpse into your creative process"
+    },
+    {
+        "name": "One Time Message",
+        "tierType": "ONE_TIME_MESSAGE",
+        "description": "Offer patrons the ability to message you on chat"
+    },
+    {
+        "name": "Unlimited Message",
+        "tierType": "UNLIMITED_MESSAGE",
+        "description": "Offer patrons the ability to message you unlimited times, delivered digitally"
+    },
+    {
+        "name": "Digital downloads",
+        "tierType": "DIGITAL_DOWNLOADS",
+        "description": "Give your fans downloadable digital goods"
+    },
+    {
+        "name": "Early ticket access",
+        "tierType": "EARLY_TICKETS",
+        "description": "Offer premium or early access tickets for live events"
+    }
+]

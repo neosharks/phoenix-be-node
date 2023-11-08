@@ -1,20 +1,24 @@
 import prisma from "../../prisma";
 
 class _PackageService {
-  async getAllUserPackages(query: any) {
+  async getAllPackagesByUser(query: any) {
     return await prisma.package.findMany({ where: query, include: { tier: true } });
   }
 
-  async getPackage(query: any) {
-    return await prisma.package.findFirst({ where: query, include: { tier: true } });
+  async getAllPatronCreatorByUser() {
+    return await prisma.patronCreator.findMany();
+  }
+
+  async getOnePackage(query: any) {
+    return await prisma.package.findUnique({ where: query, include: { tier: true } });
   }
 
   async createOnePackage(dataValues: any) {
-    const { tier, name, image, price, description, userId } = dataValues;
+    const { tier, name, price, description, userId } = dataValues;
     return await prisma.package.create({
       data: {
         name,
-        image,
+        image: "https://random.imagecdn.app/500/150",
         price,
         description,
         userId,
@@ -35,6 +39,14 @@ class _PackageService {
 
   async createOneTier(data: any) {
     return await prisma.tier.create({ data: data });
+  }
+
+  async linkPatronCreator(creatorId: string, patronId: string, packageId: string) {
+    const currentTimestamp = Date.now();
+    const dateObject = new Date(currentTimestamp);
+    return await prisma.patronCreator.create({
+      data: { patronId, packageId, creatorId, expiry: dateObject },
+    });
   }
 }
 

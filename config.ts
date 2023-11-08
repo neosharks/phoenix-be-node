@@ -15,8 +15,4 @@ export default {
   jwt: {
     accessTokenKey: process.env.ACCESS_TOKEN_KEY ?? "dfadfasrdjsaf",
   },
-  passport: {
-    googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
-    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-  },
 };
