@@ -1,0 +1,160 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthController = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const axios_1 = __importDefault(require("axios"));
+const user_service_1 = require("../services/user.service");
+const jwt_core_1 = require("../core/jwt.core");
+const helper_lib_1 = require("../lib/helper.lib");
+const api_constant_1 = require("../constant/api.constant");
+const logger_core_1 = __importDefault(require("../core/logger.core"));
+class _AuthController {
+    register(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const body = req.body;
+                const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
+                if (foundUser)
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.USER_EXISTS });
+                const saltRounds = 10;
+                const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
+                const hash = yield bcrypt_1.default.hashSync(body.password, salt);
+                body.password = hash;
+                body.username = body.email.split("@")[0];
+                const randomNum = (Math.random() * 25) | 1;
+                const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                const created = yield user_service_1.UserService.createOneUser(Object.assign(Object.assign({}, body), { profileImage }));
+                const accessToken = yield (0, jwt_core_1.signJwt)(created);
+                return res.status(201).json({ messge: "success", accessToken, user: created });
+            }
+            catch (err) {
+                logger_core_1.default.error("Error in register");
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: err });
+            }
+        });
+    }
+    login(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const body = req.body;
+            const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
+            if (!foundUser)
+                return res.status(403).json({ message: "User is not registered" });
+            let isMatch = false;
+            if (foundUser.password)
+                isMatch = yield bcrypt_1.default.compareSync(body.password, foundUser.password);
+            if (!foundUser.password)
+                return res.status(403).json({ message: "Login via OAuth" });
+            if (!isMatch)
+                return res.status(403).json({ message: "Wrong Password" });
+            const accessToken = yield (0, jwt_core_1.signJwt)(foundUser);
+            return res.status(201).json({ messge: "success", accessToken, user: foundUser });
+        });
+    }
+    sendOtp(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { number } = req.body;
+            if (!number)
+                return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
+            let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
+            const commonProps = {
+                verificationCode: otpGenerated,
+                verificationCodeSource: "SMS",
+            };
+            if (foundUser)
+                yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign({}, commonProps));
+            else {
+                const username = (0, helper_lib_1.generateRandomUsername)();
+                const randomNum = (Math.random() * 25) | 1;
+                const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage }, commonProps));
+            }
+            return res.status(200).json({ message: "OTP successfully sent" });
+        });
+    }
+    loginViaNumber(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { number, otp } = req.body;
+            if (!number || !otp)
+                res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
+            if (!foundUser)
+                return res.status(403).json({ message: "User is not registered" });
+            let isMatch = false;
+            if (!foundUser.verificationCode)
+                return res.status(403).json({ message: "Generate OTP first" });
+            if (foundUser.verificationCode)
+                isMatch = parseInt(otp) === foundUser.verificationCode;
+            if (!isMatch)
+                return res.status(403).json({ message: "Incorrect OTP" });
+            let createdUser = {};
+            const commonProps = {
+                verificationCode: null,
+                verificationCodeSource: null,
+                verificationCodeType: null,
+                verificationCodeTimestamp: null,
+            };
+            if (!foundUser.phoneVerified) {
+                createdUser = yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign({ phoneVerified: true }, commonProps));
+            }
+            else
+                createdUser = yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign({}, commonProps));
+            const accessToken = yield (0, jwt_core_1.signJwt)(createdUser);
+            return res.status(201).json({ messge: "success", accessToken, user: createdUser });
+        });
+    }
+    googleAuth(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { googleAccessToken } = req.body;
+            if (!googleAccessToken)
+                return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const FetchResponse = yield axios_1.default.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+                headers: {
+                    Authorization: `Bearer ${googleAccessToken}`,
+                },
+            });
+            const { email, picture, family_name, given_name, sub } = FetchResponse.data;
+            let foundUser = yield user_service_1.UserService.getOneUser({ email });
+            if (!foundUser) {
+                const randomNum = (Math.random() * 25) | 1;
+                const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                const user = {
+                    googleAuthId: sub,
+                    email: email,
+                    firstName: given_name,
+                    lastName: family_name,
+                    profileImage: picture ? picture : profileImage,
+                    username: email.split("@")[0],
+                    emailVerified: true,
+                };
+                foundUser = yield user_service_1.UserService.createOneUser(user);
+                console.log(foundUser, "user created");
+            }
+            else {
+                yield user_service_1.UserService.updateOneUser({ email: email }, { googleAuthId: sub, emailVerified: true });
+            }
+            const token = yield (0, jwt_core_1.signJwt)(foundUser);
+            return res.status(200).json({ message: "Success", accessToken: token, user: foundUser });
+        });
+    }
+    logout(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return res.status(200).json({ message: "Logged out" });
+        });
+    }
+}
+exports.AuthController = new _AuthController();

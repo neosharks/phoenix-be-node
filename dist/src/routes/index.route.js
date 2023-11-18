@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const auth_route_1 = __importDefault(require("./auth.route"));
+const conversation_route_1 = __importDefault(require("./conversation.route"));
+const package_routes_1 = __importDefault(require("./package.routes"));
+const user_route_1 = __importDefault(require("./user.route"));
+const userPost_route_1 = __importDefault(require("./userPost.route"));
+const common_routes_1 = __importDefault(require("./common.routes"));
+const router = express_1.default.Router();
+router.get("/", (_, res) => res.send("<h1>Healthy server!</h1>"));
+router.get("/fail", (_, res) => res.send("<h1>Fail</h1>"));
+router.use("/common", common_routes_1.default);
+router.use("/auth", auth_route_1.default);
+router.use("/conversation", conversation_route_1.default);
+router.use("/user", user_route_1.default);
+router.use("/package", package_routes_1.default);
+router.use("/userpost", userPost_route_1.default);
+exports.default = router;
