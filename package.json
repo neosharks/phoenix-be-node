@@ -16,6 +16,7 @@
   "dependencies": {
     "@prisma/client": "5.0.0",
     "@types/morgan": "^1.9.4",
+    "aws-sdk": "^2.1494.0",
     "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",

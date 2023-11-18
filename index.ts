@@ -1,7 +1,12 @@
-import Logger from "./src/core/logger.core";
+import { checkForNullOrUndefinedKeys } from "./src/lib/helper.lib";
+import logger from "./src/core/logger.core";
 import config from "./config";
 import app from "./server";
 
-const port = config.main.port;
-
-app.listen(port).on("error", (e) => Logger.error("Error in starting server", e));
+const res = checkForNullOrUndefinedKeys(config);
+if (res.length < 1) {
+  const port = config.main.port;
+  app
+    .listen(port, () => logger.info(`SERVER UP AT PORT ${port}`))
+    .on("error", (e) => logger.error("Error in starting server", e));
+} else logger.info(`SERVER STOPPED DUE TO UNSET ENV VARS: ${res}`);

@@ -127,7 +127,7 @@ class _AuthController {
         firstName: given_name,
         lastName: family_name,
         profileImage: picture ? picture : profileImage,
-        username: email,
+        username: email.split("@")[0],
         emailVerified: true,
       };
       foundUser = await UserService.createOneUser(user);

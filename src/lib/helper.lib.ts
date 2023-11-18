@@ -1,3 +1,22 @@
+export const checkForNullOrUndefinedKeys = (configObject: any) => {
+  const nullOrUndefinedKeys = [];
+  for (const section in configObject) {
+    if (Object.hasOwnProperty.call(configObject, section)) {
+      const sectionKeys = Object.keys(configObject[section]);
+      for (const key of sectionKeys) {
+        if (
+          configObject[section][key] === null ||
+          configObject[section][key] === undefined ||
+          configObject[section][key] === ""
+        ) {
+          nullOrUndefinedKeys.push(`${section}.${key}`);
+        }
+      }
+    }
+  }
+  return nullOrUndefinedKeys;
+};
+
 export const generateRandomUsername = () => {
   const adjectives = [
     "happy",
