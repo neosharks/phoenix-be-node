@@ -12,6 +12,16 @@ userPostRoutes.post(
   UserPostController.createOneUserPost,
 );
 
+userPostRoutes.post(
+  "/commentOnPostByUser",
+  checkRoleAuth(),
+  UserPostController.commentOnPostByUser,
+);
+
+userPostRoutes.post("/likePostToggle", checkRoleAuth(), UserPostController.likePostToggle);
+
+userPostRoutes.get("/getAllPostForUser", checkRoleAuth(), UserPostController.getAllPostForUser);
+
 userPostRoutes.get("/getAllUserPostByUser", UserPostController.getAllUserPostByUser);
 
 userPostRoutes.get("/getOneUserPost", checkRoleAuth(), UserPostController.getOneUserPost);

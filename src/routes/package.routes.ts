@@ -11,9 +11,17 @@ packageRoutes.post(
   PackageController.createOnePackage,
 );
 
-packageRoutes.get("/getAllPackagesByUser/:username", PackageController.getAllPackagesByUser);
+packageRoutes.get("/getAllPackagesOfCreator/:username", PackageController.getAllPackagesOfCreator);
 
 packageRoutes.get("/getOnePackage", checkRoleAuth(), PackageController.getOnePackage);
+
+packageRoutes.get(
+  "/getAllSubscriptions/:username",
+  checkRoleAuth(),
+  PackageController.useGetAllSubscriptions,
+);
+
+packageRoutes.get("/getAllPatronsByCreator/:username", PackageController.getAllPatronsByCreator);
 
 packageRoutes.post("/buyPackage", checkRoleAuth(), PackageController.buyPackage);
 

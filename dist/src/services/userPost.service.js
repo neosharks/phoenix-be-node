@@ -17,12 +17,76 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _UserPostService {
     getAllUserPostByUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.userPost.findMany({ where: query });
+            return yield prisma_1.default.userPost.findMany({
+                where: query,
+                include: {
+                    comments: {
+                        select: {
+                            body: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            author: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    profileImage: true,
+                                    email: true,
+                                    username: true,
+                                    role: true,
+                                },
+                            },
+                        },
+                    },
+                    likedBy: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            profileImage: true,
+                            email: true,
+                            username: true,
+                            role: true,
+                        },
+                    },
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            profileImage: true,
+                            email: true,
+                            username: true,
+                            role: true,
+                        },
+                    },
+                },
+            });
         });
     }
     getOneUserPost(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.userPost.findUnique({ where: query });
+            return yield prisma_1.default.userPost.findUnique({
+                where: query,
+                include: {
+                    comments: true,
+                    likedBy: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            profileImage: true,
+                            email: true,
+                            username: true,
+                        },
+                    },
+                },
+            });
+        });
+    }
+    updateOneUserPost(query, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.userPost.update({ where: query, data: data });
         });
     }
     createOneUserPost(dataValues) {
@@ -30,6 +94,14 @@ class _UserPostService {
             const { body, authorId, title, type, image } = dataValues;
             return yield prisma_1.default.userPost.create({
                 data: { body, authorId, title, type, image },
+            });
+        });
+    }
+    createOneComment(dataValues) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { body, authorId, userPostId } = dataValues;
+            return yield prisma_1.default.postComment.create({
+                data: { body, authorId, userPostId },
             });
         });
     }

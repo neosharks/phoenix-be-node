@@ -8,17 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageController = void 0;
 const package_service_1 = require("../services/package.service");
 const conversation_service_1 = require("../services/conversation.service");
+const patronCreator_service_1 = require("../services/patronCreator.service");
+const prisma_1 = __importDefault(require("../../prisma"));
 class _PackageController {
-    getAllPackagesByUser(req, res) {
+    getAllPackagesOfCreator(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { username } = req.params;
             if (!username)
                 return res.status(400).send({ message: "provide username" });
-            const found = yield package_service_1.PackageService.getAllPackagesByUser({
+            const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                 User: {
                     username: username,
                 },
@@ -32,6 +37,36 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.query;
             const found = yield package_service_1.PackageService.getOnePackage({ id });
+            if (!found)
+                return res.status(404).send({ message: "Package not found" });
+            return res.status(201).send({ message: "success", data: found });
+        });
+    }
+    useGetAllSubscriptions(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { username } = req.params;
+            if (!username)
+                return res.status(400).send({ message: "provide username" });
+            const found = yield patronCreator_service_1.PatronCreatorService.getAll({
+                patron: {
+                    username: username,
+                },
+            });
+            if (!found)
+                return res.status(404).send({ message: "Package not found" });
+            return res.status(201).send({ message: "success", data: found });
+        });
+    }
+    getAllPatronsByCreator(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { username } = req.params;
+            if (!username)
+                return res.status(400).send({ message: "provide username" });
+            const found = yield patronCreator_service_1.PatronCreatorService.getAll({
+                creator: {
+                    username: username,
+                },
+            });
             if (!found)
                 return res.status(404).send({ message: "Package not found" });
             return res.status(201).send({ message: "success", data: found });
@@ -57,12 +92,24 @@ class _PackageController {
             const tierUserPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId, userId: user.id });
             if (tierUserPackage)
                 return res.status(400).send({ message: "User cannot purchase his own package" });
-            yield package_service_1.PackageService.linkPatronCreator(foundPackage.userId, user.id, packageId);
+            const foundAlreadyPurchase = yield patronCreator_service_1.PatronCreatorService.getFirst({
+                patronId: user.id,
+                creatorId: userId,
+                packageId: foundPackage.id,
+            });
+            if (foundAlreadyPurchase)
+                return res.status(400).send({ message: "Package already purchased" });
             tier &&
                 tier.length > 0 &&
                 tier.map((ele) => __awaiter(this, void 0, void 0, function* () {
                     if (ele.tierType === "UNLIMITED_MESSAGE") {
-                        yield conversation_service_1.ConversationService.createOneConversation([user.id, userId]);
+                        const conversations = yield prisma_1.default.conversation.findMany({
+                            where: {
+                                OR: [{ participantOneId: userId }, { participantTwoId: userId }],
+                            },
+                        });
+                        if (conversations.length === 0)
+                            yield conversation_service_1.ConversationService.createOneConversation([user.id, userId]);
                     }
                     if (ele.tierType === "GENERAL_SUPPORT") {
                         //
@@ -77,6 +124,7 @@ class _PackageController {
                         //
                     }
                 }));
+            yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId, Date.now());
             return res.status(201).send({ message: "success" });
         });
     }

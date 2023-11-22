@@ -8,6 +8,8 @@ userRoutes.get("/get", checkRoleAuth(), UserController.getUser);
 
 userRoutes.get("/getByUsername/:username", UserController.getUserByUsername);
 
+userRoutes.get("/getAllCreators", checkRoleAuth(), UserController.getAllCreator);
+
 userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboard);
 
 export default userRoutes;

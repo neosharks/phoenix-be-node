@@ -56,8 +56,9 @@ model User {
   Poll             Poll[]
   creatorId        PatronCreator[] @relation("creatorId")
   patronId         PatronCreator[] @relation("patronId")
-  UserPost         UserPost[]
   Comment          PostComment[]
+  UserPostAuthor   UserPost[]      @relation("userPostAuthor")
+  likedByUser      UserPost[]      @relation("likedByUser")
 
   @@index([email, username, phoneNumber])
 }
@@ -145,10 +146,11 @@ model PatronCreator {
 
 model UserPost {
   id        String         @id @default(cuid())
-  author    User           @relation(fields: [authorId], references: [id])
+  author    User           @relation("userPostAuthor", fields: [authorId], references: [id])
   authorId  String
   type      USER_POST_TYPE @default(TEXT)
-  Comment   PostComment[]
+  comments  PostComment[]
+  likedBy   User[]         @relation("likedByUser")
   body      String
   image     String?
   title     String?

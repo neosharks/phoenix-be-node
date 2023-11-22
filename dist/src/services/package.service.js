@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 class _PackageService {
-    getAllPackagesByUser(query) {
+    getAllPackagesOfCreator(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
         });
@@ -60,12 +60,10 @@ class _PackageService {
             return yield prisma_1.default.tier.create({ data: data });
         });
     }
-    linkPatronCreator(creatorId, patronId, packageId) {
+    linkPatronCreator(patronId, creatorId, packageId, expiry) {
         return __awaiter(this, void 0, void 0, function* () {
-            const currentTimestamp = Date.now();
-            const dateObject = new Date(currentTimestamp);
             return yield prisma_1.default.patronCreator.create({
-                data: { patronId, packageId, creatorId, expiry: dateObject },
+                data: { patronId, creatorId, packageId, expiry: new Date() },
             });
         });
     }

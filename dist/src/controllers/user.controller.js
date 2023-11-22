@@ -30,6 +30,14 @@ class _UserController {
             return res.status(200).send({ message: "success", user: found });
         });
     }
+    getAllCreator(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const found = yield user_service_1.UserService.getAllUserByParams({ isCreator: true });
+            if (!found)
+                return res.status(404).send({ message: "user cannot be found" });
+            return res.status(200).send({ message: "success", data: found });
+        });
+    }
     creatorOnboard(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const id = res.locals.user.id;

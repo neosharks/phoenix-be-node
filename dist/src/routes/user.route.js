@@ -9,5 +9,6 @@ const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middlew
 const userRoutes = express_1.default.Router();
 userRoutes.get("/get", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.getUser);
 userRoutes.get("/getByUsername/:username", user_controller_1.UserController.getUserByUsername);
+userRoutes.get("/getAllCreators", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.getAllCreator);
 userRoutes.post("/creatorOnboard", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.creatorOnboard);
 exports.default = userRoutes;

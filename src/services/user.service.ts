@@ -7,6 +7,21 @@ class _UserService {
     return await prisma.user.findUnique({ where: query });
   }
 
+  async getAllUserByParams(query: any) {
+    return await prisma.user.findMany({
+      where: query,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImage: true,
+        email: true,
+        username: true,
+        role: true,
+      },
+    });
+  }
+
   async getAllUser() {
     return await prisma.user.findMany({
       select: {

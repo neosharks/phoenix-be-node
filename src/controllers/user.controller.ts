@@ -16,6 +16,12 @@ class _UserController {
     return res.status(200).send({ message: "success", user: found });
   }
 
+  async getAllCreator(req: Request, res: Response) {
+    const found = await UserService.getAllUserByParams({ isCreator: true });
+    if (!found) return res.status(404).send({ message: "user cannot be found" });
+    return res.status(200).send({ message: "success", data: found });
+  }
+
   async creatorOnboard(req: Request, res: Response) {
     const id = res.locals.user.id;
     const {

@@ -21,6 +21,22 @@ class _UserService {
             return yield prisma_1.default.user.findUnique({ where: query });
         });
     }
+    getAllUserByParams(query) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.user.findMany({
+                where: query,
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImage: true,
+                    email: true,
+                    username: true,
+                    role: true,
+                },
+            });
+        });
+    }
     getAllUser() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.user.findMany({

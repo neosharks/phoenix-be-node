@@ -1,7 +1,7 @@
 import prisma from "../../prisma";
 
 class _PackageService {
-  async getAllPackagesByUser(query: any) {
+  async getAllPackagesOfCreator(query: any) {
     return await prisma.package.findMany({ where: query, include: { tier: true } });
   }
 
@@ -41,11 +41,9 @@ class _PackageService {
     return await prisma.tier.create({ data: data });
   }
 
-  async linkPatronCreator(creatorId: string, patronId: string, packageId: string) {
-    const currentTimestamp = Date.now();
-    const dateObject = new Date(currentTimestamp);
+  async linkPatronCreator(patronId: string, creatorId: string, packageId: string, expiry: any) {
     return await prisma.patronCreator.create({
-      data: { patronId, packageId, creatorId, expiry: dateObject },
+      data: { patronId, creatorId, packageId, expiry: new Date() },
     });
   }
 }

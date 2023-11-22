@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
 import { PackageService } from "../services/package.service";
 import { ConversationService } from "../services/conversation.service";
+import { PatronCreatorService } from "../services/patronCreator.service";
+import prisma from "../../prisma";
 
 class _PackageController {
-  async getAllPackagesByUser(req: Request, res: Response) {
+  async getAllPackagesOfCreator(req: Request, res: Response) {
     const { username } = req.params;
     if (!username) return res.status(400).send({ message: "provide username" });
-    const found = await PackageService.getAllPackagesByUser({
+    const found = await PackageService.getAllPackagesOfCreator({
       User: {
         username: username,
       },
@@ -18,6 +20,30 @@ class _PackageController {
   async getOnePackage(req: Request, res: Response) {
     const { id } = req.query;
     const found = await PackageService.getOnePackage({ id });
+    if (!found) return res.status(404).send({ message: "Package not found" });
+    return res.status(201).send({ message: "success", data: found });
+  }
+
+  async useGetAllSubscriptions(req: Request, res: Response) {
+    const { username } = req.params;
+    if (!username) return res.status(400).send({ message: "provide username" });
+    const found = await PatronCreatorService.getAll({
+      patron: {
+        username: username,
+      },
+    });
+    if (!found) return res.status(404).send({ message: "Package not found" });
+    return res.status(201).send({ message: "success", data: found });
+  }
+
+  async getAllPatronsByCreator(req: Request, res: Response) {
+    const { username } = req.params;
+    if (!username) return res.status(400).send({ message: "provide username" });
+    const found = await PatronCreatorService.getAll({
+      creator: {
+        username: username,
+      },
+    });
     if (!found) return res.status(404).send({ message: "Package not found" });
     return res.status(201).send({ message: "success", data: found });
   }
@@ -38,13 +64,24 @@ class _PackageController {
     const tierUserPackage = await PackageService.getOnePackage({ id: packageId, userId: user.id });
     if (tierUserPackage)
       return res.status(400).send({ message: "User cannot purchase his own package" });
-    await PackageService.linkPatronCreator(foundPackage.userId, user.id, packageId);
+    const foundAlreadyPurchase = await PatronCreatorService.getFirst({
+      patronId: user.id,
+      creatorId: userId,
+      packageId: foundPackage.id,
+    });
+    if (foundAlreadyPurchase) return res.status(400).send({ message: "Package already purchased" });
 
     tier &&
       tier.length > 0 &&
       tier.map(async (ele) => {
         if (ele.tierType === "UNLIMITED_MESSAGE") {
-          await ConversationService.createOneConversation([user.id, userId]);
+          const conversations = await prisma.conversation.findMany({
+            where: {
+              OR: [{ participantOneId: userId }, { participantTwoId: userId }],
+            },
+          });
+          if (conversations.length === 0)
+            await ConversationService.createOneConversation([user.id, userId]);
         }
         if (ele.tierType === "GENERAL_SUPPORT") {
           //
@@ -59,6 +96,8 @@ class _PackageController {
           //
         }
       });
+    await PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId, Date.now());
+
     return res.status(201).send({ message: "success" });
   }
 
