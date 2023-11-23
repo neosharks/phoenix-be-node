@@ -33,6 +33,7 @@ class _UserService {
                     email: true,
                     username: true,
                     role: true,
+                    industry: true,
                 },
             });
         });

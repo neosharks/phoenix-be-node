@@ -35,13 +35,21 @@ class _UserPostController {
     getAllPostForUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = res.locals.user;
+            let returnPosts = [];
             const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getAll({ patronId: id });
-            if (!foundPatronCreator)
-                return res.status(404).send({ message: "" });
-            const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id });
-            if (!found)
-                return res.status(404).send({ message: "user post cannot be found" });
-            return res.status(200).send({ message: "success", data: found });
+            if (!foundPatronCreator || foundPatronCreator.length === 0)
+                return res.status(200).send({ message: "No Posts found" });
+            for (let i = 0; i < foundPatronCreator.length; i++) {
+                const ele = foundPatronCreator[i];
+                const allPostsByUser = yield userPost_service_1.UserPostService.getAllUserPostByUser({
+                    authorId: ele.creatorId,
+                });
+                returnPosts = [...returnPosts, ...allPostsByUser];
+            }
+            returnPosts = returnPosts.sort(function (a, b) {
+                return a.createdAt - b.createdAt;
+            });
+            return res.status(200).send({ message: "success", data: returnPosts });
         });
     }
     getOneUserPost(req, res) {
