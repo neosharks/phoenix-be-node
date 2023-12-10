@@ -76,6 +76,21 @@ class _UserPostService {
     const { body, authorId, title, type, image } = dataValues;
     return await prisma.userPost.create({
       data: { body, authorId, title, type, image },
+      include: {
+        likedBy: true,
+        comments: true,
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+            role: true,
+          },
+        },
+      },
     });
   }
 
@@ -83,6 +98,19 @@ class _UserPostService {
     const { body, authorId, userPostId } = dataValues;
     return await prisma.postComment.create({
       data: { body, authorId, userPostId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            email: true,
+            username: true,
+            role: true,
+          },
+        },
+      },
     });
   }
 }

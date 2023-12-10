@@ -101,7 +101,18 @@ class _ConversationService {
     }
     createOneMessage(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.message.create({ data: data });
+            return yield prisma_1.default.message.create({
+                data: data,
+                select: {
+                    id: true,
+                    conversationId: true,
+                    message: true,
+                    contentType: true,
+                    senderId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            });
         });
     }
 }

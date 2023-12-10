@@ -17,93 +17,139 @@ const userPost_service_1 = require("../services/userPost.service");
 const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
+const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { author } = req.query;
-            if (!author)
-                return res.status(400).send({ message: "provide author" });
-            const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
-            if (!foundUser)
-                return res.status(400).send({ message: "provide author" });
-            const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: foundUser.id });
-            if (!found)
-                return res.status(404).send({ message: "user post cannot be found" });
-            return res.status(200).send({ message: "success", data: found });
+            try {
+                const { author } = req.query;
+                if (!author)
+                    return res.status(400).send({ message: "provide author" });
+                const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
+                if (!foundUser)
+                    return res.status(400).send({ message: "provide author" });
+                const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: foundUser.id });
+                if (!found)
+                    return res.status(404).send({ message: "user post cannot be found" });
+                return res.status(200).send({ message: "success", data: found });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
         });
     }
     getAllPostForUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { id } = res.locals.user;
-            let returnPosts = [];
-            const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getAll({ patronId: id });
-            if (!foundPatronCreator || foundPatronCreator.length === 0)
-                return res.status(200).send({ message: "No Posts found" });
-            for (let i = 0; i < foundPatronCreator.length; i++) {
-                const ele = foundPatronCreator[i];
-                const allPostsByUser = yield userPost_service_1.UserPostService.getAllUserPostByUser({
-                    authorId: ele.creatorId,
+            try {
+                const { id } = res.locals.user;
+                let returnPosts = [];
+                const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getAll({ patronId: id });
+                for (let i = 0; i < foundPatronCreator.length; i++) {
+                    const ele = foundPatronCreator[i];
+                    const allPostsByUser = yield userPost_service_1.UserPostService.getAllUserPostByUser({
+                        authorId: ele.creatorId,
+                    });
+                    returnPosts = [...returnPosts, ...allPostsByUser];
+                }
+                const allUserPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id });
+                returnPosts = [...returnPosts, ...allUserPosts];
+                if (returnPosts.length === 0)
+                    return res.status(200).send({ message: "No Posts found" });
+                returnPosts = returnPosts.sort(function (a, b) {
+                    return b.updatedAt - a.updatedAt;
                 });
-                returnPosts = [...returnPosts, ...allPostsByUser];
+                return res.status(200).send({ message: "success", data: returnPosts });
             }
-            returnPosts = returnPosts.sort(function (a, b) {
-                return a.createdAt - b.createdAt;
-            });
-            return res.status(200).send({ message: "success", data: returnPosts });
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
         });
     }
     getOneUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { id } = req.query;
-            if (!id)
-                return res.status(400).send({ message: "provide id" });
-            const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
-            if (!found)
-                return res.status(404).send({ message: "User Post not found" });
-            return res.status(201).send({ message: "success", data: found });
+            try {
+                const { id } = req.query;
+                if (!id)
+                    return res.status(400).send({ message: "provide id" });
+                const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
+                if (!found)
+                    return res.status(404).send({ message: "User Post not found" });
+                return res.status(201).send({ message: "success", data: found });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
         });
     }
     likePostToggle(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { postId } = req.body;
-            const { id } = res.locals.user;
-            if (!postId)
-                return res.status(400).send({ message: "Incomplete params" });
-            const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
-            if (!foundPost)
-                return res.status(400).send({ message: "Post Not found" });
-            const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
-            if (userIndex === -1) {
-                yield prisma_1.default.userPost.update({
-                    where: { id: postId },
-                    data: { likedBy: { connect: { id: id } } },
-                });
+            try {
+                const { postId } = req.body;
+                const { id } = res.locals.user;
+                if (!postId)
+                    return res.status(400).send({ message: "Incomplete params" });
+                const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
+                if (!foundPost)
+                    return res.status(400).send({ message: "Post Not found" });
+                const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
+                if (userIndex === -1) {
+                    yield prisma_1.default.userPost.update({
+                        where: { id: postId },
+                        data: { likedBy: { connect: { id: id } } },
+                    });
+                }
+                else {
+                    yield prisma_1.default.userPost.update({
+                        where: { id: postId },
+                        data: { likedBy: { disconnect: { id: id } } },
+                    });
+                }
+                res.status(201).send({ message: "created" });
             }
-            else {
-                yield prisma_1.default.userPost.update({
-                    where: { id: postId },
-                    data: { likedBy: { disconnect: { id: id } } },
-                });
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
             }
-            res.status(201).send({ message: "created" });
         });
     }
     createOneUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { body, authorId } = req.body;
-            if (!body || !authorId)
-                return res.status(400).send({ message: "Incomplete params" });
-            yield userPost_service_1.UserPostService.createOneUserPost(Object.assign({}, req.body));
-            res.status(201).send({ message: "created" });
+            try {
+                const { body, title, image } = req.body;
+                const { id } = res.locals.user;
+                if (!body || !id)
+                    return res.status(400).send({ message: "Incomplete params" });
+                const created = yield userPost_service_1.UserPostService.createOneUserPost({
+                    authorId: id,
+                    body,
+                    type: "TEXT",
+                    title,
+                    image,
+                });
+                res.status(201).send({ message: "created", data: created });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
         });
     }
     commentOnPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { body, authorId, userPostId } = req.body;
-            if (!body || !authorId || !userPostId)
-                return res.status(400).send({ message: "Incomplete params" });
-            yield userPost_service_1.UserPostService.createOneComment({ body, authorId, userPostId });
-            res.status(201).send({ message: "created" });
+            try {
+                const { body, authorId, userPostId } = req.body;
+                if (!body || !authorId || !userPostId)
+                    return res.status(400).send({ message: "Incomplete params" });
+                const created = yield userPost_service_1.UserPostService.createOneComment({ body, authorId, userPostId });
+                res.status(201).send({ message: "success", data: created });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
         });
     }
 }

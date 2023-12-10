@@ -81,7 +81,18 @@ class _ConversationService {
   }
 
   async createOneMessage(data: any) {
-    return await prisma.message.create({ data: data });
+    return await prisma.message.create({
+      data: data,
+      select: {
+        id: true,
+        conversationId: true,
+        message: true,
+        contentType: true,
+        senderId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }
 
