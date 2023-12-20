@@ -11,10 +11,10 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
     const { decoded }: any = verifyJwt(accessToken);
 
     if (decoded) {
-      res.locals.user = decoded;
       const { id } = decoded;
       const foundUser: any = await UserService.getOneUser({ id });
       if (!foundUser) return res.status(403).json({ message: "User not found" });
+      res.locals.user = foundUser;
       const userRoles = foundUser?.role || [];
 
       let hasRequiredRole = false;

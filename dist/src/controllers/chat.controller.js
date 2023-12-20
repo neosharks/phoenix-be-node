@@ -1,0 +1,104 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ChatController = void 0;
+const chat_service_1 = require("../services/chat.service");
+const user_service_1 = require("../services/user.service");
+const notification_service_1 = require("../services/notification.service");
+class _ChatController {
+    createChat(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { participants } = req.body;
+            const foundChat = yield chat_service_1.ChatService.getOneChat({
+                OR: [
+                    { participantOneId: participants[0], participantTwoId: participants[1] },
+                    { participantOneId: participants[1], participantTwoId: participants[0] },
+                ],
+            });
+            if (foundChat)
+                return res.status(400).json({ message: "chat already exists", data: foundChat });
+            const created = yield chat_service_1.ChatService.createOneChat(participants);
+            return res.status(201).json({ message: "Success", data: created });
+        });
+    }
+    getAllChatsByUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = res.locals.user;
+            const foundChat = yield chat_service_1.ChatService.getAllChat({
+                OR: [{ participantOneId: id }, { participantTwoId: id }],
+            });
+            const finalData = [];
+            for (let i = 0; i < foundChat.length; i++) {
+                const ele = foundChat[i];
+                const saveObj = {};
+                saveObj.id = ele.id;
+                saveObj.unreadCount = ele.unreadCount;
+                saveObj.participants = [ele.participantOne, ele.participantTwo];
+                const foundMessages = yield chat_service_1.ChatService.getAllMessageForChat({
+                    chatId: ele.id,
+                });
+                saveObj.messages = foundMessages;
+                finalData.push(saveObj);
+            }
+            return res.status(200).json({ chats: finalData });
+        });
+    }
+    getAllSearchableUsers(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const allUser = yield user_service_1.UserService.getAllUser();
+            return res.status(200).json({ contacts: allUser });
+        });
+    }
+    createMessage(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { chatId, senderId, message, contentType } = req.body;
+            const { isCreator, firstName, lastName } = res.locals.user;
+            const foundChat = yield chat_service_1.ChatService.getOneChat({ id: chatId });
+            if (!foundChat)
+                return res.status(400).json({ message: "No chat found" });
+            const createdChat = yield chat_service_1.ChatService.createOneMessage({
+                chatId,
+                senderId,
+                message,
+                contentType,
+            });
+            if (isCreator)
+                yield notification_service_1.NotificationService.createOneNotification({
+                    aboutUserId: senderId,
+                    notifiedUserId: foundChat.participantOneId === senderId
+                        ? foundChat.participantTwoId
+                        : foundChat.participantOneId,
+                    message: `You have a new message from ${firstName + " " + lastName}`,
+                    type: "MESSAGE",
+                });
+            return res.status(201).json({ message: "Success", data: createdChat });
+        });
+    }
+    getAllMessageByChat(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.query;
+            const foundChat = yield chat_service_1.ChatService.getOneChat({ id: id });
+            const participants = [foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantOne, foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantTwo];
+            const found = yield chat_service_1.ChatService.getAllMessageForChat({
+                chatId: id,
+            });
+            const response = {
+                id,
+                participants,
+                messages: found,
+                type: foundChat === null || foundChat === void 0 ? void 0 : foundChat.type,
+                unreadCount: foundChat === null || foundChat === void 0 ? void 0 : foundChat.unreadCount,
+            };
+            return res.status(200).json({ chat: response });
+        });
+    }
+}
+exports.ChatController = new _ChatController();

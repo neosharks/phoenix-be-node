@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PackageService } from "../services/package.service";
-import { ConversationService } from "../services/conversation.service";
+import { ChatService } from "../services/chat.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 
@@ -75,13 +75,12 @@ class _PackageController {
       tier.length > 0 &&
       tier.map(async (ele) => {
         if (ele.tierType === "UNLIMITED_MESSAGE") {
-          const conversations = await prisma.conversation.findMany({
+          const chats = await prisma.chat.findMany({
             where: {
               OR: [{ participantOneId: userId }, { participantTwoId: userId }],
             },
           });
-          if (conversations.length === 0)
-            await ConversationService.createOneConversation([user.id, userId]);
+          if (chats.length === 0) await ChatService.createOneChat([user.id, userId]);
         }
         if (ele.tierType === "GENERAL_SUPPORT") {
           //

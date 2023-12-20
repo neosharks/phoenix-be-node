@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageController = void 0;
 const package_service_1 = require("../services/package.service");
-const conversation_service_1 = require("../services/conversation.service");
+const chat_service_1 = require("../services/chat.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
 class _PackageController {
@@ -103,13 +103,13 @@ class _PackageController {
                 tier.length > 0 &&
                 tier.map((ele) => __awaiter(this, void 0, void 0, function* () {
                     if (ele.tierType === "UNLIMITED_MESSAGE") {
-                        const conversations = yield prisma_1.default.conversation.findMany({
+                        const chats = yield prisma_1.default.chat.findMany({
                             where: {
                                 OR: [{ participantOneId: userId }, { participantTwoId: userId }],
                             },
                         });
-                        if (conversations.length === 0)
-                            yield conversation_service_1.ConversationService.createOneConversation([user.id, userId]);
+                        if (chats.length === 0)
+                            yield chat_service_1.ChatService.createOneChat([user.id, userId]);
                     }
                     if (ele.tierType === "GENERAL_SUPPORT") {
                         //

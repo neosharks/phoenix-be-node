@@ -12,12 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConversationService = void 0;
+exports.ChatService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
-class _ConversationService {
-    getOneConversation(query) {
+class _ChatService {
+    getOneChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.conversation.findFirst({
+            return yield prisma_1.default.chat.findFirst({
                 where: query,
                 include: {
                     participantOne: {
@@ -46,9 +46,9 @@ class _ConversationService {
             });
         });
     }
-    getAllConversation(query) {
+    getAllChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.conversation.findMany({
+            return yield prisma_1.default.chat.findMany({
                 where: query,
                 include: {
                     participantOne: {
@@ -77,9 +77,9 @@ class _ConversationService {
             });
         });
     }
-    createOneConversation(participants) {
+    createOneChat(participants) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.conversation.create({
+            return yield prisma_1.default.chat.create({
                 data: {
                     participantOneId: participants[0],
                     participantTwoId: participants[1],
@@ -92,7 +92,7 @@ class _ConversationService {
             return yield prisma_1.default.message.findUnique({ where: query });
         });
     }
-    getAllMessageForConversation(query) {
+    getAllMessageForChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.message.findMany({
                 where: query,
@@ -105,7 +105,7 @@ class _ConversationService {
                 data: data,
                 select: {
                     id: true,
-                    conversationId: true,
+                    chatId: true,
                     message: true,
                     contentType: true,
                     senderId: true,
@@ -116,4 +116,4 @@ class _ConversationService {
         });
     }
 }
-exports.ConversationService = new _ConversationService();
+exports.ChatService = new _ChatService();

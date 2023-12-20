@@ -1,8 +1,8 @@
 import prisma from "../../prisma";
 
-class _ConversationService {
-  async getOneConversation(query: any) {
-    return await prisma.conversation.findFirst({
+class _ChatService {
+  async getOneChat(query: any) {
+    return await prisma.chat.findFirst({
       where: query,
       include: {
         participantOne: {
@@ -31,8 +31,8 @@ class _ConversationService {
     });
   }
 
-  async getAllConversation(query: any) {
-    return await prisma.conversation.findMany({
+  async getAllChat(query: any) {
+    return await prisma.chat.findMany({
       where: query,
       include: {
         participantOne: {
@@ -61,8 +61,8 @@ class _ConversationService {
     });
   }
 
-  async createOneConversation(participants: any) {
-    return await prisma.conversation.create({
+  async createOneChat(participants: any) {
+    return await prisma.chat.create({
       data: {
         participantOneId: participants[0],
         participantTwoId: participants[1],
@@ -74,7 +74,7 @@ class _ConversationService {
     return await prisma.message.findUnique({ where: query });
   }
 
-  async getAllMessageForConversation(query: any) {
+  async getAllMessageForChat(query: any) {
     return await prisma.message.findMany({
       where: query,
     });
@@ -85,7 +85,7 @@ class _ConversationService {
       data: data,
       select: {
         id: true,
-        conversationId: true,
+        chatId: true,
         message: true,
         contentType: true,
         senderId: true,
@@ -96,4 +96,4 @@ class _ConversationService {
   }
 }
 
-export const ConversationService = new _ConversationService();
+export const ChatService = new _ChatService();

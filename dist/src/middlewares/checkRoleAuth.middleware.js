@@ -20,11 +20,11 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
             return res.status(403).json({ message: "No token found" });
         const { decoded } = (0, jwt_core_1.verifyJwt)(accessToken);
         if (decoded) {
-            res.locals.user = decoded;
             const { id } = decoded;
             const foundUser = yield user_service_1.UserService.getOneUser({ id });
             if (!foundUser)
                 return res.status(403).json({ message: "User not found" });
+            res.locals.user = foundUser;
             const userRoles = (foundUser === null || foundUser === void 0 ? void 0 : foundUser.role) || [];
             let hasRequiredRole = false;
             requiredRoles.forEach((requiredRole) => {
