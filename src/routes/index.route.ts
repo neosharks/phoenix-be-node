@@ -6,6 +6,7 @@ import userRoutes from "./user.route";
 import userPostRoutes from "./userPost.route";
 import commonRoutes from "./common.routes";
 import notificationRoutes from "./notification.route";
+import paymentRoutes from "./payment.route";
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use("/user", userRoutes);
 router.use("/package", packageRoutes);
 router.use("/userpost", userPostRoutes);
 router.use("/notification", notificationRoutes);
+router.use("/payment", paymentRoutes);
 
 export default router;
