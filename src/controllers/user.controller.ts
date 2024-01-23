@@ -22,6 +22,12 @@ class _UserController {
     return res.status(200).send({ message: "success", data: found });
   }
 
+  async update(req: Request, res: Response) {
+    const update = req.body;
+    await UserService.updateOneUser({ id: res.locals.user.id }, update);
+    return res.status(200).send({ message: "updated" });
+  }
+
   async creatorOnboard(req: Request, res: Response) {
     const id = res.locals.user.id;
     const {
