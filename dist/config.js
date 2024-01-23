@@ -46,4 +46,10 @@ exports.default = {
         accessSecret: process.env.AWS_ACCESS_SECRET,
         bucketName: (_h = process.env.AWS_BUCKET_NAME) !== null && _h !== void 0 ? _h : "",
     },
+    payment: {
+        razorpay: {
+            clientId: process.env.RAZORPAY_CLIENT_ID || "",
+            clientSecret: process.env.RAZORPAY_CLIENT_SECRET || "",
+        },
+    },
 };

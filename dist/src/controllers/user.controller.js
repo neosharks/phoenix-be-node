@@ -38,6 +38,13 @@ class _UserController {
             return res.status(200).send({ message: "success", data: found });
         });
     }
+    update(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const update = req.body;
+            yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
+            return res.status(200).send({ message: "updated" });
+        });
+    }
     creatorOnboard(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const id = res.locals.user.id;

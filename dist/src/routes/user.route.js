@@ -11,4 +11,5 @@ userRoutes.get("/get", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_con
 userRoutes.get("/getByUsername/:username", user_controller_1.UserController.getUserByUsername);
 userRoutes.get("/getAllCreators", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.getAllCreator);
 userRoutes.post("/creatorOnboard", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.creatorOnboard);
+userRoutes.post("/update", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.update);
 exports.default = userRoutes;
