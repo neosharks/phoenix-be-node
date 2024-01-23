@@ -71,6 +71,23 @@ class _AuthController {
     return res.status(200).json({ message: "OTP successfully sent" });
   }
 
+  async resetPassword(req: Request, res: Response) {
+    const { oldPassword, newPassword } = req.body;
+    const { password, id } = res.locals.user;
+    if (!oldPassword || !newPassword)
+      return res.status(errorCode.GENERIC).json({ message: errorMessage.MISSING_PARAMS });
+    if (!password) return res.status(403).json({ message: "Login via OAuth" });
+    let isMatch = false;
+    isMatch = await bcrypt.compareSync(oldPassword, password);
+    if (!isMatch) return res.status(403).json({ message: "Wrong Password" });
+    const saltRounds = 10;
+    const salt = await bcrypt.genSaltSync(saltRounds);
+    const hash = await bcrypt.hashSync(newPassword, salt);
+    await UserService.updateOneUser({ id }, { password: hash });
+    const accessToken = await signJwt(res.locals.user);
+    return res.status(200).json({ message: "Success", accessToken });
+  }
+
   async loginViaNumber(req: Request, res: Response) {
     const { number, otp } = req.body;
     if (!number || !otp)
