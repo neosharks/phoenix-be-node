@@ -87,6 +87,34 @@ class _UserPostController {
     }
   }
 
+  async update(req: any, res: Response) {
+    try {
+      const { postId, updates } = req.body;
+      if (!postId) return res.status(400).send({ message: "Incomplete params" });
+      const foundPost = await UserPostService.getOneUserPost({ id: postId });
+      if (!foundPost) return res.status(400).send({ message: "Post Not found" });
+      await UserPostService.updateOneUserPost(postId, updates);
+      res.status(201).send({ message: "updated" });
+    } catch (error) {
+      logger.error("Error: ", error);
+      return res.status(500).send({ message: "internal server error" });
+    }
+  }
+
+  async delete(req: any, res: Response) {
+    try {
+      const { postId } = req.body;
+      if (!postId) return res.status(400).send({ message: "Incomplete params" });
+      const foundPost = await UserPostService.getOneUserPost({ id: postId });
+      if (!foundPost) return res.status(400).send({ message: "Post Not found" });
+      await UserPostService.delete(postId);
+      res.status(201).send({ message: "deleted" });
+    } catch (error) {
+      logger.error("Error: ", error);
+      return res.status(500).send({ message: "internal server error" });
+    }
+  }
+
   async createOneUserPost(req: any, res: Response) {
     try {
       const { body, title, image } = req.body;

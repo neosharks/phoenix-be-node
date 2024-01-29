@@ -20,6 +20,10 @@ userPostRoutes.post(
 
 userPostRoutes.post("/likePostToggle", checkRoleAuth(), UserPostController.likePostToggle);
 
+userPostRoutes.post("/delete", checkRoleAuth(), UserPostController.delete);
+
+userPostRoutes.post("/update", checkRoleAuth(), UserPostController.update);
+
 userPostRoutes.get("/getAllPostForUser", checkRoleAuth(), UserPostController.getAllPostForUser);
 
 userPostRoutes.get("/getAllUserPostByUser", UserPostController.getAllUserPostByUser);

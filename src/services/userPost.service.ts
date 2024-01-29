@@ -113,6 +113,11 @@ class _UserPostService {
       },
     });
   }
+
+  async delete(dataValues: any) {
+    const { userPostId } = dataValues;
+    return await prisma.userPost.delete({ where: { id: userPostId } });
+  }
 }
 
 export const UserPostService = new _UserPostService();
