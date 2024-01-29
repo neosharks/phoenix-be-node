@@ -43,7 +43,7 @@ class _AuthController {
     if (!foundUser.password) return res.status(403).json({ message: "Login via OAuth" });
     if (!isMatch) return res.status(403).json({ message: "Wrong Password" });
     const accessToken = await signJwt(foundUser);
-    return res.status(201).json({ messge: "success", accessToken, user: foundUser });
+    return res.status(200).json({ messge: "success", accessToken, user: foundUser });
   }
 
   async sendOtp(req: Request, res: Response) {

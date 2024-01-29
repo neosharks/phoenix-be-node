@@ -93,7 +93,7 @@ class _UserPostController {
       if (!postId) return res.status(400).send({ message: "Incomplete params" });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
       if (!foundPost) return res.status(400).send({ message: "Post Not found" });
-      await UserPostService.updateOneUserPost(postId, updates);
+      await UserPostService.updateOneUserPost({ id: postId }, updates);
       res.status(201).send({ message: "updated" });
     } catch (error) {
       logger.error("Error: ", error);

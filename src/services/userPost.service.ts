@@ -114,9 +114,10 @@ class _UserPostService {
     });
   }
 
-  async delete(dataValues: any) {
-    const { userPostId } = dataValues;
-    return await prisma.userPost.delete({ where: { id: userPostId } });
+  async delete(postId: string) {
+    await prisma.postComment.deleteMany({ where: { userPostId: postId } });
+
+    return await prisma.userPost.delete({ where: { id: postId } });
   }
 }
 
