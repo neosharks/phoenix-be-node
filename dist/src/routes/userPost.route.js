@@ -12,6 +12,8 @@ const userPostRoutes = express_1.default.Router();
 userPostRoutes.post("/createUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), userPost_controller_1.UserPostController.createOneUserPost);
 userPostRoutes.post("/commentOnPostByUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.commentOnPostByUser);
 userPostRoutes.post("/likePostToggle", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.likePostToggle);
+userPostRoutes.post("/delete", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.delete);
+userPostRoutes.post("/update", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.update);
 userPostRoutes.get("/getAllPostForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPostForUser);
 userPostRoutes.get("/getAllUserPostByUser", userPost_controller_1.UserPostController.getAllUserPostByUser);
 userPostRoutes.get("/getOneUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getOneUserPost);

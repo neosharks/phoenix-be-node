@@ -61,7 +61,7 @@ class _AuthController {
             if (!isMatch)
                 return res.status(403).json({ message: "Wrong Password" });
             const accessToken = yield (0, jwt_core_1.signJwt)(foundUser);
-            return res.status(201).json({ messge: "success", accessToken, user: foundUser });
+            return res.status(200).json({ messge: "success", accessToken, user: foundUser });
         });
     }
     sendOtp(req, res) {
@@ -84,6 +84,26 @@ class _AuthController {
                 yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage }, commonProps));
             }
             return res.status(200).json({ message: "OTP successfully sent" });
+        });
+    }
+    resetPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { oldPassword, newPassword } = req.body;
+            const { password, id } = res.locals.user;
+            if (!oldPassword || !newPassword)
+                return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            if (!password)
+                return res.status(403).json({ message: "Login via OAuth" });
+            let isMatch = false;
+            isMatch = yield bcrypt_1.default.compareSync(oldPassword, password);
+            if (!isMatch)
+                return res.status(403).json({ message: "Wrong Password" });
+            const saltRounds = 10;
+            const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
+            const hash = yield bcrypt_1.default.hashSync(newPassword, salt);
+            yield user_service_1.UserService.updateOneUser({ id }, { password: hash });
+            const accessToken = yield (0, jwt_core_1.signJwt)(res.locals.user);
+            return res.status(200).json({ message: "Success", accessToken });
         });
     }
     loginViaNumber(req, res) {

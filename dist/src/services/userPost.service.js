@@ -133,5 +133,11 @@ class _UserPostService {
             });
         });
     }
+    delete(postId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield prisma_1.default.postComment.deleteMany({ where: { userPostId: postId } });
+            return yield prisma_1.default.userPost.delete({ where: { id: postId } });
+        });
+    }
 }
 exports.UserPostService = new _UserPostService();

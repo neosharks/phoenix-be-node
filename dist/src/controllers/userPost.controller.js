@@ -115,6 +115,42 @@ class _UserPostController {
             }
         });
     }
+    update(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { postId, updates } = req.body;
+                if (!postId)
+                    return res.status(400).send({ message: "Incomplete params" });
+                const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
+                if (!foundPost)
+                    return res.status(400).send({ message: "Post Not found" });
+                yield userPost_service_1.UserPostService.updateOneUserPost({ id: postId }, updates);
+                res.status(201).send({ message: "updated" });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
+        });
+    }
+    delete(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { postId } = req.body;
+                if (!postId)
+                    return res.status(400).send({ message: "Incomplete params" });
+                const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
+                if (!foundPost)
+                    return res.status(400).send({ message: "Post Not found" });
+                yield userPost_service_1.UserPostService.delete(postId);
+                res.status(201).send({ message: "deleted" });
+            }
+            catch (error) {
+                logger_core_1.default.error("Error: ", error);
+                return res.status(500).send({ message: "internal server error" });
+            }
+        });
+    }
     createOneUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
