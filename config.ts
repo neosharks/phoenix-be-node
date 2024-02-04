@@ -23,8 +23,14 @@ export default {
   },
   payment: {
     razorpay: {
-      clientId: process.env.RAZORPAY_CLIENT_ID || "",
-      clientSecret: process.env.RAZORPAY_CLIENT_SECRET || "",
+      clientId: process.env.RAZORPAY_CLIENT_ID ?? "",
+      clientSecret: process.env.RAZORPAY_CLIENT_SECRET ?? "",
     },
+  },
+  nodemailer: {
+    email: process.env.NODEMAILER_EMAIL ?? "",
+    password: process.env.NODEMAILER_PASS ?? "",
+    host: process.env.NODEMAILER_HOST ?? "a",
+    port: process.env.NODEMAILER_PORT ?? 0,
   },
 };

@@ -6,6 +6,7 @@ import { signJwt } from "../core/jwt.core";
 import { generateRandomUsername } from "../lib/helper.lib";
 import { errorCode, errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import sendEmail from "../core/email.core";
 
 class _AuthController {
   async register(req: Request, res: Response) {
@@ -14,16 +15,20 @@ class _AuthController {
       const foundUser = await UserService.getOneUser({ email: body.email });
       if (foundUser)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.USER_EXISTS });
-
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(body.password, salt);
-
       body.password = hash;
       body.username = body.email.split("@")[0];
       const randomNum = (Math.random() * 25) | 1;
       const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
       const created = await UserService.createOneUser({ ...body, profileImage });
+      if (body.email && body.email.length > 0) {
+        await sendEmail(body.email, "Welcome to Qalakar!", "SIGNUP", {
+          firstName: body.firstName,
+          lastName: body.lastName,
+        });
+      }
       const accessToken = await signJwt(created);
       return res.status(201).json({ messge: "success", accessToken, user: created });
     } catch (err) {
@@ -148,7 +153,14 @@ class _AuthController {
         emailVerified: true,
       };
       foundUser = await UserService.createOneUser(user);
-      console.log(foundUser, "user created");
+
+      if (email && email.length > 0) {
+        logger.info("sending email to: ", email);
+        await sendEmail(email, "Welcome to Qalakar!", "SIGNUP", {
+          firstName: given_name,
+          lastName: family_name,
+        });
+      }
     } else {
       await UserService.updateOneUser({ email: email }, { googleAuthId: sub, emailVerified: true });
     }

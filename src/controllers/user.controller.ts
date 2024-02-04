@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
+import logger from "../core/logger.core";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
-    const id = res.locals.user.id;
-    const found = await UserService.getOneUser({ id });
-    return res.status(201).send({ message: "success", user: found });
+    try {
+      const id = res.locals.user.id;
+      const found = await UserService.getOneUser({ id });
+      return res.status(201).send({ message: "success", user: found });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+    }
   }
 
   async getUserByUsername(req: Request, res: Response) {
