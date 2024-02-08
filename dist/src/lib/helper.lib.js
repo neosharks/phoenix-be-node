@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRandomUsername = exports.checkForNullOrUndefinedKeys = void 0;
+exports.generateRandomUsername = exports.generateOtp = exports.checkForNullOrUndefinedKeys = void 0;
 const checkForNullOrUndefinedKeys = (configObject) => {
     const nullOrUndefinedKeys = [];
     for (const section in configObject) {
@@ -18,6 +18,10 @@ const checkForNullOrUndefinedKeys = (configObject) => {
     return nullOrUndefinedKeys;
 };
 exports.checkForNullOrUndefinedKeys = checkForNullOrUndefinedKeys;
+const generateOtp = () => {
+    return Math.floor(1000 + Math.random() * 9000);
+};
+exports.generateOtp = generateOtp;
 const generateRandomUsername = () => {
     const adjectives = [
         "happy",

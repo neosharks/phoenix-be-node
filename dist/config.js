@@ -22,7 +22,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
@@ -48,8 +48,14 @@ exports.default = {
     },
     payment: {
         razorpay: {
-            clientId: process.env.RAZORPAY_CLIENT_ID || "",
-            clientSecret: process.env.RAZORPAY_CLIENT_SECRET || "",
+            clientId: (_j = process.env.RAZORPAY_CLIENT_ID) !== null && _j !== void 0 ? _j : "",
+            clientSecret: (_k = process.env.RAZORPAY_CLIENT_SECRET) !== null && _k !== void 0 ? _k : "",
         },
+    },
+    nodemailer: {
+        email: (_l = process.env.NODEMAILER_EMAIL) !== null && _l !== void 0 ? _l : "",
+        password: (_m = process.env.NODEMAILER_PASS) !== null && _m !== void 0 ? _m : "",
+        host: (_o = process.env.NODEMAILER_HOST) !== null && _o !== void 0 ? _o : "a",
+        port: (_p = process.env.NODEMAILER_PORT) !== null && _p !== void 0 ? _p : 0,
     },
 };

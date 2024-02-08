@@ -8,15 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
+const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const id = res.locals.user.id;
-            const found = yield user_service_1.UserService.getOneUser({ id });
-            return res.status(201).send({ message: "success", user: found });
+            try {
+                const id = res.locals.user.id;
+                const found = yield user_service_1.UserService.getOneUser({ id });
+                return res.status(201).send({ message: "success", user: found });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+            }
         });
     }
     getUserByUsername(req, res) {

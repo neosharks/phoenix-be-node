@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import axios from "axios";
 import { UserService } from "../services/user.service";
 import { signJwt } from "../core/jwt.core";
-import { generateRandomUsername } from "../lib/helper.lib";
+import { generateOtp, generateRandomUsername } from "../lib/helper.lib";
 import { errorCode, errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import sendEmail from "../core/email.core";
@@ -74,6 +74,88 @@ class _AuthController {
       });
     }
     return res.status(200).json({ message: "OTP successfully sent" });
+  }
+
+  async forgetPassword(req: Request, res: Response) {
+    const { email } = req.body;
+    if (!email)
+      return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const foundUser = await UserService.getOneUser({ email });
+    if (!foundUser)
+      return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+    const code = generateOtp();
+    await UserService.updateOneUser(
+      { email },
+      {
+        verificationCode: code,
+        verificationCodeSource: "EMAIL",
+        verificationCodeType: "FORGET_PASSWORD",
+      },
+    );
+    await sendEmail(
+      email,
+      `OTP to Reset your password | ${foundUser.username}`,
+      "FORGET_PASSWORD",
+      {
+        code,
+        name: `${foundUser.username}`,
+      },
+    );
+    return res.status(200).json({ message: "OTP successfully sent", email });
+  }
+
+  async requestEmailOtp(req: Request, res: Response) {
+    const { email } = req.body;
+    if (!email)
+      return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const foundUser = await UserService.getOneUser({ email });
+    if (!foundUser)
+      return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+    const code = generateOtp();
+    await UserService.updateOneUser(
+      { email },
+      {
+        verificationCode: code,
+        verificationCodeSource: "EMAIL",
+        verificationCodeType: "FORGET_PASSWORD",
+      },
+    );
+    await sendEmail(
+      email,
+      `OTP to Reset your password | ${foundUser.username}`,
+      "FORGET_PASSWORD",
+      {
+        code,
+        name: `${foundUser.username}`,
+      },
+    );
+    return res.status(200).json({ message: "OTP successfully sent", email });
+  }
+
+  async verifyForgetPassword(req: Request, res: Response) {
+    const { email, code, password } = req.body;
+    console.log(email, code, password);
+    if (!email || !code || !password)
+      return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+    const foundUser: any = await UserService.getOneUser({ email });
+    if (!foundUser)
+      return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+    if (parseInt(foundUser.verificationCode) !== parseInt(code))
+      return res.status(errorCode.UNAUTHORISED).json({ message: errorMessage.INCORRECT_DATA });
+    const saltRounds = 10;
+    const salt = await bcrypt.genSaltSync(saltRounds);
+    const hash = await bcrypt.hashSync(password, salt);
+    await UserService.updateOneUser(
+      { email },
+      {
+        password: hash,
+        verificationCode: null,
+        verificationCodeSource: null,
+        verificationCodeType: null,
+        verificationCodeTimestamp: null,
+      },
+    );
+    return res.status(200).json({ message: "Password Updated" });
   }
 
   async resetPassword(req: Request, res: Response) {

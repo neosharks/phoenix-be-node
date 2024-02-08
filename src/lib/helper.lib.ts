@@ -17,6 +17,10 @@ export const checkForNullOrUndefinedKeys = (configObject: any) => {
   return nullOrUndefinedKeys;
 };
 
+export const generateOtp = () => {
+  return Math.floor(1000 + Math.random() * 9000);
+};
+
 export const generateRandomUsername = () => {
   const adjectives = [
     "happy",

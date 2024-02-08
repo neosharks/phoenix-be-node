@@ -20,6 +20,7 @@ const jwt_core_1 = require("../core/jwt.core");
 const helper_lib_1 = require("../lib/helper.lib");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
+const email_core_1 = __importDefault(require("../core/email.core"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -36,6 +37,12 @@ class _AuthController {
                 const randomNum = (Math.random() * 25) | 1;
                 const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
                 const created = yield user_service_1.UserService.createOneUser(Object.assign(Object.assign({}, body), { profileImage }));
+                if (body.email && body.email.length > 0) {
+                    yield (0, email_core_1.default)(body.email, "Welcome to Qalakar!", "SIGNUP", {
+                        firstName: body.firstName,
+                        lastName: body.lastName,
+                    });
+                }
                 const accessToken = yield (0, jwt_core_1.signJwt)(created);
                 return res.status(201).json({ messge: "success", accessToken, user: created });
             }
@@ -84,6 +91,72 @@ class _AuthController {
                 yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage }, commonProps));
             }
             return res.status(200).json({ message: "OTP successfully sent" });
+        });
+    }
+    forgetPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = req.body;
+            if (!email)
+                return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const foundUser = yield user_service_1.UserService.getOneUser({ email });
+            if (!foundUser)
+                return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+            const code = (0, helper_lib_1.generateOtp)();
+            yield user_service_1.UserService.updateOneUser({ email }, {
+                verificationCode: code,
+                verificationCodeSource: "EMAIL",
+                verificationCodeType: "FORGET_PASSWORD",
+            });
+            yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
+                code,
+                name: `${foundUser.username}`,
+            });
+            return res.status(200).json({ message: "OTP successfully sent", email });
+        });
+    }
+    requestEmailOtp(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = req.body;
+            if (!email)
+                return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const foundUser = yield user_service_1.UserService.getOneUser({ email });
+            if (!foundUser)
+                return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+            const code = (0, helper_lib_1.generateOtp)();
+            yield user_service_1.UserService.updateOneUser({ email }, {
+                verificationCode: code,
+                verificationCodeSource: "EMAIL",
+                verificationCodeType: "FORGET_PASSWORD",
+            });
+            yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
+                code,
+                name: `${foundUser.username}`,
+            });
+            return res.status(200).json({ message: "OTP successfully sent", email });
+        });
+    }
+    verifyForgetPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, code, password } = req.body;
+            console.log(email, code, password);
+            if (!email || !code || !password)
+                return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const foundUser = yield user_service_1.UserService.getOneUser({ email });
+            if (!foundUser)
+                return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+            if (parseInt(foundUser.verificationCode) !== parseInt(code))
+                return res.status(api_constant_1.errorCode.UNAUTHORISED).json({ message: api_constant_1.errorMessage.INCORRECT_DATA });
+            const saltRounds = 10;
+            const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
+            const hash = yield bcrypt_1.default.hashSync(password, salt);
+            yield user_service_1.UserService.updateOneUser({ email }, {
+                password: hash,
+                verificationCode: null,
+                verificationCodeSource: null,
+                verificationCodeType: null,
+                verificationCodeTimestamp: null,
+            });
+            return res.status(200).json({ message: "Password Updated" });
         });
     }
     resetPassword(req, res) {
@@ -162,7 +235,13 @@ class _AuthController {
                     emailVerified: true,
                 };
                 foundUser = yield user_service_1.UserService.createOneUser(user);
-                console.log(foundUser, "user created");
+                if (email && email.length > 0) {
+                    logger_core_1.default.info("sending email to: ", email);
+                    yield (0, email_core_1.default)(email, "Welcome to Qalakar!", "SIGNUP", {
+                        firstName: given_name,
+                        lastName: family_name,
+                    });
+                }
             }
             else {
                 yield user_service_1.UserService.updateOneUser({ email: email }, { googleAuthId: sub, emailVerified: true });

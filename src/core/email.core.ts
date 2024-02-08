@@ -8,6 +8,8 @@ const extractTemplate = (template: string) => {
   switch (template) {
     case "SIGNUP":
       return "signup.mail.ejs";
+    case "FORGET_PASSWORD":
+      return "forgetPassword.mail.ejs";
     default:
       return "default.mail.ejs";
   }
