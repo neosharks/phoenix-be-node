@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 class _UserService {
-    // REMOVE PASSWORD FROM ALL API
     getOneUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.user.findUnique({ where: query });

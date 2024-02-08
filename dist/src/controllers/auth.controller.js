@@ -105,7 +105,6 @@ class _AuthController {
             yield user_service_1.UserService.updateOneUser({ email }, {
                 verificationCode: code,
                 verificationCodeSource: "EMAIL",
-                verificationCodeType: "FORGET_PASSWORD",
             });
             yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
                 code,
@@ -126,7 +125,6 @@ class _AuthController {
             yield user_service_1.UserService.updateOneUser({ email }, {
                 verificationCode: code,
                 verificationCodeSource: "EMAIL",
-                verificationCodeType: "FORGET_PASSWORD",
             });
             yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
                 code,
@@ -153,7 +151,6 @@ class _AuthController {
                 password: hash,
                 verificationCode: null,
                 verificationCodeSource: null,
-                verificationCodeType: null,
                 verificationCodeTimestamp: null,
             });
             return res.status(200).json({ message: "Password Updated" });
@@ -198,7 +195,6 @@ class _AuthController {
             const commonProps = {
                 verificationCode: null,
                 verificationCodeSource: null,
-                verificationCodeType: null,
                 verificationCodeTimestamp: null,
             };
             if (!foundUser.phoneVerified) {

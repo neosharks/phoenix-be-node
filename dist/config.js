@@ -28,7 +28,7 @@ const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 exports.default = {
     main: {
-        environment: (_a = process.env.NODE_ENV) !== null && _a !== void 0 ? _a : "",
+        environment: (_a = process.env.NODE_ENV) !== null && _a !== void 0 ? _a : "", // PRODUCTION | DEVELOPMENT | STAGING
         port: (_b = process.env.PORT) !== null && _b !== void 0 ? _b : "",
         corsUrl: (_c = process.env.CORS_URL) !== null && _c !== void 0 ? _c : "",
         feUrl: (_d = process.env.FE_URL) !== null && _d !== void 0 ? _d : "",

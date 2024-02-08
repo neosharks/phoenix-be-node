@@ -89,7 +89,6 @@ class _AuthController {
       {
         verificationCode: code,
         verificationCodeSource: "EMAIL",
-        verificationCodeType: "FORGET_PASSWORD",
       },
     );
     await sendEmail(
@@ -117,7 +116,6 @@ class _AuthController {
       {
         verificationCode: code,
         verificationCodeSource: "EMAIL",
-        verificationCodeType: "FORGET_PASSWORD",
       },
     );
     await sendEmail(
@@ -151,7 +149,6 @@ class _AuthController {
         password: hash,
         verificationCode: null,
         verificationCodeSource: null,
-        verificationCodeType: null,
         verificationCodeTimestamp: null,
       },
     );
@@ -189,7 +186,6 @@ class _AuthController {
     const commonProps = {
       verificationCode: null,
       verificationCodeSource: null,
-      verificationCodeType: null,
       verificationCodeTimestamp: null,
     };
     if (!foundUser.phoneVerified) {

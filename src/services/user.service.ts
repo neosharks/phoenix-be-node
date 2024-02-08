@@ -1,8 +1,6 @@
 import prisma from "../../prisma";
 
 class _UserService {
-  // REMOVE PASSWORD FROM ALL API
-
   async getOneUser(query: any) {
     return await prisma.user.findUnique({ where: query });
   }
