@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorCode = exports.errorMessage = void 0;
+exports.successMessages = exports.errorCode = exports.errorMessage = void 0;
 exports.errorMessage = {
     USER_EXISTS: "USER_EXISTS",
     MISSING_PARAMS: "MISSING_PARAMS",
@@ -8,6 +8,15 @@ exports.errorMessage = {
     NOT_FOUND: "NOT_FOUND",
     INTERNAL_SERVER: "INTERNAL_SERVER",
     INCORRECT_DATA: "INCORRECT_DATA",
+    WRONG_AUTH_METHOD: "WRONG_AUTH_METHOD",
+    INCORRECT_PASSWORD: "INCORRECT_PASSWORD",
+    FLOW_ERROR: "FLOW_ERROR",
+    EXISTING_DATA: "EXISTING_DATA",
+    UNAUTHORISED: "UNAUTHORISED",
+    NOT_ALLOWED: "NOT_ALLOWED",
+    REDUNDANT_REQUEST: "REDUNDANT_REQUEST",
+    TOKEN_MISSING: "TOKEN_MISSING",
+    DB_ISSUE: "DB_ISSUE",
 };
 exports.errorCode = {
     GENERIC: 400,
@@ -15,4 +24,10 @@ exports.errorCode = {
     FORBIDDEN: 403,
     NOT_FOUND: 404,
     INTERNAL_SERVER: 500,
+};
+exports.successMessages = {
+    CREATED: "CREATED",
+    SUCCESS: "SUCCESS",
+    FETCHED: "FETCHED",
+    UPDATED: "UPDATED",
 };

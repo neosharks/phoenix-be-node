@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const api_constant_1 = require("../constant/api.constant");
 class _NotificationService {
     getAllNotificationOfUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -33,8 +34,8 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                console.error("Error creating notification:", error);
-                throw new Error("Failed to create notification");
+                console.error("ERROR: ", error);
+                throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
     }
@@ -47,8 +48,8 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                console.error("Error creating notification:", error);
-                throw new Error("Failed to create notification");
+                console.error("ERROR: ", error);
+                throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
     }
@@ -66,8 +67,8 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                console.error("Error updating notification:", error);
-                throw new Error("Failed to update notification");
+                console.error("ERROR: ", error);
+                throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
     }

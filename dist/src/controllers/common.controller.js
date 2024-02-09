@@ -10,10 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonController = void 0;
+const api_constant_1 = require("../constant/api.constant");
 class _CommonController {
     getS3SignedUrl(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            return res.status(200).send({ message: "success" });
+            return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
         });
     }
 }

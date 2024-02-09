@@ -18,24 +18,30 @@ const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
 const logger_core_1 = __importDefault(require("../core/logger.core"));
+const api_constant_1 = require("../constant/api.constant");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { author } = req.query;
                 if (!author)
-                    return res.status(400).send({ message: "provide author" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
                 if (!foundUser)
-                    return res.status(400).send({ message: "provide author" });
-                const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: foundUser.id });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({
+                    authorId: foundUser.id,
+                    isPrivate: true,
+                });
                 if (!found)
-                    return res.status(404).send({ message: "user post cannot be found" });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: "success", data: found });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -55,15 +61,17 @@ class _UserPostController {
                 const allUserPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id });
                 returnPosts = [...returnPosts, ...allUserPosts];
                 if (returnPosts.length === 0)
-                    return res.status(200).send({ message: "No Posts found" });
+                    return res.status(200).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 returnPosts = returnPosts.sort(function (a, b) {
                     return b.updatedAt - a.updatedAt;
                 });
-                return res.status(200).send({ message: "success", data: returnPosts });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -72,15 +80,17 @@ class _UserPostController {
             try {
                 const { id } = req.query;
                 if (!id)
-                    return res.status(400).send({ message: "provide id" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
                 if (!found)
-                    return res.status(404).send({ message: "User Post not found" });
-                return res.status(201).send({ message: "success", data: found });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -90,10 +100,10 @@ class _UserPostController {
                 const { postId } = req.body;
                 const { id } = res.locals.user;
                 if (!postId)
-                    return res.status(400).send({ message: "Incomplete params" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
-                    return res.status(400).send({ message: "Post Not found" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
                 if (userIndex === -1) {
                     yield prisma_1.default.userPost.update({
@@ -107,11 +117,13 @@ class _UserPostController {
                         data: { likedBy: { disconnect: { id: id } } },
                     });
                 }
-                res.status(201).send({ message: "created" });
+                res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -120,16 +132,18 @@ class _UserPostController {
             try {
                 const { postId, updates } = req.body;
                 if (!postId)
-                    return res.status(400).send({ message: "Incomplete params" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
-                    return res.status(400).send({ message: "Post Not found" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 yield userPost_service_1.UserPostService.updateOneUserPost({ id: postId }, updates);
-                res.status(201).send({ message: "updated" });
+                res.status(201).send({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -138,38 +152,43 @@ class _UserPostController {
             try {
                 const { postId } = req.body;
                 if (!postId)
-                    return res.status(400).send({ message: "Incomplete params" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
-                    return res.status(400).send({ message: "Post Not found" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 yield userPost_service_1.UserPostService.delete(postId);
-                res.status(201).send({ message: "deleted" });
+                res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
     createOneUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { body, title, image } = req.body;
+                const { body, title, image, isPrivate = false } = req.body;
                 const { id } = res.locals.user;
                 if (!body || !id)
-                    return res.status(400).send({ message: "Incomplete params" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const created = yield userPost_service_1.UserPostService.createOneUserPost({
                     authorId: id,
                     body,
                     type: "TEXT",
                     title,
                     image,
+                    isPrivate,
                 });
-                res.status(201).send({ message: "created", data: created });
+                res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }
@@ -178,13 +197,15 @@ class _UserPostController {
             try {
                 const { body, authorId, userPostId } = req.body;
                 if (!body || !authorId || !userPostId)
-                    return res.status(400).send({ message: "Incomplete params" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const created = yield userPost_service_1.UserPostService.createOneComment({ body, authorId, userPostId });
-                res.status(201).send({ message: "success", data: created });
+                res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
-                return res.status(500).send({ message: "internal server error" });
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
             }
         });
     }

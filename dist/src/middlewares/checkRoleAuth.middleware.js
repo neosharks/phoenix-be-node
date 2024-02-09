@@ -13,17 +13,18 @@ exports.checkRoleAuth = void 0;
 const lodash_1 = require("lodash");
 const jwt_core_1 = require("../core/jwt.core");
 const user_service_1 = require("../services/user.service");
+const api_constant_1 = require("../constant/api.constant");
 const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         const accessToken = (0, lodash_1.get)(req, "headers.authorization", "").replace(/^Bearer\s/, "");
         if (!accessToken)
-            return res.status(403).json({ message: "No token found" });
+            return res.status(403).json({ message: api_constant_1.errorMessage.TOKEN_MISSING });
         const { decoded } = (0, jwt_core_1.verifyJwt)(accessToken);
         if (decoded) {
             const { id } = decoded;
             const foundUser = yield user_service_1.UserService.getOneUser({ id });
             if (!foundUser)
-                return res.status(403).json({ message: "User not found" });
+                return res.status(403).json({ message: api_constant_1.errorMessage.UNAUTHORISED });
             res.locals.user = foundUser;
             const userRoles = (foundUser === null || foundUser === void 0 ? void 0 : foundUser.role) || [];
             let hasRequiredRole = false;
@@ -35,7 +36,7 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
                 return next();
             }
             else {
-                return res.status(403).json({ message: "Unauthorised" });
+                return res.status(403).json({ message: api_constant_1.errorCode.UNAUTHORISED });
             }
         }
         else {

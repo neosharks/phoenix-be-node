@@ -8,96 +8,141 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatController = void 0;
 const chat_service_1 = require("../services/chat.service");
 const user_service_1 = require("../services/user.service");
 const notification_service_1 = require("../services/notification.service");
+const api_constant_1 = require("../constant/api.constant");
+const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _ChatController {
     createChat(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { participants } = req.body;
-            const foundChat = yield chat_service_1.ChatService.getOneChat({
-                OR: [
-                    { participantOneId: participants[0], participantTwoId: participants[1] },
-                    { participantOneId: participants[1], participantTwoId: participants[0] },
-                ],
-            });
-            if (foundChat)
-                return res.status(400).json({ message: "chat already exists", data: foundChat });
-            const created = yield chat_service_1.ChatService.createOneChat(participants);
-            return res.status(201).json({ message: "Success", data: created });
+            try {
+                const { participants } = req.body;
+                const foundChat = yield chat_service_1.ChatService.getOneChat({
+                    OR: [
+                        { participantOneId: participants[0], participantTwoId: participants[1] },
+                        { participantOneId: participants[1], participantTwoId: participants[0] },
+                    ],
+                });
+                if (foundChat)
+                    return res.status(400).json({ message: api_constant_1.errorMessage.EXISTING_DATA, data: foundChat });
+                const created = yield chat_service_1.ChatService.createOneChat(participants);
+                return res.status(201).json({ message: api_constant_1.successMessages.CREATED, data: created });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
     getAllChatsByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { id } = res.locals.user;
-            const foundChat = yield chat_service_1.ChatService.getAllChat({
-                OR: [{ participantOneId: id }, { participantTwoId: id }],
-            });
-            const finalData = [];
-            for (let i = 0; i < foundChat.length; i++) {
-                const ele = foundChat[i];
-                const saveObj = {};
-                saveObj.id = ele.id;
-                saveObj.unreadCount = ele.unreadCount;
-                saveObj.participants = [ele.participantOne, ele.participantTwo];
-                const foundMessages = yield chat_service_1.ChatService.getAllMessageForChat({
-                    chatId: ele.id,
+            try {
+                const { id } = res.locals.user;
+                const foundChat = yield chat_service_1.ChatService.getAllChat({
+                    OR: [{ participantOneId: id }, { participantTwoId: id }],
                 });
-                saveObj.messages = foundMessages;
-                finalData.push(saveObj);
+                const finalData = [];
+                for (let i = 0; i < foundChat.length; i++) {
+                    const ele = foundChat[i];
+                    const saveObj = {};
+                    saveObj.id = ele.id;
+                    saveObj.unreadCount = ele.unreadCount;
+                    saveObj.participants = [ele.participantOne, ele.participantTwo];
+                    const foundMessages = yield chat_service_1.ChatService.getAllMessageForChat({
+                        chatId: ele.id,
+                    });
+                    saveObj.messages = foundMessages;
+                    finalData.push(saveObj);
+                }
+                return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, chats: finalData });
             }
-            return res.status(200).json({ chats: finalData });
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
     getAllSearchableUsers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const allUser = yield user_service_1.UserService.getAllUser();
-            return res.status(200).json({ contacts: allUser });
+            try {
+                const allUser = yield user_service_1.UserService.getAllUser();
+                return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, contacts: allUser });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
     createMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { chatId, senderId, message, contentType } = req.body;
-            const { isCreator, firstName, lastName } = res.locals.user;
-            const foundChat = yield chat_service_1.ChatService.getOneChat({ id: chatId });
-            if (!foundChat)
-                return res.status(400).json({ message: "No chat found" });
-            const createdChat = yield chat_service_1.ChatService.createOneMessage({
-                chatId,
-                senderId,
-                message,
-                contentType,
-            });
-            if (isCreator)
-                yield notification_service_1.NotificationService.createOneNotification({
-                    aboutUserId: senderId,
-                    notifiedUserId: foundChat.participantOneId === senderId
-                        ? foundChat.participantTwoId
-                        : foundChat.participantOneId,
-                    message: `You have a new message from ${firstName + " " + lastName}`,
-                    type: "MESSAGE",
+            try {
+                const { chatId, senderId, message, contentType } = req.body;
+                const { isCreator, firstName, lastName } = res.locals.user;
+                const foundChat = yield chat_service_1.ChatService.getOneChat({ id: chatId });
+                if (!foundChat)
+                    return res.status(400).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                const createdChat = yield chat_service_1.ChatService.createOneMessage({
+                    chatId,
+                    senderId,
+                    message,
+                    contentType,
                 });
-            return res.status(201).json({ message: "Success", data: createdChat });
+                if (isCreator)
+                    yield notification_service_1.NotificationService.createOneNotification({
+                        aboutUserId: senderId,
+                        notifiedUserId: foundChat.participantOneId === senderId
+                            ? foundChat.participantTwoId
+                            : foundChat.participantOneId,
+                        message: `You have a new message from ${firstName + " " + lastName}`,
+                        type: "MESSAGE",
+                    });
+                return res.status(201).json({ message: api_constant_1.successMessages.SUCCESS, data: createdChat });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
     getAllMessageByChat(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { id } = req.query;
-            const foundChat = yield chat_service_1.ChatService.getOneChat({ id: id });
-            const participants = [foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantOne, foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantTwo];
-            const found = yield chat_service_1.ChatService.getAllMessageForChat({
-                chatId: id,
-            });
-            const response = {
-                id,
-                participants,
-                messages: found,
-                type: foundChat === null || foundChat === void 0 ? void 0 : foundChat.type,
-                unreadCount: foundChat === null || foundChat === void 0 ? void 0 : foundChat.unreadCount,
-            };
-            return res.status(200).json({ chat: response });
+            try {
+                const { id } = req.query;
+                const foundChat = yield chat_service_1.ChatService.getOneChat({ id: id });
+                const participants = [foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantOne, foundChat === null || foundChat === void 0 ? void 0 : foundChat.participantTwo];
+                const found = yield chat_service_1.ChatService.getAllMessageForChat({
+                    chatId: id,
+                });
+                const response = {
+                    id,
+                    participants,
+                    messages: found,
+                    type: foundChat === null || foundChat === void 0 ? void 0 : foundChat.type,
+                    unreadCount: foundChat === null || foundChat === void 0 ? void 0 : foundChat.unreadCount,
+                };
+                return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, chat: response });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
 }

@@ -33,6 +33,7 @@ const sendEmail = (receiverEmail, subject, template, variables) => __awaiter(voi
             host: config_1.default.nodemailer.host,
             port: config_1.default.nodemailer.port,
             secure: true,
+            connectionTimeout: 5000,
             auth: {
                 user: config_1.default.nodemailer.email,
                 pass: config_1.default.nodemailer.password,
