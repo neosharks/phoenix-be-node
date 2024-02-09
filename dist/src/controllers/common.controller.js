@@ -10,12 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonController = void 0;
-const uploadS3_core_1 = require("../core/uploadS3.core");
 class _CommonController {
     getS3SignedUrl(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = yield (0, uploadS3_core_1.generateUploadURL)();
-            return res.status(200).send({ message: "success", url });
+            return res.status(200).send({ message: "success" });
         });
     }
 }
