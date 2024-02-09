@@ -3,86 +3,124 @@ import { ChatService } from "../services/chat.service";
 import Logger from "../core/logger.core";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
+import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
+import logger from "../core/logger.core";
 
 class _ChatController {
   async createChat(req: Request, res: Response) {
-    const { participants } = req.body;
-    const foundChat = await ChatService.getOneChat({
-      OR: [
-        { participantOneId: participants[0], participantTwoId: participants[1] },
-        { participantOneId: participants[1], participantTwoId: participants[0] },
-      ],
-    });
-    if (foundChat) return res.status(400).json({ message: "chat already exists", data: foundChat });
-    const created = await ChatService.createOneChat(participants);
-    return res.status(201).json({ message: "Success", data: created });
+    try {
+      const { participants } = req.body;
+      const foundChat = await ChatService.getOneChat({
+        OR: [
+          { participantOneId: participants[0], participantTwoId: participants[1] },
+          { participantOneId: participants[1], participantTwoId: participants[0] },
+        ],
+      });
+      if (foundChat)
+        return res.status(400).json({ message: errorMessage.EXISTING_DATA, data: foundChat });
+      const created = await ChatService.createOneChat(participants);
+      return res.status(201).json({ message: successMessages.CREATED, data: created });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 
   async getAllChatsByUser(req: Request, res: Response) {
-    const { id } = res.locals.user;
-    const foundChat = await ChatService.getAllChat({
-      OR: [{ participantOneId: id }, { participantTwoId: id }],
-    });
-    const finalData: any = [];
-    for (let i = 0; i < foundChat.length; i++) {
-      const ele = foundChat[i];
-      const saveObj: any = {};
-      saveObj.id = ele.id;
-      saveObj.unreadCount = ele.unreadCount;
-      saveObj.participants = [ele.participantOne, ele.participantTwo];
-      const foundMessages = await ChatService.getAllMessageForChat({
-        chatId: ele.id,
+    try {
+      const { id } = res.locals.user;
+      const foundChat = await ChatService.getAllChat({
+        OR: [{ participantOneId: id }, { participantTwoId: id }],
       });
-      saveObj.messages = foundMessages;
-      finalData.push(saveObj);
+      const finalData: any = [];
+      for (let i = 0; i < foundChat.length; i++) {
+        const ele = foundChat[i];
+        const saveObj: any = {};
+        saveObj.id = ele.id;
+        saveObj.unreadCount = ele.unreadCount;
+        saveObj.participants = [ele.participantOne, ele.participantTwo];
+        const foundMessages = await ChatService.getAllMessageForChat({
+          chatId: ele.id,
+        });
+        saveObj.messages = foundMessages;
+        finalData.push(saveObj);
+      }
+      return res.status(200).json({ message: successMessages.SUCCESS, chats: finalData });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
-    return res.status(200).json({ chats: finalData });
   }
 
   async getAllSearchableUsers(req: Request, res: Response) {
-    const allUser = await UserService.getAllUser();
-    return res.status(200).json({ contacts: allUser });
+    try {
+      const allUser = await UserService.getAllUser();
+      return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 
   async createMessage(req: Request, res: Response) {
-    const { chatId, senderId, message, contentType } = req.body;
-    const { isCreator, firstName, lastName } = res.locals.user;
-    const foundChat = await ChatService.getOneChat({ id: chatId });
-    if (!foundChat) return res.status(400).json({ message: "No chat found" });
-    const createdChat = await ChatService.createOneMessage({
-      chatId,
-      senderId,
-      message,
-      contentType,
-    });
-    if (isCreator)
-      await NotificationService.createOneNotification({
-        aboutUserId: senderId,
-        notifiedUserId:
-          foundChat.participantOneId === senderId
-            ? foundChat.participantTwoId
-            : foundChat.participantOneId,
-        message: `You have a new message from ${firstName + " " + lastName}`,
-        type: "MESSAGE",
+    try {
+      const { chatId, senderId, message, contentType } = req.body;
+      const { isCreator, firstName, lastName } = res.locals.user;
+      const foundChat = await ChatService.getOneChat({ id: chatId });
+      if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
+      const createdChat = await ChatService.createOneMessage({
+        chatId,
+        senderId,
+        message,
+        contentType,
       });
-    return res.status(201).json({ message: "Success", data: createdChat });
+      if (isCreator)
+        await NotificationService.createOneNotification({
+          aboutUserId: senderId,
+          notifiedUserId:
+            foundChat.participantOneId === senderId
+              ? foundChat.participantTwoId
+              : foundChat.participantOneId,
+          message: `You have a new message from ${firstName + " " + lastName}`,
+          type: "MESSAGE",
+        });
+      return res.status(201).json({ message: successMessages.SUCCESS, data: createdChat });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 
   async getAllMessageByChat(req: Request, res: Response) {
-    const { id } = req.query;
-    const foundChat = await ChatService.getOneChat({ id: id });
-    const participants = [foundChat?.participantOne, foundChat?.participantTwo];
-    const found = await ChatService.getAllMessageForChat({
-      chatId: id,
-    });
-    const response: any = {
-      id,
-      participants,
-      messages: found,
-      type: foundChat?.type,
-      unreadCount: foundChat?.unreadCount,
-    };
-    return res.status(200).json({ chat: response });
+    try {
+      const { id } = req.query;
+      const foundChat = await ChatService.getOneChat({ id: id });
+      const participants = [foundChat?.participantOne, foundChat?.participantTwo];
+      const found = await ChatService.getAllMessageForChat({
+        chatId: id,
+      });
+      const response: any = {
+        id,
+        participants,
+        messages: found,
+        type: foundChat?.type,
+        unreadCount: foundChat?.unreadCount,
+      };
+      return res.status(200).json({ message: successMessages.SUCCESS, chat: response });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 }
 

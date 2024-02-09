@@ -1,98 +1,129 @@
 import prisma from "../../prisma";
+import { errorMessage } from "../constant/api.constant";
 
 class _ChatService {
   async getOneChat(query: any) {
-    return await prisma.chat.findFirst({
-      where: query,
-      include: {
-        participantOne: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImage: true,
-            email: true,
-            username: true,
-            role: true,
+    try {
+      return await prisma.chat.findFirst({
+        where: query,
+        include: {
+          participantOne: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+          participantTwo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
           },
         },
-        participantTwo: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImage: true,
-            email: true,
-            username: true,
-            role: true,
-          },
-        },
-      },
-    });
+      });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 
   async getAllChat(query: any) {
-    return await prisma.chat.findMany({
-      where: query,
-      include: {
-        participantOne: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImage: true,
-            email: true,
-            username: true,
-            role: true,
+    try {
+      return await prisma.chat.findMany({
+        where: query,
+        include: {
+          participantOne: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+          participantTwo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
           },
         },
-        participantTwo: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImage: true,
-            email: true,
-            username: true,
-            role: true,
-          },
-        },
-      },
-    });
+      });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 
   async createOneChat(participants: any) {
-    return await prisma.chat.create({
-      data: {
-        participantOneId: participants[0],
-        participantTwoId: participants[1],
-      },
-    });
+    try {
+      return await prisma.chat.create({
+        data: {
+          participantOneId: participants[0],
+          participantTwoId: participants[1],
+        },
+      });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 
   async getOneMessage(query: any) {
-    return await prisma.message.findUnique({ where: query });
+    try {
+      return await prisma.message.findUnique({ where: query });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 
   async getAllMessageForChat(query: any) {
-    return await prisma.message.findMany({
-      where: query,
-    });
+    try {
+      return await prisma.message.findMany({
+        where: query,
+      });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 
   async createOneMessage(data: any) {
-    return await prisma.message.create({
-      data: data,
-      select: {
-        id: true,
-        chatId: true,
-        message: true,
-        contentType: true,
-        senderId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    try {
+      return await prisma.message.create({
+        data: data,
+        select: {
+          id: true,
+          chatId: true,
+          message: true,
+          contentType: true,
+          senderId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
   }
 }
 

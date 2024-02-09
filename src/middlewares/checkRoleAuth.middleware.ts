@@ -2,18 +2,19 @@ import { Request, Response, NextFunction } from "express";
 import { get } from "lodash";
 import { verifyJwt } from "../core/jwt.core";
 import { UserService } from "../services/user.service";
+import { errorCode, errorMessage } from "../constant/api.constant";
 
 export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const accessToken = get(req, "headers.authorization", "").replace(/^Bearer\s/, "");
 
-    if (!accessToken) return res.status(403).json({ message: "No token found" });
+    if (!accessToken) return res.status(403).json({ message: errorMessage.TOKEN_MISSING });
     const { decoded }: any = verifyJwt(accessToken);
 
     if (decoded) {
       const { id } = decoded;
       const foundUser: any = await UserService.getOneUser({ id });
-      if (!foundUser) return res.status(403).json({ message: "User not found" });
+      if (!foundUser) return res.status(403).json({ message: errorMessage.UNAUTHORISED });
       res.locals.user = foundUser;
       const userRoles = foundUser?.role || [];
 
@@ -25,7 +26,7 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
       if (hasRequiredRole) {
         return next();
       } else {
-        return res.status(403).json({ message: "Unauthorised" });
+        return res.status(403).json({ message: errorCode.UNAUTHORISED });
       }
     } else {
       return res.sendStatus(403);

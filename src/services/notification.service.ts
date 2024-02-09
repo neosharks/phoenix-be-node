@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { errorMessage } from "../constant/api.constant";
 
 class _NotificationService {
   async getAllNotificationOfUser(query: any) {
@@ -17,8 +18,8 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      console.error("Error creating notification:", error);
-      throw new Error("Failed to create notification");
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
     }
   }
 
@@ -29,8 +30,8 @@ class _NotificationService {
         data: { aboutUserId, notifiedUserId, message, read: false, link, type },
       });
     } catch (error) {
-      console.error("Error creating notification:", error);
-      throw new Error("Failed to create notification");
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
     }
   }
 
@@ -46,8 +47,8 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      console.error("Error updating notification:", error);
-      throw new Error("Failed to update notification");
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
     }
   }
 }

@@ -146,6 +146,7 @@ model UserPost {
   id        String         @id @default(cuid())
   author    User           @relation("userPostAuthor", fields: [authorId], references: [id])
   authorId  String
+  isPrivate Boolean        @default(false)
   type      USER_POST_TYPE @default(TEXT)
   comments  PostComment[]
   likedBy   User[]         @relation("likedByUser")

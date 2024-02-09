@@ -1,19 +1,35 @@
 import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
+import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
+import logger from "../core/logger.core";
 
 class _NotificationController {
   async getAllNotificationByUser(req: Request, res: Response) {
-    const { id } = res.locals.user;
-    const allNotifications = await NotificationService.getAllNotificationOfUser({
-      notifiedUserId: id,
-    });
-    return res.status(200).send({ message: "success", data: allNotifications });
+    try {
+      const { id } = res.locals.user;
+      const allNotifications = await NotificationService.getAllNotificationOfUser({
+        notifiedUserId: id,
+      });
+      return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 
   async markAllAsRead(req: Request, res: Response) {
-    const { id } = res.locals.user;
-    await NotificationService.markAllAsRead(id);
-    return res.status(200).send({ message: "success" });
+    try {
+      const { id } = res.locals.user;
+      await NotificationService.markAllAsRead(id);
+      return res.status(200).send({ message: successMessages.SUCCESS });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
   }
 }
 

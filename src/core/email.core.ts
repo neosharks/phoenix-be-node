@@ -26,6 +26,7 @@ const sendEmail = async (
       host: config.nodemailer.host,
       port: config.nodemailer.port,
       secure: true,
+      connectionTimeout: 5000,
       auth: {
         user: config.nodemailer.email,
         pass: config.nodemailer.password,

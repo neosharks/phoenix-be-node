@@ -4,20 +4,26 @@ import { UserService } from "../services/user.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 import logger from "../core/logger.core";
+import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
     try {
       const { author } = req.query;
-      if (!author) return res.status(400).send({ message: "provide author" });
+      if (!author) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
-      if (!foundUser) return res.status(400).send({ message: "provide author" });
-      const found = await UserPostService.getAllUserPostByUser({ authorId: foundUser.id });
-      if (!found) return res.status(404).send({ message: "user post cannot be found" });
+      if (!foundUser) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      const found = await UserPostService.getAllUserPostByUser({
+        authorId: foundUser.id,
+        isPrivate: true,
+      });
+      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: "success", data: found });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -37,27 +43,32 @@ class _UserPostController {
 
       const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id });
       returnPosts = [...returnPosts, ...allUserPosts];
-      if (returnPosts.length === 0) return res.status(200).send({ message: "No Posts found" });
+      if (returnPosts.length === 0)
+        return res.status(200).send({ message: errorMessage.NOT_FOUND });
       returnPosts = returnPosts.sort(function (a: any, b: any) {
         return b.updatedAt - a.updatedAt;
       });
-      return res.status(200).send({ message: "success", data: returnPosts });
+      return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
   async getOneUserPost(req: Request, res: Response) {
     try {
       const { id } = req.query;
-      if (!id) return res.status(400).send({ message: "provide id" });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserPostService.getOneUserPost({ id });
-      if (!found) return res.status(404).send({ message: "User Post not found" });
-      return res.status(201).send({ message: "success", data: found });
+      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -65,9 +76,9 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      if (!postId) return res.status(400).send({ message: "Incomplete params" });
+      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: "Post Not found" });
+      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
       if (userIndex === -1) {
         await prisma.userPost.update({
@@ -80,57 +91,66 @@ class _UserPostController {
           data: { likedBy: { disconnect: { id: id } } },
         });
       }
-      res.status(201).send({ message: "created" });
+      res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
-      if (!postId) return res.status(400).send({ message: "Incomplete params" });
+      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: "Post Not found" });
+      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       await UserPostService.updateOneUserPost({ id: postId }, updates);
-      res.status(201).send({ message: "updated" });
+      res.status(201).send({ message: successMessages.UPDATED });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
   async delete(req: any, res: Response) {
     try {
       const { postId } = req.body;
-      if (!postId) return res.status(400).send({ message: "Incomplete params" });
+      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: "Post Not found" });
+      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       await UserPostService.delete(postId);
-      res.status(201).send({ message: "deleted" });
+      res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
   async createOneUserPost(req: any, res: Response) {
     try {
-      const { body, title, image } = req.body;
+      const { body, title, image, isPrivate = false } = req.body;
       const { id } = res.locals.user;
-      if (!body || !id) return res.status(400).send({ message: "Incomplete params" });
+      if (!body || !id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const created = await UserPostService.createOneUserPost({
         authorId: id,
         body,
         type: "TEXT",
         title,
         image,
+        isPrivate,
       });
-      res.status(201).send({ message: "created", data: created });
+      res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -138,12 +158,14 @@ class _UserPostController {
     try {
       const { body, authorId, userPostId } = req.body;
       if (!body || !authorId || !userPostId)
-        return res.status(400).send({ message: "Incomplete params" });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const created = await UserPostService.createOneComment({ body, authorId, userPostId });
-      res.status(201).send({ message: "success", data: created });
+      res.status(201).send({ message: successMessages.SUCCESS, data: created });
     } catch (error) {
       logger.error("Error: ", error);
-      return res.status(500).send({ message: "internal server error" });
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 }
