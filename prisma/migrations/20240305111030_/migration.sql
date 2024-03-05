@@ -152,6 +152,7 @@ CREATE TABLE "PatronCreator" (
 CREATE TABLE "UserPost" (
     "id" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
+    "isPrivate" BOOLEAN NOT NULL DEFAULT false,
     "type" "USER_POST_TYPE" NOT NULL DEFAULT 'TEXT',
     "body" TEXT NOT NULL,
     "image" TEXT,
