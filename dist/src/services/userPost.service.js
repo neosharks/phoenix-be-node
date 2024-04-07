@@ -91,9 +91,9 @@ class _UserPostService {
     }
     createOneUserPost(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { body, authorId, title, type, image } = dataValues;
+            const { body, authorId, title, type, image, isPrivate } = dataValues;
             return yield prisma_1.default.userPost.create({
-                data: { body, authorId, title, type, image },
+                data: { body, authorId, title, type, image, isPrivate },
                 include: {
                     likedBy: true,
                     comments: true,

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRandomUsername = exports.generateOtp = exports.checkForNullOrUndefinedKeys = void 0;
+exports.generateRandomAlpaNumberic = exports.generateRandomUsername = exports.generateOtp = exports.checkForNullOrUndefinedKeys = void 0;
 const checkForNullOrUndefinedKeys = (configObject) => {
     const nullOrUndefinedKeys = [];
     for (const section in configObject) {
@@ -53,3 +53,18 @@ const generateRandomUsername = () => {
     return `${randomAdjective}-${randomNoun}${randomNumber}`;
 };
 exports.generateRandomUsername = generateRandomUsername;
+const generateRandomAlpaNumberic = (size, type = "NUMCAPLOW") => {
+    let characters = "";
+    if (type.includes("NUM"))
+        characters += "0123456789";
+    if (type.includes("CAP"))
+        characters += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (type.includes("LOW"))
+        characters += "abcdefghijklmnopqrstuvwxyz";
+    let result = "";
+    for (let i = 0; i < size; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+};
+exports.generateRandomAlpaNumberic = generateRandomAlpaNumberic;

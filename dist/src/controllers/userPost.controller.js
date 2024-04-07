@@ -13,12 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostController = void 0;
+const jimp_1 = __importDefault(require("jimp"));
 const userPost_service_1 = require("../services/userPost.service");
 const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
+const s3upload_core_1 = require("../core/s3upload.core");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -65,6 +67,16 @@ class _UserPostController {
                 returnPosts = returnPosts.sort(function (a, b) {
                     return b.updatedAt - a.updatedAt;
                 });
+                if (returnPosts.length > 0) {
+                    returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                            const response = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
+                            ele.image = response;
+                        }
+                        return ele;
+                    })));
+                }
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
@@ -170,18 +182,28 @@ class _UserPostController {
     createOneUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { body, title, image, isPrivate = false } = req.body;
+                const { body, title, isPrivate } = req.body;
+                const image = req.file;
                 const { id } = res.locals.user;
                 if (!body || !id)
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                let imageName;
+                if (image) {
+                    imageName = (0, s3upload_core_1.generateFileName)();
+                    const jimpImage = yield jimp_1.default.read(image.buffer);
+                    const buffer = yield jimpImage.getBufferAsync(image.mimetype);
+                    yield (0, s3upload_core_1.uploadFile)(buffer, imageName, image.mimetype);
+                }
                 const created = yield userPost_service_1.UserPostService.createOneUserPost({
                     authorId: id,
                     body,
-                    type: "TEXT",
+                    type: image ? "IMAGE" : "TEXT",
                     title,
-                    image,
+                    image: imageName,
                     isPrivate,
                 });
+                if (created.image)
+                    created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {
