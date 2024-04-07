@@ -2,12 +2,15 @@ import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
+import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
+import Jimp from "jimp";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
     try {
       const id = res.locals.user.id;
       const found = await UserService.getOneUser({ id });
+      if (found?.profileImage) found.profileImage = await getObjectSignedUrl(found.profileImage);
       return res.status(201).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
       logger.error("ERROR: ", error);
@@ -44,12 +47,18 @@ class _UserController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
-
   async update(req: Request, res: Response) {
     try {
-      const update = req.body;
+      const { profileImage, ...update } = req.body;
+      if (profileImage) {
+        const imageName = generateFileName();
+        const jimpImage = await Jimp.read(profileImage.buffer);
+        const buffer = await jimpImage.getBufferAsync(profileImage.mimetype);
+        await uploadFile(buffer, imageName, profileImage.mimetype);
+        update.profileImage = imageName;
+      }
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
-      return res.status(200).send({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
       logger.error("ERROR: ", error);
       return res

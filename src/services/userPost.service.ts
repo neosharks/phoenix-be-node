@@ -73,9 +73,9 @@ class _UserPostService {
   }
 
   async createOneUserPost(dataValues: any) {
-    const { body, authorId, title, type, image } = dataValues;
+    const { body, authorId, title, type, image, isPrivate } = dataValues;
     return await prisma.userPost.create({
-      data: { body, authorId, title, type, image },
+      data: { body, authorId, title, type, image, isPrivate },
       include: {
         likedBy: true,
         comments: true,

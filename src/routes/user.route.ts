@@ -1,6 +1,7 @@
 import express from "express";
 import { UserController } from "../controllers/user.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
+import { uploadFileMiddleware } from "../core/s3upload.core";
 
 const userRoutes = express.Router();
 
@@ -12,6 +13,11 @@ userRoutes.get("/getAllCreators", checkRoleAuth(), UserController.getAllCreator)
 
 userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboard);
 
-userRoutes.post("/update", checkRoleAuth(), UserController.update);
+userRoutes.post(
+  "/update",
+  checkRoleAuth(),
+  uploadFileMiddleware.single("image"),
+  UserController.update,
+);
 
 export default userRoutes;

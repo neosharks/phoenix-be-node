@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
+import Jimp from "jimp";
 import { UserPostService } from "../services/userPost.service";
 import { UserService } from "../services/user.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
+import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -48,6 +50,17 @@ class _UserPostController {
       returnPosts = returnPosts.sort(function (a: any, b: any) {
         return b.updatedAt - a.updatedAt;
       });
+      if (returnPosts.length > 0) {
+        returnPosts = await Promise.all(
+          returnPosts.map(async (ele: any) => {
+            if (ele?.image?.length > 0) {
+              const response = await getObjectSignedUrl(ele.image);
+              ele.image = response;
+            }
+            return ele;
+          }),
+        );
+      }
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       logger.error("Error: ", error);
@@ -134,17 +147,27 @@ class _UserPostController {
 
   async createOneUserPost(req: any, res: Response) {
     try {
-      const { body, title, image, isPrivate = false } = req.body;
+      const { body, title, isPrivate } = req.body;
+      const image = req.file;
       const { id } = res.locals.user;
       if (!body || !id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
+      let imageName;
+      if (image) {
+        imageName = generateFileName();
+        const jimpImage = await Jimp.read(image.buffer);
+        const buffer = await jimpImage.getBufferAsync(image.mimetype);
+        await uploadFile(buffer, imageName, image.mimetype);
+      }
       const created = await UserPostService.createOneUserPost({
         authorId: id,
         body,
-        type: "TEXT",
+        type: image ? "IMAGE" : "TEXT",
         title,
-        image,
+        image: imageName,
         isPrivate,
       });
+      if (created.image) created.image = await getObjectSignedUrl(created.image);
       res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       logger.error("Error: ", error);

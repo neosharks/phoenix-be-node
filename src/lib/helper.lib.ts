@@ -53,3 +53,16 @@ export const generateRandomUsername = () => {
 
   return `${randomAdjective}-${randomNoun}${randomNumber}`;
 };
+
+export const generateRandomAlpaNumberic = (size: number, type: string = "NUMCAPLOW") => {
+  let characters = "";
+  if (type.includes("NUM")) characters += "0123456789";
+  if (type.includes("CAP")) characters += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  if (type.includes("LOW")) characters += "abcdefghijklmnopqrstuvwxyz";
+
+  let result = "";
+  for (let i = 0; i < size; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};

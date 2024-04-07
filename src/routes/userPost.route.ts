@@ -3,12 +3,14 @@ import express from "express";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 import { userRole } from "../constant/role.constant";
 import { UserPostController } from "../controllers/userPost.controller";
+import { uploadFileMiddleware } from "../core/s3upload.core";
 
 const userPostRoutes = express.Router();
 
 userPostRoutes.post(
   "/createUserPost",
   checkRoleAuth([userRole.CREATOR]),
+  uploadFileMiddleware.single("image"),
   UserPostController.createOneUserPost,
 );
 
