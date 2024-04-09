@@ -72,12 +72,13 @@ class _ChatService {
     }
   }
 
-  async createOneChat(participants: any) {
+  async createOneChat(participants: any, allowed: any) {
     try {
       return await prisma.chat.create({
         data: {
           participantOneId: participants[0],
           participantTwoId: participants[1],
+          pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
         },
       });
     } catch (error) {

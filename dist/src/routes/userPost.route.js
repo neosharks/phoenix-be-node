@@ -17,5 +17,6 @@ userPostRoutes.post("/delete", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), 
 userPostRoutes.post("/update", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.update);
 userPostRoutes.get("/getAllPostForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPostForUser);
 userPostRoutes.get("/getAllUserPostByUser", userPost_controller_1.UserPostController.getAllUserPostByUser);
-userPostRoutes.get("/getOneUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getOneUserPost);
+userPostRoutes.get("/getSingleUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getSingleUserPost);
+userPostRoutes.get("/getSingleUserPostUA", userPost_controller_1.UserPostController.getSingleUserPost);
 exports.default = userPostRoutes;

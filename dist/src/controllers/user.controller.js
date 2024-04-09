@@ -137,5 +137,20 @@ class _UserController {
             }
         });
     }
+    delete(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = res.locals.user;
+                yield user_service_1.UserService.deleteOneUser(id);
+                return res.status(200).json({ messge: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
 }
 exports.UserController = new _UserController();

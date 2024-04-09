@@ -20,4 +20,6 @@ userRoutes.post(
   UserController.update,
 );
 
+userRoutes.delete("/delete", UserController.delete);
+
 export default userRoutes;

@@ -53,7 +53,12 @@ class _UserPostService {
     return await prisma.userPost.findUnique({
       where: query,
       include: {
-        comments: true,
+        comments: {
+          include: {
+            author: true,
+          },
+        },
+        author: true,
         likedBy: {
           select: {
             id: true,

@@ -46,6 +46,17 @@ class _PackageService {
       data: { patronId, creatorId, packageId, expiry: new Date() },
     });
   }
+
+  async getAllPurchasedByPatron(patronId: string, creatorId: string) {
+    return await prisma.patronCreator.findMany({
+      where: { patronId, creatorId },
+      include: {
+        package: {
+          include: { tier: true },
+        },
+      },
+    });
+  }
 }
 
 export const PackageService = new _PackageService();

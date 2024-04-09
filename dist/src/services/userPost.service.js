@@ -69,7 +69,12 @@ class _UserPostService {
             return yield prisma_1.default.userPost.findUnique({
                 where: query,
                 include: {
-                    comments: true,
+                    comments: {
+                        include: {
+                            author: true,
+                        },
+                    },
+                    author: true,
                     likedBy: {
                         select: {
                             id: true,

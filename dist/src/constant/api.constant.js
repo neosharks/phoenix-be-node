@@ -17,6 +17,7 @@ exports.errorMessage = {
     REDUNDANT_REQUEST: "REDUNDANT_REQUEST",
     TOKEN_MISSING: "TOKEN_MISSING",
     DB_ISSUE: "DB_ISSUE",
+    USER_BLOCKED: "USER_BLOCKED",
 };
 exports.errorCode = {
     GENERIC: 400,

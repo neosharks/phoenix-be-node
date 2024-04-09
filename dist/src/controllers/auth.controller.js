@@ -25,18 +25,27 @@ class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const body = req.body;
+                let body = req.body;
+                const { isCreator } = req.body;
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (foundUser)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.USER_EXISTS });
                 const saltRounds = 10;
                 const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
                 const hash = yield bcrypt_1.default.hashSync(body.password, salt);
+                if (body.referralUsername) {
+                    const referralUser = yield user_service_1.UserService.getOneUser({ username: body.referralUsername });
+                    if (referralUser) {
+                        body.referralTimeStamp = new Date();
+                        body.referralUsername = body.referralUsername;
+                    }
+                }
                 body.password = hash;
                 body.username = body.email.split("@")[0];
                 const randomNum = (Math.random() * 25) | 1;
                 const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-                const created = yield user_service_1.UserService.createOneUser(Object.assign(Object.assign({}, body), { profileImage }));
+                const created = yield user_service_1.UserService.createOneUser(isCreator
+                    ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {
                     yield (0, email_core_1.default)(body.email, "Welcome to Qalakar!", "SIGNUP", {
                         firstName: body.firstName,
@@ -47,7 +56,7 @@ class _AuthController {
                 return res.status(201).json({ messge: api_constant_1.successMessages.CREATED, accessToken, user: created });
             }
             catch (err) {
-                logger_core_1.default.error("Error in register");
+                logger_core_1.default.error("Error in register", err);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: err });

@@ -11,18 +11,30 @@ import sendEmail from "../core/email.core";
 class _AuthController {
   async register(req: Request, res: Response) {
     try {
-      const body = req.body;
+      let body = req.body;
+      const { isCreator } = req.body;
       const foundUser = await UserService.getOneUser({ email: body.email });
       if (foundUser)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.USER_EXISTS });
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(body.password, salt);
+      if (body.referralUsername) {
+        const referralUser = await UserService.getOneUser({ username: body.referralUsername });
+        if (referralUser) {
+          body.referralTimeStamp = new Date();
+          body.referralUsername = body.referralUsername;
+        }
+      }
       body.password = hash;
       body.username = body.email.split("@")[0];
       const randomNum = (Math.random() * 25) | 1;
       const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-      const created = await UserService.createOneUser({ ...body, profileImage });
+      const created = await UserService.createOneUser(
+        isCreator
+          ? { ...body, profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }
+          : { ...body, profileImage },
+      );
       if (body.email && body.email.length > 0) {
         await sendEmail(body.email, "Welcome to Qalakar!", "SIGNUP", {
           firstName: body.firstName,
@@ -32,7 +44,7 @@ class _AuthController {
       const accessToken = await signJwt(created);
       return res.status(201).json({ messge: successMessages.CREATED, accessToken, user: created });
     } catch (err) {
-      logger.error("Error in register");
+      logger.error("Error in register", err);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: err });

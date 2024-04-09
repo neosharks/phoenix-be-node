@@ -31,7 +31,7 @@ class _ChatController {
                 });
                 if (foundChat)
                     return res.status(400).json({ message: api_constant_1.errorMessage.EXISTING_DATA, data: foundChat });
-                const created = yield chat_service_1.ChatService.createOneChat(participants);
+                const created = yield chat_service_1.ChatService.createOneChat(participants, "UNLIMITED");
                 return res.status(201).json({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {
@@ -55,6 +55,7 @@ class _ChatController {
                     const saveObj = {};
                     saveObj.id = ele.id;
                     saveObj.unreadCount = ele.unreadCount;
+                    saveObj.pendingAllowed = ele.pendingAllowed;
                     saveObj.participants = [ele.participantOne, ele.participantTwo];
                     const foundMessages = yield chat_service_1.ChatService.getAllMessageForChat({
                         chatId: ele.id,

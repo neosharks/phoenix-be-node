@@ -105,6 +105,19 @@ class _UserController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+
+  async delete(req: Request, res: Response) {
+    try {
+      const { id } = res.locals.user;
+      await UserService.deleteOneUser(id);
+      return res.status(200).json({ messge: successMessages.SUCCESS });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
 }
 
 export const UserController = new _UserController();

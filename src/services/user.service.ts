@@ -43,6 +43,10 @@ class _UserService {
   async updateOneUser(query: any, data: any) {
     return await prisma.user.update({ where: query, data: data });
   }
+
+  async deleteOneUser(id: string) {
+    return await prisma.user.delete({ where: { id } });
+  }
 }
 
 export const UserService = new _UserService();

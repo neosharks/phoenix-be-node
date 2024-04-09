@@ -21,6 +21,7 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
+const image_lib_1 = require("../lib/image.lib");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -31,13 +32,24 @@ class _UserPostController {
                 const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
                 if (!foundUser)
                     return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                const found = yield userPost_service_1.UserPostService.getAllUserPostByUser({
+                let returnPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({
                     authorId: foundUser.id,
-                    isPrivate: true,
                 });
-                if (!found)
+                if (!returnPosts)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                return res.status(200).send({ message: "success", data: found });
+                if (returnPosts.length > 0) {
+                    returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                            if (!ele.isPrivate)
+                                ele.image = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
+                            else
+                                ele.image = yield (0, image_lib_1.getBlurredImage)(ele.image);
+                        }
+                        return ele;
+                    })));
+                }
+                return res.status(200).send({ message: "success", data: returnPosts });
             }
             catch (error) {
                 logger_core_1.default.error("Error: ", error);
@@ -71,8 +83,10 @@ class _UserPostController {
                     returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
                         var _a;
                         if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                            const response = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
-                            ele.image = response;
+                            if (!ele.isPrivate)
+                                ele.image = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
+                            else
+                                ele.image = yield (0, image_lib_1.getBlurredImage)(ele.image);
                         }
                         return ele;
                     })));
@@ -87,13 +101,17 @@ class _UserPostController {
             }
         });
     }
-    getOneUserPost(req, res) {
+    getSingleUserPost(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.query;
                 if (!id)
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
+                if ((found === null || found === void 0 ? void 0 : found.isPrivate) && (found === null || found === void 0 ? void 0 : found.image))
+                    found.image = yield (0, image_lib_1.getBlurredImage)(found.image);
+                else if (!(found === null || found === void 0 ? void 0 : found.isPrivate) && (found === null || found === void 0 ? void 0 : found.image))
+                    found.image = yield yield (0, s3upload_core_1.getObjectSignedUrl)(found.image);
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });

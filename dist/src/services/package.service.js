@@ -67,5 +67,17 @@ class _PackageService {
             });
         });
     }
+    getAllPurchasedByPatron(patronId, creatorId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.patronCreator.findMany({
+                where: { patronId, creatorId },
+                include: {
+                    package: {
+                        include: { tier: true },
+                    },
+                },
+            });
+        });
+    }
 }
 exports.PackageService = new _PackageService();

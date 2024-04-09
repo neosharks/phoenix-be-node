@@ -8,29 +8,37 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  firstName       String?
-  lastName        String?
-  email           String?   @unique
-  username        String    @unique
-  phoneNumber     String?   @unique
-  countryCode     String    @default("+91")
-  profileImage    String?
-  coverImage      String?
-  isCreator       Boolean   @default(false)
-  gender          GENDER?
-  role            ROLE[]    @default([PATRON])
-  bio             String?
-  country         COUNTRY   @default(INDIA)
-  dob             DateTime?
-  industry        INDUSTRY?
-  pageName        String?
-  youtubeHandle   String?
-  facebookHandle  String?
-  twitterHandle   String?
-  instagramHandle String?
+  id                           String    @id @default(cuid())
+  firstName                    String?
+  lastName                     String?
+  email                        String?   @unique
+  username                     String    @unique
+  phoneNumber                  String?   @unique
+  countryCode                  String    @default("+91")
+  profileImage                 String?
+  coverImage                   String?
+  isCreator                    Boolean   @default(false)
+  gender                       GENDER?
+  role                         ROLE[]    @default([PATRON])
+  bio                          String?
+  country                      COUNTRY   @default(INDIA)
+  dob                          DateTime?
+  industry                     INDUSTRY?
+  onBoardingComplete           Boolean   @default(false)
+  onBoardingCompletePercentage Int       @default(0)
+  pageName                     String?
+  youtubeHandle                String?
+  facebookHandle               String?
+  twitterHandle                String?
+  instagramHandle              String?
+
+  status USER_STATUS @default(ACTIVE)
 
   password String?
+
+  referralUserId    String?
+  referralTimeStamp DateTime?
+  referralDevice    String?
 
   emailVerified Boolean @default(false)
   phoneVerified Boolean @default(false)
@@ -109,6 +117,7 @@ model Chat {
   type             CONVERSATION_TYPE @default(ONE_TO_ONE)
   Message          Message[]
   unreadCount      Int               @default(0)
+  pendingAllowed   Int               @default(1)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -282,6 +291,13 @@ enum VERIFICATION_CODE_SOURCE {
   WHATSAPP
   SMS
   EMAIL
+}
+
+enum USER_STATUS {
+  ACTIVE
+  INACTIVE
+  DELETED
+  BLOCKED
 }
 
 enum VERIFICATION_CODE_TYPE {

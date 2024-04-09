@@ -90,13 +90,14 @@ class _ChatService {
             }
         });
     }
-    createOneChat(participants) {
+    createOneChat(participants, allowed) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.chat.create({
                     data: {
                         participantOneId: participants[0],
                         participantTwoId: participants[1],
+                        pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
                     },
                 });
             }

@@ -148,6 +148,15 @@ class _PackageController {
                 tier &&
                     tier.length > 0 &&
                     tier.map((ele) => __awaiter(this, void 0, void 0, function* () {
+                        if (ele.tierType === "ONE_TIME_MESSAGE") {
+                            const chats = yield prisma_1.default.chat.findMany({
+                                where: {
+                                    OR: [{ participantOneId: userId }, { participantTwoId: userId }],
+                                },
+                            });
+                            if (chats.length === 0)
+                                yield chat_service_1.ChatService.createOneChat([user.id, userId], "LIMITED");
+                        }
                         if (ele.tierType === "UNLIMITED_MESSAGE") {
                             const chats = yield prisma_1.default.chat.findMany({
                                 where: {
@@ -155,7 +164,7 @@ class _PackageController {
                                 },
                             });
                             if (chats.length === 0)
-                                yield chat_service_1.ChatService.createOneChat([user.id, userId]);
+                                yield chat_service_1.ChatService.createOneChat([user.id, userId], "UNLIMITED");
                         }
                         if (ele.tierType === "GENERAL_SUPPORT") {
                             //

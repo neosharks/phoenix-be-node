@@ -7,6 +7,7 @@ import prisma from "../../prisma";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
+import { getBlurredImage } from "../lib/image.lib";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -15,12 +16,23 @@ class _UserPostController {
       if (!author) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
       if (!foundUser) return res.status(400).send({ message: errorMessage.NOT_FOUND });
-      const found = await UserPostService.getAllUserPostByUser({
+      let returnPosts = await UserPostService.getAllUserPostByUser({
         authorId: foundUser.id,
-        isPrivate: true,
       });
-      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      return res.status(200).send({ message: "success", data: found });
+
+      if (!returnPosts) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      if (returnPosts.length > 0) {
+        returnPosts = await Promise.all(
+          returnPosts.map(async (ele: any) => {
+            if (ele?.image?.length > 0) {
+              if (!ele.isPrivate) ele.image = await getObjectSignedUrl(ele.image);
+              else ele.image = await getBlurredImage(ele.image);
+            }
+            return ele;
+          }),
+        );
+      }
+      return res.status(200).send({ message: "success", data: returnPosts });
     } catch (error) {
       logger.error("Error: ", error);
       return res
@@ -42,7 +54,6 @@ class _UserPostController {
         });
         returnPosts = [...returnPosts, ...allPostsByUser];
       }
-
       const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id });
       returnPosts = [...returnPosts, ...allUserPosts];
       if (returnPosts.length === 0)
@@ -54,8 +65,8 @@ class _UserPostController {
         returnPosts = await Promise.all(
           returnPosts.map(async (ele: any) => {
             if (ele?.image?.length > 0) {
-              const response = await getObjectSignedUrl(ele.image);
-              ele.image = response;
+              if (!ele.isPrivate) ele.image = await getObjectSignedUrl(ele.image);
+              else ele.image = await getBlurredImage(ele.image);
             }
             return ele;
           }),
@@ -70,11 +81,14 @@ class _UserPostController {
     }
   }
 
-  async getOneUserPost(req: Request, res: Response) {
+  async getSingleUserPost(req: Request, res: Response) {
     try {
       const { id } = req.query;
       if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserPostService.getOneUserPost({ id });
+      if (found?.isPrivate && found?.image) found.image = await getBlurredImage(found.image);
+      else if (!found?.isPrivate && found?.image)
+        found.image = await await getObjectSignedUrl(found.image);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
