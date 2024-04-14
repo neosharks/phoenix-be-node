@@ -8,14 +8,17 @@ import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
 import { getBlurredImage } from "../lib/image.lib";
+import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
     try {
       const { author } = req.query;
-      if (!author) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!author)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
-      if (!foundUser) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      if (!foundUser)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       let returnPosts = await UserPostService.getAllUserPostByUser({
         authorId: foundUser.id,
       });
@@ -84,11 +87,10 @@ class _UserPostController {
   async getSingleUserPost(req: Request, res: Response) {
     try {
       const { id } = req.query;
-      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserPostService.getOneUserPost({ id });
-      if (found?.isPrivate && found?.image) found.image = await getBlurredImage(found.image);
-      else if (!found?.isPrivate && found?.image)
-        found.image = await await getObjectSignedUrl(found.image);
+      // if (found?.isPrivate && found?.image) found.image = await getBlurredImage(found.image);
+      if (found?.image) found.image = await await getObjectSignedUrl(found.image);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -103,9 +105,11 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!postId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPost)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
       if (userIndex === -1) {
         await prisma.userPost.update({
@@ -127,12 +131,45 @@ class _UserPostController {
     }
   }
 
+  async voteOnPoll(req: any, res: Response) {
+    try {
+      const { pollId, selectedId } = req.body;
+      const { id } = res.locals.user;
+      if (!pollId || !selectedId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
+      if (!foundPoll)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      const userIndex = foundPoll.selectedOptions.findIndex((user: any) => user.userId === id);
+      if (userIndex === -1) {
+        await prisma.poll.update({
+          where: { id: pollId },
+          data: { selectedOptions: [...foundPoll.selectedOptions, { userId: id, selectedId }] },
+        });
+      } else {
+        foundPoll.selectedOptions[userIndex].selectedId = selectedId;
+        await prisma.poll.update({
+          where: { id: pollId },
+          data: { selectedOptions: [...foundPoll.selectedOptions] },
+        });
+      }
+      res.status(201).send({ message: successMessages.CREATED });
+    } catch (error) {
+      logger.error("Error: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
-      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!postId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPost)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       await UserPostService.updateOneUserPost({ id: postId }, updates);
       res.status(201).send({ message: successMessages.UPDATED });
     } catch (error) {
@@ -143,47 +180,74 @@ class _UserPostController {
     }
   }
 
-  async delete(req: any, res: Response) {
-    try {
-      const { postId } = req.body;
-      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-      const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
-      await UserPostService.delete(postId);
-      res.status(201).send({ message: successMessages.SUCCESS });
-    } catch (error) {
-      logger.error("Error: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
-    }
-  }
-
   async createOneUserPost(req: any, res: Response) {
     try {
-      const { body, title, isPrivate } = req.body;
+      const body = req.body;
+      const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
       const { id } = res.locals.user;
-      if (!body || !id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      const payload: any = { authorId: id };
 
-      let imageName;
-      if (image) {
-        imageName = generateFileName();
-        const jimpImage = await Jimp.read(image.buffer);
-        const buffer = await jimpImage.getBufferAsync(image.mimetype);
-        await uploadFile(buffer, imageName, image.mimetype);
+      // Checking for missing parameters
+      if (
+        !description ||
+        !id ||
+        !type ||
+        !visibility ||
+        (type === "IMAGE" && !image) ||
+        (type === "VIDEO" && !videoUrl)
+      )
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
+      if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
+      // Handling creation of poll
+      if (type === "POLL") {
+        const { options } = req.body;
+        let redefinedOptions = options.map((ele: string) => {
+          return { id: generateRandomAlpaNumberic(5), optionText: ele };
+        });
+        const response = await UserPostService.createPoll({
+          options: redefinedOptions,
+          selectedOptions: [],
+          authorId: id,
+          description,
+          title,
+        });
+        payload.pollId = response.id;
       }
+
+      // Handling image upload
+      if (type === "IMAGE" && image) {
+        try {
+          const imageName = generateFileName();
+          const jimpImage = await Jimp.read(image.buffer);
+          const buffer = await jimpImage.getBufferAsync(image.mimetype);
+          await uploadFile(buffer, imageName, image.mimetype);
+          payload.imageName = imageName;
+        } catch (err) {
+          logger.info("Error in image upload");
+        }
+      }
+
+      // Creating user post
       const created = await UserPostService.createOneUserPost({
-        authorId: id,
-        body,
-        type: image ? "IMAGE" : "TEXT",
+        ...payload,
+        description,
+        type,
+        visibility,
+        videoUrl,
         title,
-        image: imageName,
-        isPrivate,
+        packages: visibility === "PAID_MEMBER" ? packages : [],
       });
+
+      // If image exists, get signed URL
       if (created.image) created.image = await getObjectSignedUrl(created.image);
-      res.status(201).send({ message: successMessages.CREATED, data: created });
+
+      return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
+      console.log(error);
       logger.error("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
@@ -195,9 +259,27 @@ class _UserPostController {
     try {
       const { body, authorId, userPostId } = req.body;
       if (!body || !authorId || !userPostId)
-        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const created = await UserPostService.createOneComment({ body, authorId, userPostId });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });
+    } catch (error) {
+      logger.error("Error: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async delete(req: any, res: Response) {
+    try {
+      const { postId } = req.body;
+      if (!postId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundPost = await UserPostService.getOneUserPost({ id: postId });
+      if (!foundPost)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      await UserPostService.delete(postId);
+      res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       logger.error("Error: ", error);
       return res

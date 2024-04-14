@@ -70,6 +70,8 @@ class _AuthController {
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (!foundUser)
                     return res.status(403).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (foundUser.status !== "ACTIVE")
+                    return res.status(403).json({ message: api_constant_1.errorMessage.USER_BLOCKED });
                 let isMatch = false;
                 if (foundUser.password)
                     isMatch = yield bcrypt_1.default.compareSync(body.password, foundUser.password);

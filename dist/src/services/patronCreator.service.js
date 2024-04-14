@@ -20,11 +20,17 @@ class _PatronCreatorService {
             return yield prisma_1.default.patronCreator.findFirst({ where: query });
         });
     }
+    getOne(query) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.patronCreator.findUnique({ where: query });
+        });
+    }
     getAll(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.patronCreator.findMany({
                 where: query,
                 include: {
+                    package: true,
                     creator: {
                         select: {
                             id: true,

@@ -56,6 +56,8 @@ class _AuthController {
       const body = req.body;
       const foundUser = await UserService.getOneUser({ email: body.email });
       if (!foundUser) return res.status(403).json({ message: errorMessage.NOT_FOUND });
+      if (foundUser.status !== "ACTIVE")
+        return res.status(403).json({ message: errorMessage.USER_BLOCKED });
       let isMatch = false;
       if (foundUser.password) isMatch = await bcrypt.compareSync(body.password, foundUser.password);
       if (!foundUser.password)

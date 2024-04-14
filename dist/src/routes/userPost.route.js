@@ -13,6 +13,7 @@ const userPostRoutes = express_1.default.Router();
 userPostRoutes.post("/createUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), s3upload_core_1.uploadFileMiddleware.single("image"), userPost_controller_1.UserPostController.createOneUserPost);
 userPostRoutes.post("/commentOnPostByUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.commentOnPostByUser);
 userPostRoutes.post("/likePostToggle", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.likePostToggle);
+userPostRoutes.post("/voteOnPoll", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.voteOnPoll);
 userPostRoutes.post("/delete", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.delete);
 userPostRoutes.post("/update", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.update);
 userPostRoutes.get("/getAllPostForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPostForUser);

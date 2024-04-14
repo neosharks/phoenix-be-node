@@ -5,9 +5,11 @@ class _UserPostService {
     return await prisma.userPost.findMany({
       where: query,
       include: {
+        poll: true,
+        packages: true,
         comments: {
           select: {
-            body: true,
+            description: true,
             createdAt: true,
             updatedAt: true,
             author: {
@@ -78,12 +80,35 @@ class _UserPostService {
   }
 
   async createOneUserPost(dataValues: any) {
-    const { body, authorId, title, type, image, isPrivate } = dataValues;
+    const {
+      description,
+      authorId,
+      title,
+      type,
+      image,
+      visibility,
+      allowComments,
+      videoUrl,
+      pollId,
+      packages,
+    } = dataValues;
     return await prisma.userPost.create({
-      data: { body, authorId, title, type, image, isPrivate },
+      data: {
+        description,
+        authorId,
+        title,
+        type,
+        image,
+        visibility,
+        allowComments,
+        videoUrl,
+        pollId,
+        packages: { connect: packages.map((id: string) => ({ id })) },
+      },
       include: {
         likedBy: true,
         comments: true,
+
         author: {
           select: {
             id: true,
@@ -100,9 +125,9 @@ class _UserPostService {
   }
 
   async createOneComment(dataValues: any) {
-    const { body, authorId, userPostId } = dataValues;
+    const { description, authorId, userPostId } = dataValues;
     return await prisma.postComment.create({
-      data: { body, authorId, userPostId },
+      data: { description, authorId, userPostId },
       include: {
         author: {
           select: {
@@ -119,9 +144,22 @@ class _UserPostService {
     });
   }
 
+  async createPoll(data: any) {
+    return await prisma.poll.create({ data });
+  }
+
+  async getOnePoll(query: any) {
+    return await prisma.poll.findUnique({
+      where: query,
+    });
+  }
+
+  async updateOnePoll(query: any, data: any) {
+    return await prisma.poll.update({ where: query, data: data });
+  }
+
   async delete(postId: string) {
     await prisma.postComment.deleteMany({ where: { userPostId: postId } });
-
     return await prisma.userPost.delete({ where: { id: postId } });
   }
 }

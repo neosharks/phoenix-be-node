@@ -95,12 +95,15 @@ class _ChatController {
                 const foundChat = yield chat_service_1.ChatService.getOneChat({ id: chatId });
                 if (!foundChat)
                     return res.status(400).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (!isCreator && foundChat.pendingAllowed === 0)
+                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.LIMIT_EXHAUSTED });
                 const createdChat = yield chat_service_1.ChatService.createOneMessage({
                     chatId,
                     senderId,
                     message,
                     contentType,
                 });
+                yield chat_service_1.ChatService.updateOneChat({ id: chatId }, { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 });
                 if (isCreator)
                     yield notification_service_1.NotificationService.createOneNotification({
                         aboutUserId: senderId,

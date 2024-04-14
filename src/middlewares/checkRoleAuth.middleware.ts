@@ -8,15 +8,17 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const accessToken = get(req, "headers.authorization", "").replace(/^Bearer\s/, "");
 
-    if (!accessToken) return res.status(403).json({ message: errorMessage.TOKEN_MISSING });
+    if (!accessToken)
+      return res.status(403).json({ message: errorMessage.TOKEN_MISSING, info: "No token" });
     const { decoded }: any = verifyJwt(accessToken);
 
     if (decoded) {
       const { id } = decoded;
       const foundUser: any = await UserService.getOneUser({ id });
-      if (!foundUser) return res.status(403).json({ message: errorMessage.UNAUTHORISED });
+      if (!foundUser)
+        return res.status(403).json({ message: errorMessage.UNAUTHORISED, info: "User not found" });
       if (foundUser.status !== "ACTIVE")
-        return res.status(403).json({ message: errorMessage.USER_BLOCKED });
+        return res.status(403).json({ message: errorMessage.USER_BLOCKED, info: "User blocked" });
       res.locals.user = foundUser;
       const userRoles = foundUser?.role || [];
 

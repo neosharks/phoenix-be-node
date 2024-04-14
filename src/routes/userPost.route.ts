@@ -22,6 +22,8 @@ userPostRoutes.post(
 
 userPostRoutes.post("/likePostToggle", checkRoleAuth(), UserPostController.likePostToggle);
 
+userPostRoutes.post("/voteOnPoll", checkRoleAuth(), UserPostController.voteOnPoll);
+
 userPostRoutes.post("/delete", checkRoleAuth(), UserPostController.delete);
 
 userPostRoutes.post("/update", checkRoleAuth(), UserPostController.update);

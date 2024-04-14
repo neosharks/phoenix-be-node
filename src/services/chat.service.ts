@@ -96,6 +96,15 @@ class _ChatService {
     }
   }
 
+  async updateOneChat(query: any, data: any) {
+    try {
+      return await prisma.chat.update({ where: query, data });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      throw new Error(errorMessage.DB_ISSUE);
+    }
+  }
+
   async getAllMessageForChat(query: any) {
     try {
       return await prisma.message.findMany({

@@ -20,11 +20,6 @@ class _PackageService {
             return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
         });
     }
-    getAllPatronCreatorByUser() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findMany();
-        });
-    }
     getOnePackage(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.package.findUnique({ where: query, include: { tier: true } });
@@ -36,7 +31,6 @@ class _PackageService {
             return yield prisma_1.default.package.create({
                 data: {
                     name,
-                    image: "https://random.imagecdn.app/500/150",
                     price,
                     description,
                     userId,
@@ -60,10 +54,19 @@ class _PackageService {
             return yield prisma_1.default.tier.create({ data: data });
         });
     }
-    linkPatronCreator(patronId, creatorId, packageId, expiry) {
+    linkPatronCreator(patronId, creatorId, packageId) {
         return __awaiter(this, void 0, void 0, function* () {
+            const currentDate = new Date();
+            const expiryDate = new Date(currentDate);
+            expiryDate.setMonth(expiryDate.getMonth() + 1);
             return yield prisma_1.default.patronCreator.create({
-                data: { patronId, creatorId, packageId, expiry: new Date() },
+                data: {
+                    patronId,
+                    creatorId,
+                    packageId,
+                    status: "ACTIVE",
+                    expiry: expiryDate,
+                },
             });
         });
     }

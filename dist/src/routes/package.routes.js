@@ -11,6 +11,7 @@ const packageRoutes = express_1.default.Router();
 packageRoutes.post("/createOnePackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), package_controller_1.PackageController.createOnePackage);
 packageRoutes.get("/getAllPackagesOfCreator/:username", package_controller_1.PackageController.getAllPackagesOfCreator);
 packageRoutes.get("/getOnePackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.getOnePackage);
+packageRoutes.get("/getPackageNames", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), package_controller_1.PackageController.getPackageNames);
 packageRoutes.get("/getAllSubscriptions/:username", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.useGetAllSubscriptions);
 packageRoutes.get("/getAllPatronsByCreator/:username", package_controller_1.PackageController.getAllPatronsByCreator);
 packageRoutes.post("/buyPackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.buyPackage);

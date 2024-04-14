@@ -16,7 +16,6 @@ exports.PackageController = void 0;
 const package_service_1 = require("../services/package.service");
 const chat_service_1 = require("../services/chat.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
-const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _PackageController {
@@ -60,12 +59,28 @@ class _PackageController {
             }
         });
     }
+    getPackageNames(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return res.status(201).send({
+                    message: api_constant_1.successMessages.SUCCESS,
+                    data: ["SUPPORT", "BROZE", "SILVER", "GOLD", "PLATINUM", "RUBY"],
+                });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
     useGetAllSubscriptions(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { username } = req.params;
                 if (!username)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const found = yield patronCreator_service_1.PatronCreatorService.getAll({
                     patron: {
                         username: username,
@@ -73,7 +88,7 @@ class _PackageController {
                 });
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
                 logger_core_1.default.error("ERROR: ", error);
@@ -109,8 +124,13 @@ class _PackageController {
     createOnePackage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const body = req.body;
-                yield package_service_1.PackageService.createOnePackage(body);
+                const { id } = res.locals.user;
+                const { tier, name, price, description } = req.body;
+                const allUserPackages = yield package_service_1.PackageService.getAllPackagesOfCreator({ userId: id });
+                const packageIndex = allUserPackages.findIndex((pac) => pac.name === name);
+                if (packageIndex !== -1)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_ENTRY });
+                yield package_service_1.PackageService.createOnePackage({ tier, name, price, description, userId: id });
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
@@ -149,37 +169,31 @@ class _PackageController {
                     tier.length > 0 &&
                     tier.map((ele) => __awaiter(this, void 0, void 0, function* () {
                         if (ele.tierType === "ONE_TIME_MESSAGE") {
-                            const chats = yield prisma_1.default.chat.findMany({
-                                where: {
-                                    OR: [{ participantOneId: userId }, { participantTwoId: userId }],
-                                },
+                            const foundChat = yield chat_service_1.ChatService.getOneChat({
+                                OR: [
+                                    { participantOneId: user.id, participantTwoId: userId },
+                                    { participantOneId: userId, participantTwoId: user.id },
+                                ],
                             });
-                            if (chats.length === 0)
+                            if (!foundChat)
                                 yield chat_service_1.ChatService.createOneChat([user.id, userId], "LIMITED");
+                            else
+                                yield chat_service_1.ChatService.updateOneChat({ id: foundChat.id }, { pendingAllowed: foundChat.pendingAllowed + 1 });
                         }
                         if (ele.tierType === "UNLIMITED_MESSAGE") {
-                            const chats = yield prisma_1.default.chat.findMany({
-                                where: {
-                                    OR: [{ participantOneId: userId }, { participantTwoId: userId }],
-                                },
+                            const foundChat = yield chat_service_1.ChatService.getOneChat({
+                                OR: [
+                                    { participantOneId: user.id, participantTwoId: userId },
+                                    { participantOneId: userId, participantTwoId: user.id },
+                                ],
                             });
-                            if (chats.length === 0)
+                            if (!foundChat)
                                 yield chat_service_1.ChatService.createOneChat([user.id, userId], "UNLIMITED");
-                        }
-                        if (ele.tierType === "GENERAL_SUPPORT") {
-                            //
-                        }
-                        if (ele.tierType === "EARLY_TICKETS") {
-                            //
-                        }
-                        if (ele.tierType === "DIGITAL_DOWNLOADS") {
-                            //
-                        }
-                        if (ele.tierType === "BEHIND_THE_SCENES") {
-                            //
+                            else
+                                yield chat_service_1.ChatService.updateOneChat({ id: foundChat.id }, { pendingAllowed: foundChat.pendingAllowed + 1000 });
                         }
                     }));
-                yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId, Date.now());
+                yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {

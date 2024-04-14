@@ -2,7 +2,10 @@
 CREATE TYPE "ROLE" AS ENUM ('PATRON', 'CREATOR', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "TIER_TYPE" AS ENUM ('GENERAL_SUPPORT', 'BEHIND_THE_SCENES', 'DIGITAL_DOWNLOADS', 'ONE_TIME_MESSAGE', 'UNLIMITED_MESSAGE', 'EARLY_TICKETS');
+CREATE TYPE "PACKAGE_NAMES" AS ENUM ('SUPPORT', 'BROZE', 'SILVER', 'GOLD', 'PLATINUM', 'RUBY');
+
+-- CreateEnum
+CREATE TYPE "TIER_TYPE" AS ENUM ('GENERAL_SUPPORT', 'EXCLUSIVE_POSTS', 'BEHIND_THE_SCENES', 'UNLIMITED_MESSAGE', 'ONE_TIME_MESSAGE', 'NAME_POST_DESCRIPTION', 'NAME_POST_END', 'EXCLUSIVE_POLLS', 'MENTORSHIP', 'COMMUNITY');
 
 -- CreateEnum
 CREATE TYPE "COUNTRY" AS ENUM ('INDIA', 'NEPAL', 'SRI_LANKA', 'BHUTAN', 'PAKISTAN');
@@ -26,10 +29,16 @@ CREATE TYPE "CONVERSATION_TYPE" AS ENUM ('ONE_TO_ONE');
 CREATE TYPE "VERIFICATION_CODE_SOURCE" AS ENUM ('WHATSAPP', 'SMS', 'EMAIL');
 
 -- CreateEnum
+CREATE TYPE "USER_STATUS" AS ENUM ('ACTIVE', 'INACTIVE', 'DELETED', 'BLOCKED');
+
+-- CreateEnum
 CREATE TYPE "VERIFICATION_CODE_TYPE" AS ENUM ('LOGIN', 'FORGET_PASSWORD');
 
 -- CreateEnum
-CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK');
+CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK', 'VIDEO');
+
+-- CreateEnum
+CREATE TYPE "VISIBILITY" AS ENUM ('EVERYONE', 'FREE_MEMBER', 'PAID_MEMBER');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -56,6 +65,7 @@ CREATE TABLE "User" (
     "facebookHandle" TEXT,
     "twitterHandle" TEXT,
     "instagramHandle" TEXT,
+    "status" "USER_STATUS" NOT NULL DEFAULT 'ACTIVE',
     "password" TEXT,
     "referralUserId" TEXT,
     "referralTimeStamp" TIMESTAMP(3),
@@ -88,13 +98,13 @@ CREATE TABLE "Tier" (
 -- CreateTable
 CREATE TABLE "Package" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
+    "name" "PACKAGE_NAMES" NOT NULL DEFAULT 'SUPPORT',
     "price" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userPostId" TEXT,
 
     CONSTRAINT "Package_pkey" PRIMARY KEY ("id")
 );
@@ -158,11 +168,13 @@ CREATE TABLE "PatronCreator" (
 CREATE TABLE "UserPost" (
     "id" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
-    "isPrivate" BOOLEAN NOT NULL DEFAULT false,
     "type" "USER_POST_TYPE" NOT NULL DEFAULT 'TEXT',
-    "body" TEXT NOT NULL,
     "image" TEXT,
     "title" TEXT,
+    "description" TEXT,
+    "videoUrl" TEXT,
+    "visibility" "VISIBILITY" NOT NULL DEFAULT 'EVERYONE',
+    "allowComments" BOOLEAN NOT NULL DEFAULT true,
     "pollId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -174,7 +186,7 @@ CREATE TABLE "UserPost" (
 CREATE TABLE "PostComment" (
     "id" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
-    "body" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "userPostId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -185,10 +197,12 @@ CREATE TABLE "PostComment" (
 -- CreateTable
 CREATE TABLE "Poll" (
     "id" TEXT NOT NULL,
-    "options" TEXT[],
-    "selectedOptions" JSONB NOT NULL,
-    "userId" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "options" JSONB[],
+    "selectedOptions" JSONB[],
     "image" TEXT,
+    "title" TEXT,
+    "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -232,6 +246,9 @@ CREATE INDEX "Message_chatId_idx" ON "Message"("chatId");
 CREATE INDEX "Notification_aboutUserId_notifiedUserId_idx" ON "Notification"("aboutUserId", "notifiedUserId");
 
 -- CreateIndex
+CREATE INDEX "UserPost_visibility_authorId_idx" ON "UserPost"("visibility", "authorId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_likedByUser_AB_unique" ON "_likedByUser"("A", "B");
 
 -- CreateIndex
@@ -245,6 +262,9 @@ CREATE INDEX "_PackageToTier_B_index" ON "_PackageToTier"("B");
 
 -- AddForeignKey
 ALTER TABLE "Package" ADD CONSTRAINT "Package_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Package" ADD CONSTRAINT "Package_userPostId_fkey" FOREIGN KEY ("userPostId") REFERENCES "UserPost"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -286,7 +306,7 @@ ALTER TABLE "PostComment" ADD CONSTRAINT "PostComment_authorId_fkey" FOREIGN KEY
 ALTER TABLE "PostComment" ADD CONSTRAINT "PostComment_userPostId_fkey" FOREIGN KEY ("userPostId") REFERENCES "UserPost"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Poll" ADD CONSTRAINT "Poll_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Poll" ADD CONSTRAINT "Poll_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_likedByUser" ADD CONSTRAINT "_likedByUser_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

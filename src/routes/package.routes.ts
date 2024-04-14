@@ -16,6 +16,12 @@ packageRoutes.get("/getAllPackagesOfCreator/:username", PackageController.getAll
 packageRoutes.get("/getOnePackage", checkRoleAuth(), PackageController.getOnePackage);
 
 packageRoutes.get(
+  "/getPackageNames",
+  checkRoleAuth([userRole.CREATOR]),
+  PackageController.getPackageNames,
+);
+
+packageRoutes.get(
   "/getAllSubscriptions/:username",
   checkRoleAuth(),
   PackageController.useGetAllSubscriptions,

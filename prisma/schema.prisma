@@ -83,8 +83,7 @@ model Tier {
 model Package {
   id            String          @id @default(cuid())
   tier          Tier[]
-  name          String
-  image         String
+  name          PACKAGE_NAMES   @default(SUPPORT)
   price         Int
   description   String
   User          User            @relation(fields: [userId], references: [id])
@@ -92,6 +91,8 @@ model Package {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   PatronCreator PatronCreator[]
+  UserPost      UserPost?       @relation(fields: [userPostId], references: [id])
+  userPostId    String?
 }
 
 model Message {
@@ -139,53 +140,61 @@ model Notification {
 }
 
 model PatronCreator {
-  id        String   @id @default(cuid())
-  patron    User     @relation("patronId", fields: [patronId], references: [id])
+  id        String                @id @default(cuid())
+  patron    User                  @relation("patronId", fields: [patronId], references: [id])
   patronId  String
-  creator   User     @relation("creatorId", fields: [creatorId], references: [id])
+  creator   User                  @relation("creatorId", fields: [creatorId], references: [id])
   creatorId String
-  package   Package  @relation(fields: [packageId], references: [id])
+  package   Package               @relation(fields: [packageId], references: [id])
   packageId String
   expiry    DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    PATRON_CREATOR_STATUS @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 }
 
 model UserPost {
-  id        String         @id @default(cuid())
-  author    User           @relation("userPostAuthor", fields: [authorId], references: [id])
-  authorId  String
-  isPrivate Boolean        @default(false)
-  type      USER_POST_TYPE @default(TEXT)
-  comments  PostComment[]
-  likedBy   User[]         @relation("likedByUser")
-  body      String
-  image     String?
-  title     String?
-  poll      Poll?          @relation(fields: [pollId], references: [id])
-  pollId    String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  author        User           @relation("userPostAuthor", fields: [authorId], references: [id])
+  authorId      String
+  type          USER_POST_TYPE @default(TEXT)
+  comments      PostComment[]
+  likedBy       User[]         @relation("likedByUser")
+  image         String?
+  title         String?
+  description   String?
+  videoUrl      String?
+  visibility    VISIBILITY     @default(EVERYONE)
+  packages      Package[]
+  allowComments Boolean        @default(true)
+  poll          Poll?          @relation(fields: [pollId], references: [id])
+  pollId        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([visibility, authorId])
 }
 
 model PostComment {
-  id         String   @id @default(cuid())
-  author     User     @relation(fields: [authorId], references: [id])
-  authorId   String
-  body       String
-  post       UserPost @relation(fields: [userPostId], references: [id])
-  userPostId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  description String
+  post        UserPost @relation(fields: [userPostId], references: [id])
+  userPostId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Poll {
   id              String     @id @default(cuid())
-  creatorId       User       @relation(fields: [userId], references: [id])
-  options         String[]
-  selectedOptions Json
-  userId          String
+  author          User       @relation(fields: [authorId], references: [id])
+  authorId        String
+  options         Json[]
+  selectedOptions Json[]
   image           String?
+  title           String?
+  description     String
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   UserPost        UserPost[]
@@ -197,13 +206,26 @@ enum ROLE {
   ADMIN
 }
 
+enum PACKAGE_NAMES {
+  SUPPORT
+  BROZE
+  SILVER
+  GOLD
+  PLATINUM
+  RUBY
+}
+
 enum TIER_TYPE {
   GENERAL_SUPPORT
+  EXCLUSIVE_POSTS
   BEHIND_THE_SCENES
-  DIGITAL_DOWNLOADS
-  ONE_TIME_MESSAGE
   UNLIMITED_MESSAGE
-  EARLY_TICKETS
+  ONE_TIME_MESSAGE
+  NAME_POST_DESCRIPTION
+  NAME_POST_END
+  EXCLUSIVE_POLLS
+  MENTORSHIP
+  COMMUNITY
 }
 
 enum COUNTRY {
@@ -263,6 +285,12 @@ enum INDUSTRY {
   NICHE_HOBBIES
 }
 
+enum PATRON_CREATOR_STATUS {
+  ACTIVE
+  EXPIRED
+  PENDING
+}
+
 enum GENDER {
   MALE
   FEMALE
@@ -310,4 +338,11 @@ enum USER_POST_TYPE {
   IMAGE
   POLL
   LINK
+  VIDEO
+}
+
+enum VISIBILITY {
+  EVERYONE
+  FREE_MEMBER
+  PAID_MEMBER
 }

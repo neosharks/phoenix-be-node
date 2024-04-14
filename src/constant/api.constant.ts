@@ -15,6 +15,8 @@ export const errorMessage = {
   TOKEN_MISSING: "TOKEN_MISSING",
   DB_ISSUE: "DB_ISSUE",
   USER_BLOCKED: "USER_BLOCKED",
+  DUPLICATE_ENTRY: "DUPLICATE_ENTRY",
+  LIMIT_EXHAUSTED: "LIMIT_EXHAUSTED",
 };
 
 export const errorCode = {

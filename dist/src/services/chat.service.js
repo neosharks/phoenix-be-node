@@ -118,6 +118,17 @@ class _ChatService {
             }
         });
     }
+    updateOneChat(query, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.chat.update({ where: query, data });
+            }
+            catch (error) {
+                console.error("ERROR: ", error);
+                throw new Error(api_constant_1.errorMessage.DB_ISSUE);
+            }
+        });
+    }
     getAllMessageForChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

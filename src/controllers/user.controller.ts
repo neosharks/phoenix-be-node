@@ -10,7 +10,6 @@ class _UserController {
     try {
       const id = res.locals.user.id;
       const found = await UserService.getOneUser({ id });
-      if (found?.profileImage) found.profileImage = await getObjectSignedUrl(found.profileImage);
       return res.status(201).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
       logger.error("ERROR: ", error);

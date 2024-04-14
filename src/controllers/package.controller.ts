@@ -40,17 +40,32 @@ class _PackageController {
     }
   }
 
+  async getPackageNames(req: Request, res: Response) {
+    try {
+      return res.status(201).send({
+        message: successMessages.SUCCESS,
+        data: ["SUPPORT", "BROZE", "SILVER", "GOLD", "PLATINUM", "RUBY"],
+      });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async useGetAllSubscriptions(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!username)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PatronCreatorService.getAll({
         patron: {
           username: username,
         },
       });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      return res.status(201).send({ message: successMessages.SUCCESS, data: found });
+      return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
       logger.error("ERROR: ", error);
       return res
@@ -80,8 +95,13 @@ class _PackageController {
 
   async createOnePackage(req: Request, res: Response) {
     try {
-      const body = req.body;
-      await PackageService.createOnePackage(body);
+      const { id } = res.locals.user;
+      const { tier, name, price, description } = req.body;
+      const allUserPackages = await PackageService.getAllPackagesOfCreator({ userId: id });
+      const packageIndex = allUserPackages.findIndex((pac: any) => pac.name === name);
+      if (packageIndex !== -1)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_ENTRY });
+      await PackageService.createOnePackage({ tier, name, price, description, userId: id });
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
       logger.error("ERROR: ", error);
@@ -116,35 +136,35 @@ class _PackageController {
         tier.length > 0 &&
         tier.map(async (ele) => {
           if (ele.tierType === "ONE_TIME_MESSAGE") {
-            const chats = await prisma.chat.findMany({
-              where: {
-                OR: [{ participantOneId: userId }, { participantTwoId: userId }],
-              },
+            const foundChat = await ChatService.getOneChat({
+              OR: [
+                { participantOneId: user.id, participantTwoId: userId },
+                { participantOneId: userId, participantTwoId: user.id },
+              ],
             });
-            if (chats.length === 0) await ChatService.createOneChat([user.id, userId], "LIMITED");
+            if (!foundChat) await ChatService.createOneChat([user.id, userId], "LIMITED");
+            else
+              await ChatService.updateOneChat(
+                { id: foundChat.id },
+                { pendingAllowed: foundChat.pendingAllowed + 1 },
+              );
           }
           if (ele.tierType === "UNLIMITED_MESSAGE") {
-            const chats = await prisma.chat.findMany({
-              where: {
-                OR: [{ participantOneId: userId }, { participantTwoId: userId }],
-              },
+            const foundChat = await ChatService.getOneChat({
+              OR: [
+                { participantOneId: user.id, participantTwoId: userId },
+                { participantOneId: userId, participantTwoId: user.id },
+              ],
             });
-            if (chats.length === 0) await ChatService.createOneChat([user.id, userId], "UNLIMITED");
-          }
-          if (ele.tierType === "GENERAL_SUPPORT") {
-            //
-          }
-          if (ele.tierType === "EARLY_TICKETS") {
-            //
-          }
-          if (ele.tierType === "DIGITAL_DOWNLOADS") {
-            //
-          }
-          if (ele.tierType === "BEHIND_THE_SCENES") {
-            //
+            if (!foundChat) await ChatService.createOneChat([user.id, userId], "UNLIMITED");
+            else
+              await ChatService.updateOneChat(
+                { id: foundChat.id },
+                { pendingAllowed: foundChat.pendingAllowed + 1000 },
+              );
           }
         });
-      await PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId, Date.now());
+      await PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId);
 
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {

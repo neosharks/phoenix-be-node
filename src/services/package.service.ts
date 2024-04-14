@@ -5,10 +5,6 @@ class _PackageService {
     return await prisma.package.findMany({ where: query, include: { tier: true } });
   }
 
-  async getAllPatronCreatorByUser() {
-    return await prisma.patronCreator.findMany();
-  }
-
   async getOnePackage(query: any) {
     return await prisma.package.findUnique({ where: query, include: { tier: true } });
   }
@@ -18,7 +14,6 @@ class _PackageService {
     return await prisma.package.create({
       data: {
         name,
-        image: "https://random.imagecdn.app/500/150",
         price,
         description,
         userId,
@@ -41,9 +36,20 @@ class _PackageService {
     return await prisma.tier.create({ data: data });
   }
 
-  async linkPatronCreator(patronId: string, creatorId: string, packageId: string, expiry: any) {
+  async linkPatronCreator(patronId: string, creatorId: string, packageId: string) {
+    const currentDate = new Date();
+
+    const expiryDate = new Date(currentDate);
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+
     return await prisma.patronCreator.create({
-      data: { patronId, creatorId, packageId, expiry: new Date() },
+      data: {
+        patronId,
+        creatorId,
+        packageId,
+        status: "ACTIVE",
+        expiry: expiryDate,
+      },
     });
   }
 

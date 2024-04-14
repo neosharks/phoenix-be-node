@@ -5,10 +5,15 @@ class _PatronCreatorService {
     return await prisma.patronCreator.findFirst({ where: query });
   }
 
+  async getOne(query: any) {
+    return await prisma.patronCreator.findUnique({ where: query });
+  }
+
   async getAll(query: any) {
     return await prisma.patronCreator.findMany({
       where: query,
       include: {
+        package: true,
         creator: {
           select: {
             id: true,

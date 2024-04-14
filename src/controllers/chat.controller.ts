@@ -77,12 +77,18 @@ class _ChatController {
       const { isCreator, firstName, lastName } = res.locals.user;
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
+      if (!isCreator && foundChat.pendingAllowed === 0)
+        return res.status(errorCode.GENERIC).json({ message: errorMessage.LIMIT_EXHAUSTED });
       const createdChat = await ChatService.createOneMessage({
         chatId,
         senderId,
         message,
         contentType,
       });
+      await ChatService.updateOneChat(
+        { id: chatId },
+        { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 },
+      );
       if (isCreator)
         await NotificationService.createOneNotification({
           aboutUserId: senderId,

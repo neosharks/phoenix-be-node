@@ -35,8 +35,6 @@ class _UserController {
             try {
                 const id = res.locals.user.id;
                 const found = yield user_service_1.UserService.getOneUser({ id });
-                if (found === null || found === void 0 ? void 0 : found.profileImage)
-                    found.profileImage = yield (0, s3upload_core_1.getObjectSignedUrl)(found.profileImage);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {

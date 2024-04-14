@@ -20,9 +20,11 @@ class _UserPostService {
             return yield prisma_1.default.userPost.findMany({
                 where: query,
                 include: {
+                    poll: true,
+                    packages: true,
                     comments: {
                         select: {
-                            body: true,
+                            description: true,
                             createdAt: true,
                             updatedAt: true,
                             author: {
@@ -96,9 +98,20 @@ class _UserPostService {
     }
     createOneUserPost(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { body, authorId, title, type, image, isPrivate } = dataValues;
+            const { description, authorId, title, type, image, visibility, allowComments, videoUrl, pollId, packages, } = dataValues;
             return yield prisma_1.default.userPost.create({
-                data: { body, authorId, title, type, image, isPrivate },
+                data: {
+                    description,
+                    authorId,
+                    title,
+                    type,
+                    image,
+                    visibility,
+                    allowComments,
+                    videoUrl,
+                    pollId,
+                    packages: { connect: packages.map((id) => ({ id })) },
+                },
                 include: {
                     likedBy: true,
                     comments: true,
@@ -119,9 +132,9 @@ class _UserPostService {
     }
     createOneComment(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { body, authorId, userPostId } = dataValues;
+            const { description, authorId, userPostId } = dataValues;
             return yield prisma_1.default.postComment.create({
-                data: { body, authorId, userPostId },
+                data: { description, authorId, userPostId },
                 include: {
                     author: {
                         select: {
@@ -136,6 +149,23 @@ class _UserPostService {
                     },
                 },
             });
+        });
+    }
+    createPoll(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.poll.create({ data });
+        });
+    }
+    getOnePoll(query) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.poll.findUnique({
+                where: query,
+            });
+        });
+    }
+    updateOnePoll(query, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.poll.update({ where: query, data: data });
         });
     }
     delete(postId) {
