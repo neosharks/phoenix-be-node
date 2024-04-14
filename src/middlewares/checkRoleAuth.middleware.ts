@@ -17,8 +17,8 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
       const foundUser: any = await UserService.getOneUser({ id });
       if (!foundUser)
         return res.status(403).json({ message: errorMessage.UNAUTHORISED, info: "User not found" });
-      if (foundUser.status !== "ACTIVE")
-        return res.status(403).json({ message: errorMessage.USER_BLOCKED, info: "User blocked" });
+      // if (foundUser.status !== "ACTIVE")
+      //   return res.status(403).json({ message: errorMessage.USER_BLOCKED, info: "User blocked" });
       res.locals.user = foundUser;
       const userRoles = foundUser?.role || [];
 
