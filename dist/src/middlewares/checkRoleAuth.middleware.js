@@ -38,7 +38,7 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
                 return next();
             }
             else {
-                return res.status(403).json({ message: api_constant_1.errorCode.UNAUTHORISED });
+                return res.status(403).json({ message: api_constant_1.errorCode.UNAUTHORISED, info: "Roles not found" });
             }
         }
         else {

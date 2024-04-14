@@ -30,7 +30,7 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
       if (hasRequiredRole) {
         return next();
       } else {
-        return res.status(403).json({ message: errorCode.UNAUTHORISED });
+        return res.status(403).json({ message: errorCode.UNAUTHORISED, info: "Roles not found" });
       }
     } else {
       return res.sendStatus(403);
