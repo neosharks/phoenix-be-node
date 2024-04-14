@@ -25,8 +25,8 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
             const foundUser = yield user_service_1.UserService.getOneUser({ id });
             if (!foundUser)
                 return res.status(403).json({ message: api_constant_1.errorMessage.UNAUTHORISED, info: "User not found" });
-            if (foundUser.status !== "ACTIVE")
-                return res.status(403).json({ message: api_constant_1.errorMessage.USER_BLOCKED, info: "User blocked" });
+            // if (foundUser.status !== "ACTIVE")
+            //   return res.status(403).json({ message: errorMessage.USER_BLOCKED, info: "User blocked" });
             res.locals.user = foundUser;
             const userRoles = (foundUser === null || foundUser === void 0 ? void 0 : foundUser.role) || [];
             let hasRequiredRole = false;
