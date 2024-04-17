@@ -15,6 +15,7 @@ const accessKeyId = config.aws.accessId;
 const secretAccessKey = config.aws.accessSecret;
 
 const storage = multer.memoryStorage();
+
 export const uploadFileMiddleware = multer({ storage: storage });
 
 export const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");

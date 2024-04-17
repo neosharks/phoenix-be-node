@@ -225,7 +225,7 @@ class _UserPostController {
           const jimpImage = await Jimp.read(image.buffer);
           const buffer = await jimpImage.getBufferAsync(image.mimetype);
           await uploadFile(buffer, imageName, image.mimetype);
-          payload.imageName = imageName;
+          payload.image = imageName;
         } catch (err) {
           logger.info("Error in image upload");
         }
@@ -257,10 +257,10 @@ class _UserPostController {
 
   async commentOnPostByUser(req: any, res: Response) {
     try {
-      const { body, authorId, userPostId } = req.body;
-      if (!body || !authorId || !userPostId)
+      const { description, authorId, userPostId } = req.body;
+      if (!description || !authorId || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const created = await UserPostService.createOneComment({ body, authorId, userPostId });
+      const created = await UserPostService.createOneComment({ description, authorId, userPostId });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });
     } catch (error) {
       logger.error("Error: ", error);

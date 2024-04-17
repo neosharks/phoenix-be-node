@@ -48,7 +48,8 @@ class _UserController {
   }
   async update(req: Request, res: Response) {
     try {
-      const { profileImage, ...update } = req.body;
+      const { ...update } = req.body;
+      const profileImage = req.file;
       if (profileImage) {
         const imageName = generateFileName();
         const jimpImage = await Jimp.read(profileImage.buffer);

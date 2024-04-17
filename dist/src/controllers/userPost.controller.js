@@ -251,7 +251,7 @@ class _UserPostController {
                         const jimpImage = yield jimp_1.default.read(image.buffer);
                         const buffer = yield jimpImage.getBufferAsync(image.mimetype);
                         yield (0, s3upload_core_1.uploadFile)(buffer, imageName, image.mimetype);
-                        payload.imageName = imageName;
+                        payload.image = imageName;
                     }
                     catch (err) {
                         logger_core_1.default.info("Error in image upload");
@@ -280,10 +280,10 @@ class _UserPostController {
     commentOnPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { body, authorId, userPostId } = req.body;
-                if (!body || !authorId || !userPostId)
+                const { description, authorId, userPostId } = req.body;
+                if (!description || !authorId || !userPostId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const created = yield userPost_service_1.UserPostService.createOneComment({ body, authorId, userPostId });
+                const created = yield userPost_service_1.UserPostService.createOneComment({ description, authorId, userPostId });
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
             }
             catch (error) {
