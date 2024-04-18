@@ -57,14 +57,5 @@ class _PatronCreatorService {
             });
         });
     }
-    linkPatronCreator(creatorId, patronId, packageId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const currentTimestamp = Date.now();
-            const dateObject = new Date(currentTimestamp);
-            return yield prisma_1.default.patronCreator.create({
-                data: { patronId, packageId, creatorId, expiry: dateObject },
-            });
-        });
-    }
 }
 exports.PatronCreatorService = new _PatronCreatorService();

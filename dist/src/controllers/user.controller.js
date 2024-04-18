@@ -29,6 +29,8 @@ const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
 const jimp_1 = __importDefault(require("jimp"));
+const package_service_1 = require("../services/package.service");
+const patronCreator_service_1 = require("../services/patronCreator.service");
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -83,7 +85,8 @@ class _UserController {
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const _a = req.body, { profileImage } = _a, update = __rest(_a, ["profileImage"]);
+                const update = __rest(req.body, []);
+                const profileImage = req.file;
                 if (profileImage) {
                     const imageName = (0, s3upload_core_1.generateFileName)();
                     const jimpImage = yield jimp_1.default.read(profileImage.buffer);
@@ -92,6 +95,31 @@ class _UserController {
                     update.profileImage = imageName;
                 }
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
+                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+            }
+            catch (error) {
+                logger_core_1.default.error("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    joinForFree(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { user } = res.locals;
+                const { creatorId } = req.body;
+                if (!creatorId)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getFirst({
+                    creatorId,
+                    patronId: user.id,
+                    type: "FREE",
+                });
+                if (foundPatronCreator)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                yield package_service_1.PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {

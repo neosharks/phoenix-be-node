@@ -54,7 +54,7 @@ class _PackageService {
             return yield prisma_1.default.tier.create({ data: data });
         });
     }
-    linkPatronCreator(patronId, creatorId, packageId) {
+    linkPatronCreator(patronId, creatorId, type, packageId) {
         return __awaiter(this, void 0, void 0, function* () {
             const currentDate = new Date();
             const expiryDate = new Date(currentDate);
@@ -65,6 +65,7 @@ class _PackageService {
                     creatorId,
                     packageId,
                     status: "ACTIVE",
+                    type,
                     expiry: expiryDate,
                 },
             });

@@ -145,8 +145,9 @@ model PatronCreator {
   patronId  String
   creator   User                  @relation("creatorId", fields: [creatorId], references: [id])
   creatorId String
-  package   Package               @relation(fields: [packageId], references: [id])
-  packageId String
+  package   Package?              @relation(fields: [packageId], references: [id])
+  packageId String?
+  type      SUBSCRIPTION_TYPE     @default(FREE)
   expiry    DateTime
   status    PATRON_CREATOR_STATUS @default(PENDING)
   createdAt DateTime              @default(now())
@@ -345,4 +346,9 @@ enum VISIBILITY {
   EVERYONE
   FREE_MEMBER
   PAID_MEMBER
+}
+
+enum SUBSCRIPTION_TYPE {
+  FREE
+  PAID
 }

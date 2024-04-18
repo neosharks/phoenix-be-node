@@ -36,7 +36,7 @@ class _PackageService {
     return await prisma.tier.create({ data: data });
   }
 
-  async linkPatronCreator(patronId: string, creatorId: string, packageId: string) {
+  async linkPatronCreator(patronId: string, creatorId: string, type: any, packageId?: string) {
     const currentDate = new Date();
 
     const expiryDate = new Date(currentDate);
@@ -48,6 +48,7 @@ class _PackageService {
         creatorId,
         packageId,
         status: "ACTIVE",
+        type,
         expiry: expiryDate,
       },
     });

@@ -164,7 +164,7 @@ class _PackageController {
               );
           }
         });
-      await PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId);
+      await PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", packageId);
 
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {

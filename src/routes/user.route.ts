@@ -20,6 +20,8 @@ userRoutes.post(
   UserController.update,
 );
 
+userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
+
 userRoutes.delete("/delete", UserController.delete);
 
 export default userRoutes;

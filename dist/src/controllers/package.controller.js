@@ -193,7 +193,7 @@ class _PackageController {
                                 yield chat_service_1.ChatService.updateOneChat({ id: foundChat.id }, { pendingAllowed: foundChat.pendingAllowed + 1000 });
                         }
                     }));
-                yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, packageId);
+                yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", packageId);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {

@@ -4,6 +4,8 @@ import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
 import Jimp from "jimp";
+import { PackageService } from "../services/package.service";
+import { PatronCreatorService } from "../services/patronCreator.service";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -58,6 +60,29 @@ class _UserController {
         update.profileImage = imageName;
       }
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
+      return res.status(200).json({ message: successMessages.UPDATED });
+    } catch (error) {
+      logger.error("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async joinForFree(req: Request, res: Response) {
+    try {
+      const { user } = res.locals;
+      const { creatorId } = req.body;
+      if (!creatorId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundPatronCreator = await PatronCreatorService.getFirst({
+        creatorId,
+        patronId: user.id,
+        type: "FREE",
+      });
+      if (foundPatronCreator)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.REDUNDANT_REQUEST });
+      await PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
       logger.error("ERROR: ", error);

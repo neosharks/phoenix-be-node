@@ -39,14 +39,6 @@ class _PatronCreatorService {
       },
     });
   }
-
-  async linkPatronCreator(creatorId: string, patronId: string, packageId: string) {
-    const currentTimestamp = Date.now();
-    const dateObject = new Date(currentTimestamp);
-    return await prisma.patronCreator.create({
-      data: { patronId, packageId, creatorId, expiry: dateObject },
-    });
-  }
 }
 
 export const PatronCreatorService = new _PatronCreatorService();
