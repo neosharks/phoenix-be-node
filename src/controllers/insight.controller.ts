@@ -21,7 +21,7 @@ const d = new Date().getMonth()-6;
 const result = await InsightService.getAllPackagesOfCreator(
   {
     
-      creatorId: "cluzz9g2t000awfoyy5ps27nl",
+      creatorId: id,
    
   }
 
