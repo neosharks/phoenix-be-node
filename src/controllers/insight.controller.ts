@@ -2,17 +2,55 @@ import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import { InsightService } from "../services/insights.service";
 
 class _InsightController {
+
   async get(req: Request, res: Response) {
     try {
       const { id, isCreator } = res.locals.user;
       if (!isCreator)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.NOT_ALLOWED });
-      const allNotifications = await NotificationService.getAllNotificationOfUser({
-        notifiedUserId: id,
-      });
-      return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
+
+
+
+const d = new Date().getMonth()-6;
+
+
+
+const result = await InsightService.getAllPackagesOfCreator(
+  {
+    
+      creatorId: "cluzz9g2t000awfoyy5ps27nl",
+   
+  }
+
+          );
+
+          let obj:any={}
+
+          
+          result?.forEach(e => 
+            {
+             let date= new Date(e.createdAt)
+const monthName = date.toLocaleString('en-US', { month: 'long' });
+
+             if(obj[monthName]){
+              
+                obj[monthName].push(e)
+             }
+             else{
+               obj[monthName] = new Array(e)
+             }
+            }
+          )
+        
+    
+          
+
+
+
+      return res.status(200).send({ message: successMessages.FETCHED, data: obj });
     } catch (error) {
       logger.error("ERROR: ", error);
       return res
