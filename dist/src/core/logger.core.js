@@ -9,26 +9,17 @@ const logger = winston_1.default.createLogger({
         new winston_1.default.transports.Console({
             level: "debug",
             handleExceptions: true,
-            format: winston_1.default.format.combine(winston_1.default.format.timestamp({ format: "HH:mm:ss:ms" }), winston_1.default.format.colorize(), winston_1.default.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)),
+            format: winston_1.default.format.combine(winston_1.default.format.timestamp({ format: "HH:mm:ss:ms" }), winston_1.default.format.printf((info) => JSON.stringify(info))),
+        }),
+        new winston_1.default.transports.File({
+            level: "info",
+            filename: "./logs/all-logs.json",
+            handleExceptions: true,
+            format: winston_1.default.format.combine(winston_1.default.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), winston_1.default.format.errors({ stack: true }), winston_1.default.format.json()),
+            maxsize: 5242880, //5MB
+            maxFiles: 5,
         }),
     ],
     exitOnError: false,
 });
-winston_1.default.addColors({
-    error: "red",
-    warn: "yellow",
-    info: "cyan",
-    debug: "green",
-    http: "blue",
-});
-logger.add(new winston_1.default.transports.File({
-    level: "info",
-    filename: "./logs/all-logs.json",
-    handleExceptions: true,
-    format: winston_1.default.format.combine(winston_1.default.format.timestamp({
-        format: "YYYY-MM-DD HH:mm:ss",
-    }), winston_1.default.format.errors({ stack: true }), winston_1.default.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`), winston_1.default.format.splat(), winston_1.default.format.json()),
-    maxsize: 5242880, //5MB
-    maxFiles: 5,
-}));
 exports.default = logger;

@@ -22,7 +22,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
@@ -47,9 +47,9 @@ exports.default = {
         bucketName: (_h = process.env.AWS_BUCKET_NAME) !== null && _h !== void 0 ? _h : "",
     },
     payment: {
-        razorpay: {
-            clientId: (_j = process.env.RAZORPAY_CLIENT_ID) !== null && _j !== void 0 ? _j : "",
-            clientSecret: (_k = process.env.RAZORPAY_CLIENT_SECRET) !== null && _k !== void 0 ? _k : "",
+        cashfree: {
+            clientId: (_j = process.env.CASHFREE_CLIENT_ID) !== null && _j !== void 0 ? _j : "",
+            clientSecret: (_k = process.env.CASHFREE_CLIENT_SECRET) !== null && _k !== void 0 ? _k : "",
         },
     },
     nodemailer: {
@@ -57,5 +57,10 @@ exports.default = {
         password: (_m = process.env.NODEMAILER_PASS) !== null && _m !== void 0 ? _m : "",
         host: (_o = process.env.NODEMAILER_HOST) !== null && _o !== void 0 ? _o : "a",
         port: (_p = process.env.NODEMAILER_PORT) !== null && _p !== void 0 ? _p : 0,
+    },
+    sms: {
+        fast2sms: {
+            key: (_q = process.env.FAST2SMS_KEY) !== null && _q !== void 0 ? _q : "",
+        },
     },
 };

@@ -18,6 +18,7 @@ const chat_service_1 = require("../services/chat.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
+const payment_service_1 = require("../services/payment.service");
 class _PackageController {
     getAllPackagesOfCreator(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -144,7 +145,7 @@ class _PackageController {
     buyPackage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { packageId } = req.body;
+                const { packageId, orderID } = req.body;
                 if (!packageId)
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const user = res.locals.user;
@@ -165,6 +166,11 @@ class _PackageController {
                 });
                 if (foundAlreadyPurchase)
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+                if (!foundPayment)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NO_PAYMENT });
+                if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.DATA_MISMATCH });
                 tier &&
                     tier.length > 0 &&
                     tier.map((ele) => __awaiter(this, void 0, void 0, function* () {

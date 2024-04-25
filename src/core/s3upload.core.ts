@@ -4,10 +4,12 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
+import Jimp from "jimp";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import crypto from "crypto";
 import config from "../../config";
+import logger from "./logger.core";
 
 const bucketName = config.aws.bucketName;
 const region = config.aws.region;
@@ -57,4 +59,20 @@ export async function getObjectSignedUrl(key: string) {
   const url = await getSignedUrl(s3Client, command, { expiresIn: seconds });
 
   return url;
+}
+
+export async function GetUploadedFile(image: any) {
+  try {
+    if (!image || !image.buffer || !image.mimetype) {
+      throw new Error("Invalid image data provided.");
+    }
+    const imageName = generateFileName();
+    const jimpImage = await Jimp.read(image.buffer);
+    const buffer = await jimpImage.getBufferAsync(image.mimetype);
+    await uploadFile(buffer, imageName, image.mimetype);
+    return imageName;
+  } catch (err) {
+    logger.error("Error in image upload", err);
+    throw err;
+  }
 }

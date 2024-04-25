@@ -5,6 +5,7 @@ import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import { PaymentService } from "../services/payment.service";
 
 class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
@@ -113,7 +114,7 @@ class _PackageController {
 
   async buyPackage(req: Request, res: Response) {
     try {
-      const { packageId } = req.body;
+      const { packageId, orderID } = req.body;
       if (!packageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
@@ -131,6 +132,12 @@ class _PackageController {
       });
       if (foundAlreadyPurchase)
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+
+      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+      if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
+
+      if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
+        return res.status(400).send({ message: errorMessage.DATA_MISMATCH });
 
       tier &&
         tier.length > 0 &&

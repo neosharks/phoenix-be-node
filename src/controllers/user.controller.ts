@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
-import Jimp from "jimp";
+import { GetUploadedFile } from "../core/s3upload.core";
+
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 
@@ -48,17 +48,12 @@ class _UserController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+
   async update(req: Request, res: Response) {
     try {
       const { ...update } = req.body;
-      const profileImage = req.file;
-      if (profileImage) {
-        const imageName = generateFileName();
-        const jimpImage = await Jimp.read(profileImage.buffer);
-        const buffer = await jimpImage.getBufferAsync(profileImage.mimetype);
-        await uploadFile(buffer, imageName, profileImage.mimetype);
-        update.profileImage = imageName;
-      }
+      const image = req.file;
+      if (image) update.profileImage = await GetUploadedFile(image);
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {

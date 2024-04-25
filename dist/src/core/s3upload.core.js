@@ -12,12 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getObjectSignedUrl = exports.deleteFile = exports.uploadFile = exports.generateFileName = exports.uploadFileMiddleware = void 0;
+exports.GetUploadedFile = exports.getObjectSignedUrl = exports.deleteFile = exports.uploadFile = exports.generateFileName = exports.uploadFileMiddleware = void 0;
 const client_s3_1 = require("@aws-sdk/client-s3");
+const jimp_1 = __importDefault(require("jimp"));
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const multer_1 = __importDefault(require("multer"));
 const crypto_1 = __importDefault(require("crypto"));
 const config_1 = __importDefault(require("../../config"));
+const logger_core_1 = __importDefault(require("./logger.core"));
 const bucketName = config_1.default.aws.bucketName;
 const region = config_1.default.aws.region;
 const accessKeyId = config_1.default.aws.accessId;
@@ -64,3 +66,22 @@ function getObjectSignedUrl(key) {
     });
 }
 exports.getObjectSignedUrl = getObjectSignedUrl;
+function GetUploadedFile(image) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (!image || !image.buffer || !image.mimetype) {
+                throw new Error("Invalid image data provided.");
+            }
+            const imageName = (0, exports.generateFileName)();
+            const jimpImage = yield jimp_1.default.read(image.buffer);
+            const buffer = yield jimpImage.getBufferAsync(image.mimetype);
+            yield uploadFile(buffer, imageName, image.mimetype);
+            return imageName;
+        }
+        catch (err) {
+            logger_core_1.default.error("Error in image upload", err);
+            throw err;
+        }
+    });
+}
+exports.GetUploadedFile = GetUploadedFile;

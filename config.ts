@@ -22,9 +22,9 @@ export default {
     bucketName: process.env.AWS_BUCKET_NAME ?? "",
   },
   payment: {
-    razorpay: {
-      clientId: process.env.RAZORPAY_CLIENT_ID ?? "",
-      clientSecret: process.env.RAZORPAY_CLIENT_SECRET ?? "",
+    cashfree: {
+      clientId: process.env.CASHFREE_CLIENT_ID ?? "",
+      clientSecret: process.env.CASHFREE_CLIENT_SECRET ?? "",
     },
   },
   nodemailer: {
@@ -32,5 +32,10 @@ export default {
     password: process.env.NODEMAILER_PASS ?? "",
     host: process.env.NODEMAILER_HOST ?? "a",
     port: process.env.NODEMAILER_PORT ?? 0,
+  },
+  sms: {
+    fast2sms: {
+      key: process.env.FAST2SMS_KEY ?? "",
+    },
   },
 };

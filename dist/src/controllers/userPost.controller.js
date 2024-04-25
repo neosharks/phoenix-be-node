@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostController = void 0;
-const jimp_1 = __importDefault(require("jimp"));
 const userPost_service_1 = require("../services/userPost.service");
 const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
@@ -245,18 +244,9 @@ class _UserPostController {
                     payload.pollId = response.id;
                 }
                 // Handling image upload
-                if (type === "IMAGE" && image) {
-                    try {
-                        const imageName = (0, s3upload_core_1.generateFileName)();
-                        const jimpImage = yield jimp_1.default.read(image.buffer);
-                        const buffer = yield jimpImage.getBufferAsync(image.mimetype);
-                        yield (0, s3upload_core_1.uploadFile)(buffer, imageName, image.mimetype);
-                        payload.image = imageName;
-                    }
-                    catch (err) {
-                        logger_core_1.default.info("Error in image upload");
-                    }
-                }
+                if (type === "IMAGE" && image)
+                    if (image)
+                        payload.image = yield (0, s3upload_core_1.GetUploadedFile)(image);
                 // Creating user post
                 const created = yield userPost_service_1.UserPostService.createOneUserPost(Object.assign(Object.assign({}, payload), { description,
                     type,

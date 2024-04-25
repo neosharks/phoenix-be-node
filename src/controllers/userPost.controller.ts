@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import Jimp from "jimp";
 import { UserPostService } from "../services/userPost.service";
 import { UserService } from "../services/user.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { generateFileName, getObjectSignedUrl, uploadFile } from "../core/s3upload.core";
+import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 
@@ -185,6 +184,7 @@ class _UserPostController {
       const body = req.body;
       const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
+
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -219,17 +219,7 @@ class _UserPostController {
       }
 
       // Handling image upload
-      if (type === "IMAGE" && image) {
-        try {
-          const imageName = generateFileName();
-          const jimpImage = await Jimp.read(image.buffer);
-          const buffer = await jimpImage.getBufferAsync(image.mimetype);
-          await uploadFile(buffer, imageName, image.mimetype);
-          payload.image = imageName;
-        } catch (err) {
-          logger.info("Error in image upload");
-        }
-      }
+      if (type === "IMAGE" && image) if (image) payload.image = await GetUploadedFile(image);
 
       // Creating user post
       const created = await UserPostService.createOneUserPost({

@@ -16,7 +16,7 @@ userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboar
 userRoutes.post(
   "/update",
   checkRoleAuth(),
-  uploadFileMiddleware.single("profileImage"),
+  uploadFileMiddleware.single("image"),
   UserController.update,
 );
 

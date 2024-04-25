@@ -66,6 +66,7 @@ model User {
   Comment        PostComment[]
   UserPostAuthor UserPost[]      @relation("userPostAuthor")
   likedByUser    UserPost[]      @relation("likedByUser")
+  Payment        Payment[]
 
   @@index([email, username, phoneNumber])
 }
@@ -93,6 +94,7 @@ model Package {
   PatronCreator PatronCreator[]
   UserPost      UserPost?       @relation(fields: [userPostId], references: [id])
   userPostId    String?
+  Payment       Payment[]
 }
 
 model Message {
@@ -199,6 +201,18 @@ model Poll {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   UserPost        UserPost[]
+}
+
+model Payment {
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  orderId   String         @unique
+  status    PAYMENT_STATUS @default(CREATED)
+  package   Package        @relation(fields: [packageId], references: [id])
+  packageId String
+
+  @@index([orderId])
 }
 
 enum ROLE {
@@ -351,4 +365,11 @@ enum VISIBILITY {
 enum SUBSCRIPTION_TYPE {
   FREE
   PAID
+}
+
+enum PAYMENT_STATUS {
+  CREATED
+  PAID
+  FAILED
+  PENDING
 }

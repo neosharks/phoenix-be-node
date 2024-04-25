@@ -28,7 +28,6 @@ const user_service_1 = require("../services/user.service");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
-const jimp_1 = __importDefault(require("jimp"));
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 class _UserController {
@@ -86,14 +85,9 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const update = __rest(req.body, []);
-                const profileImage = req.file;
-                if (profileImage) {
-                    const imageName = (0, s3upload_core_1.generateFileName)();
-                    const jimpImage = yield jimp_1.default.read(profileImage.buffer);
-                    const buffer = yield jimpImage.getBufferAsync(profileImage.mimetype);
-                    yield (0, s3upload_core_1.uploadFile)(buffer, imageName, profileImage.mimetype);
-                    update.profileImage = imageName;
-                }
+                const image = req.file;
+                if (image)
+                    update.profileImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }

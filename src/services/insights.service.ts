@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import logger from "../core/logger.core";
 
 class _InsightService {
   async getAllPackagesOfCreator(query: any) {
@@ -12,7 +13,7 @@ class _InsightService {
         ],
       });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
 }

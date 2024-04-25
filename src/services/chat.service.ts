@@ -1,5 +1,6 @@
 import prisma from "../../prisma";
 import { errorMessage } from "../constant/api.constant";
+import logger from "../core/logger.core";
 
 class _ChatService {
   async getOneChat(query: any) {
@@ -32,7 +33,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -67,7 +68,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -82,7 +83,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -91,7 +92,7 @@ class _ChatService {
     try {
       return await prisma.message.findUnique({ where: query });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -100,7 +101,7 @@ class _ChatService {
     try {
       return await prisma.chat.update({ where: query, data });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -111,7 +112,7 @@ class _ChatService {
         where: query,
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -131,7 +132,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }

@@ -1,5 +1,6 @@
 import prisma from "../../prisma";
 import { errorMessage } from "../constant/api.constant";
+import logger from "../core/logger.core";
 
 class _NotificationService {
   async getAllNotificationOfUser(query: any) {
@@ -18,7 +19,7 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -30,7 +31,7 @@ class _NotificationService {
         data: { aboutUserId, notifiedUserId, message, read: false, link, type },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -47,7 +48,7 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      console.error("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
