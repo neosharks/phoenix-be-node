@@ -42,10 +42,22 @@ class _PackageController {
   }
 
   async getPackageNames(req: Request, res: Response) {
+    const { username } = res.locals.user;
     try {
+      const found = await PackageService.getAllPackagesOfCreator({
+        User: {
+          username,
+        },
+      });
+      let allPackagesEnums = ["SUPPORT", "BRONZE", "SILVER", "GOLD", "PLATINUM", "RUBY"];
+      if (found && found.length > 0) {
+        found.forEach((ele) => {
+          allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
+        });
+      }
       return res.status(201).send({
         message: successMessages.SUCCESS,
-        data: ["SUPPORT", "BROZE", "SILVER", "GOLD", "PLATINUM", "RUBY"],
+        data: allPackagesEnums,
       });
     } catch (error) {
       logger.error("ERROR: ", error);

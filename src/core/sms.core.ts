@@ -6,11 +6,11 @@ async function sendOtpSms(phoneNumber: string, otp: number) {
     const response = await axios.post(
       "https://www.fast2sms.com/dev/bulkV2",
       {
-        variables_values: otp,
         route: "dlt",
         numbers: phoneNumber,
-        message: `Your otp: ${otp}`,
-        sender_id: "AX-QKROTP",
+        message: 168065,
+        sender_id: "QKROTP",
+        variables_values: otp,
       },
       {
         headers: {

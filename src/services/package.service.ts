@@ -2,67 +2,101 @@ import prisma from "../../prisma";
 
 class _PackageService {
   async getAllPackagesOfCreator(query: any) {
-    return await prisma.package.findMany({ where: query, include: { tier: true } });
+    try {
+      return await prisma.package.findMany({ where: query, include: { tier: true } });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async getOnePackage(query: any) {
-    return await prisma.package.findUnique({ where: query, include: { tier: true } });
+    try {
+      return await prisma.package.findUnique({ where: query, include: { tier: true } });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async createOnePackage(dataValues: any) {
-    const { tier, name, price, description, userId } = dataValues;
-    return await prisma.package.create({
-      data: {
-        name,
-        price,
-        description,
-        userId,
-        tier: {
-          connect: tier.map((ele: any) => {
-            return { id: ele };
-          }),
+    try {
+      const { tier, name, price, description, userId } = dataValues;
+      return await prisma.package.create({
+        data: {
+          name,
+          price,
+          description,
+          userId,
+          tier: {
+            connect: tier.map((ele: any) => {
+              return { id: ele };
+            }),
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   //------------------------
 
   async getAllTiers() {
-    return await prisma.tier.findMany({});
+    try {
+      return await prisma.tier.findMany({});
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async createOneTier(data: any) {
-    return await prisma.tier.create({ data: data });
+    try {
+      return await prisma.tier.create({ data: data });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async linkPatronCreator(patronId: string, creatorId: string, type: any, packageId?: string) {
-    const currentDate = new Date();
+    try {
+      const currentDate = new Date();
+      const expiryDate = new Date(currentDate);
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
 
-    const expiryDate = new Date(currentDate);
-    expiryDate.setMonth(expiryDate.getMonth() + 1);
-
-    return await prisma.patronCreator.create({
-      data: {
-        patronId,
-        creatorId,
-        packageId,
-        status: "ACTIVE",
-        type,
-        expiry: expiryDate,
-      },
-    });
+      return await prisma.patronCreator.create({
+        data: {
+          patronId,
+          creatorId,
+          packageId,
+          status: "ACTIVE",
+          type,
+          expiry: type !== "FREE" ? expiryDate : null,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async getAllPurchasedByPatron(patronId: string, creatorId: string) {
-    return await prisma.patronCreator.findMany({
-      where: { patronId, creatorId },
-      include: {
-        package: {
-          include: { tier: true },
+    try {
+      return await prisma.patronCreator.findMany({
+        where: { patronId, creatorId },
+        include: {
+          package: {
+            include: { tier: true },
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
 

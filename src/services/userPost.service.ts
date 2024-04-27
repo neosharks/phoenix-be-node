@@ -92,6 +92,8 @@ class _UserPostService {
       pollId,
       packages,
     } = dataValues;
+    const packagesToConnect = Array.isArray(packages) ? packages.map((id: string) => ({ id })) : [];
+
     return await prisma.userPost.create({
       data: {
         description,
@@ -103,12 +105,11 @@ class _UserPostService {
         allowComments,
         videoUrl,
         pollId,
-        packages: { connect: packages.map((id: string) => ({ id })) },
+        packages: { connect: packagesToConnect },
       },
       include: {
         likedBy: true,
         comments: true,
-
         author: {
           select: {
             id: true,

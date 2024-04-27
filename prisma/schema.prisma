@@ -150,7 +150,7 @@ model PatronCreator {
   package   Package?              @relation(fields: [packageId], references: [id])
   packageId String?
   type      SUBSCRIPTION_TYPE     @default(FREE)
-  expiry    DateTime
+  expiry    DateTime?
   status    PATRON_CREATOR_STATUS @default(PENDING)
   createdAt DateTime              @default(now())
   updatedAt DateTime              @updatedAt
@@ -223,7 +223,7 @@ enum ROLE {
 
 enum PACKAGE_NAMES {
   SUPPORT
-  BROZE
+  BRONZE
   SILVER
   GOLD
   PLATINUM

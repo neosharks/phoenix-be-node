@@ -34,7 +34,7 @@ class _UserPostController {
           }),
         );
       }
-      return res.status(200).send({ message: "success", data: returnPosts });
+      return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       logger.error("Error: ", error);
       return res
@@ -188,7 +188,6 @@ class _UserPostController {
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      // Checking for missing parameters
       if (
         !description ||
         !id ||
@@ -202,7 +201,6 @@ class _UserPostController {
       if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
-      // Handling creation of poll
       if (type === "POLL") {
         const { options } = req.body;
         let redefinedOptions = options.map((ele: string) => {
@@ -218,10 +216,8 @@ class _UserPostController {
         payload.pollId = response.id;
       }
 
-      // Handling image upload
       if (type === "IMAGE" && image) if (image) payload.image = await GetUploadedFile(image);
 
-      // Creating user post
       const created = await UserPostService.createOneUserPost({
         ...payload,
         description,
@@ -232,7 +228,6 @@ class _UserPostController {
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
 
-      // If image exists, get signed URL
       if (created.image) created.image = await getObjectSignedUrl(created.image);
 
       return res.status(201).send({ message: successMessages.CREATED, data: created });

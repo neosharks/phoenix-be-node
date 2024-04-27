@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import Joi from "joi";
 import { UserService } from "../services/user.service";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
@@ -6,6 +7,7 @@ import { GetUploadedFile } from "../core/s3upload.core";
 
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
+import { userUpdateSchema } from "../validators/user.validator";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -51,7 +53,11 @@ class _UserController {
 
   async update(req: Request, res: Response) {
     try {
-      const { ...update } = req.body;
+      const { update } = req.body;
+      const validation = userUpdateSchema.validate(update);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const image = req.file;
       if (image) update.profileImage = await GetUploadedFile(image);
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
@@ -90,29 +96,18 @@ class _UserController {
   async creatorOnboard(req: Request, res: Response) {
     try {
       const id = res.locals.user.id;
-      const {
-        pageName,
-        industry,
-        gender,
-        description,
-        youtubeHandle,
-        instagramHandle,
-        facebookHandle,
-        twitterHandle,
-      } = req.body;
+      const { data } = req.body;
+      const validation = userUpdateSchema.validate(data, { stripUnknown: true });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const foundUser = await UserService.getOneUser({ id });
       if (!foundUser) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (foundUser.role.includes("CREATOR"))
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+
       const updatedBody = {
-        pageName,
-        industry,
-        gender,
-        bio: description,
-        youtubeHandle,
-        instagramHandle,
-        facebookHandle,
-        twitterHandle,
+        ...data,
         isCreator: true,
         role: ["CREATOR", ...foundUser.role],
       };
