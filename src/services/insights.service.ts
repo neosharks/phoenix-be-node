@@ -13,7 +13,7 @@ class _InsightService {
         ],
       });
     } catch (error) {
-      logger.error(error);
+      console.log(error);
     }
   }
 }

@@ -33,7 +33,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -68,7 +68,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -83,7 +83,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -92,7 +92,7 @@ class _ChatService {
     try {
       return await prisma.message.findUnique({ where: query });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -101,7 +101,7 @@ class _ChatService {
     try {
       return await prisma.chat.update({ where: query, data });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -112,7 +112,7 @@ class _ChatService {
         where: query,
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -132,7 +132,7 @@ class _ChatService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }

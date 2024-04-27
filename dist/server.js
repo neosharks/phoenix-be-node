@@ -12,7 +12,7 @@ const index_route_1 = __importDefault(require("./src/routes/index.route"));
 const config_1 = __importDefault(require("./config"));
 const logger_core_1 = __importDefault(require("./src/core/logger.core"));
 process.on("uncaughtException", (e) => {
-    logger_core_1.default.error("-----uncaughtException-----", e);
+    console.log("-----uncaughtException-----", e);
     process.exit(1);
 });
 const app = (0, express_1.default)();

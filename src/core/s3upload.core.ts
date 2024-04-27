@@ -72,7 +72,7 @@ export async function GetUploadedFile(image: any) {
     await uploadFile(buffer, imageName, image.mimetype);
     return imageName;
   } catch (err) {
-    logger.error("Error in image upload", err);
+    console.log("Error in image upload", err);
     throw err;
   }
 }

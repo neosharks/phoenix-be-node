@@ -53,7 +53,7 @@ const sendEmail = (receiverEmail, subject, template, variables) => __awaiter(voi
         return true;
     }
     catch (err) {
-        logger_core_1.default.error("Failed to send email", err);
+        console.log("Failed to send email", err);
         return false;
     }
 });

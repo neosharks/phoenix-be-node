@@ -17,70 +17,112 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _PackageService {
     getAllPackagesOfCreator(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
+            try {
+                return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     getOnePackage(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.package.findUnique({ where: query, include: { tier: true } });
+            try {
+                return yield prisma_1.default.package.findUnique({ where: query, include: { tier: true } });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     createOnePackage(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { tier, name, price, description, userId } = dataValues;
-            return yield prisma_1.default.package.create({
-                data: {
-                    name,
-                    price,
-                    description,
-                    userId,
-                    tier: {
-                        connect: tier.map((ele) => {
-                            return { id: ele };
-                        }),
+            try {
+                const { tier, name, price, description, userId } = dataValues;
+                return yield prisma_1.default.package.create({
+                    data: {
+                        name,
+                        price,
+                        description,
+                        userId,
+                        tier: {
+                            connect: tier.map((ele) => {
+                                return { id: ele };
+                            }),
+                        },
                     },
-                },
-            });
+                });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     //------------------------
     getAllTiers() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.tier.findMany({});
+            try {
+                return yield prisma_1.default.tier.findMany({});
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     createOneTier(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.tier.create({ data: data });
+            try {
+                return yield prisma_1.default.tier.create({ data: data });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     linkPatronCreator(patronId, creatorId, type, packageId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const currentDate = new Date();
-            const expiryDate = new Date(currentDate);
-            expiryDate.setMonth(expiryDate.getMonth() + 1);
-            return yield prisma_1.default.patronCreator.create({
-                data: {
-                    patronId,
-                    creatorId,
-                    packageId,
-                    status: "ACTIVE",
-                    type,
-                    expiry: expiryDate,
-                },
-            });
+            try {
+                const currentDate = new Date();
+                const expiryDate = new Date(currentDate);
+                expiryDate.setMonth(expiryDate.getMonth() + 1);
+                return yield prisma_1.default.patronCreator.create({
+                    data: {
+                        patronId,
+                        creatorId,
+                        packageId,
+                        status: "ACTIVE",
+                        type,
+                        expiry: type !== "FREE" ? expiryDate : null,
+                    },
+                });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
     getAllPurchasedByPatron(patronId, creatorId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findMany({
-                where: { patronId, creatorId },
-                include: {
-                    package: {
-                        include: { tier: true },
+            try {
+                return yield prisma_1.default.patronCreator.findMany({
+                    where: { patronId, creatorId },
+                    include: {
+                        package: {
+                            include: { tier: true },
+                        },
                     },
-                },
-            });
+                });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
 }

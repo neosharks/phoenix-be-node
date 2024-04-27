@@ -14,9 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlurredImage = void 0;
 const jimp_1 = __importDefault(require("jimp"));
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 const s3upload_core_1 = require("../core/s3upload.core");
-const BLUR_NUMBER = 50;
+const BLUR_NUMBER = 70;
 const getBlurredImage = (incomingImage) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const signedUrl = yield (0, s3upload_core_1.getObjectSignedUrl)(incomingImage);
@@ -26,7 +25,7 @@ const getBlurredImage = (incomingImage) => __awaiter(void 0, void 0, void 0, fun
         return blurredImageBase64;
     }
     catch (err) {
-        logger_core_1.default.error("Error in blurring", err);
+        console.log("Error in blurring", err);
         return "";
     }
 });

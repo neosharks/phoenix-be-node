@@ -19,7 +19,7 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -31,7 +31,7 @@ class _NotificationService {
         data: { aboutUserId, notifiedUserId, message, read: false, link, type },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -48,7 +48,7 @@ class _NotificationService {
         },
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }

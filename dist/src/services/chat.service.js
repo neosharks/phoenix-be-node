@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _ChatService {
     getOneChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -49,7 +48,7 @@ class _ChatService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -86,7 +85,7 @@ class _ChatService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -103,7 +102,7 @@ class _ChatService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -114,7 +113,7 @@ class _ChatService {
                 return yield prisma_1.default.message.findUnique({ where: query });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -125,7 +124,7 @@ class _ChatService {
                 return yield prisma_1.default.chat.update({ where: query, data });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -138,7 +137,7 @@ class _ChatService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -160,7 +159,7 @@ class _ChatService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });

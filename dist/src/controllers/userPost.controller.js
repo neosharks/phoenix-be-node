@@ -17,7 +17,6 @@ const userPost_service_1 = require("../services/userPost.service");
 const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
 const image_lib_1 = require("../lib/image.lib");
@@ -41,7 +40,7 @@ class _UserPostController {
                     returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
                         var _a;
                         if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                            if (!ele.isPrivate)
+                            if (ele.visibility !== "PAID_MEMBER")
                                 ele.image = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
                             else
                                 ele.image = yield (0, image_lib_1.getBlurredImage)(ele.image);
@@ -49,10 +48,10 @@ class _UserPostController {
                         return ele;
                     })));
                 }
-                return res.status(200).send({ message: "success", data: returnPosts });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -94,7 +93,7 @@ class _UserPostController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -116,7 +115,7 @@ class _UserPostController {
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -149,7 +148,7 @@ class _UserPostController {
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -183,7 +182,7 @@ class _UserPostController {
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -203,7 +202,7 @@ class _UserPostController {
                 res.status(201).send({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -218,7 +217,6 @@ class _UserPostController {
                 const image = req.file;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
-                // Checking for missing parameters
                 if (!description ||
                     !id ||
                     !type ||
@@ -228,7 +226,6 @@ class _UserPostController {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                // Handling creation of poll
                 if (type === "POLL") {
                     const { options } = req.body;
                     let redefinedOptions = options.map((ele) => {
@@ -243,24 +240,21 @@ class _UserPostController {
                     });
                     payload.pollId = response.id;
                 }
-                // Handling image upload
                 if (type === "IMAGE" && image)
                     if (image)
                         payload.image = yield (0, s3upload_core_1.GetUploadedFile)(image);
-                // Creating user post
                 const created = yield userPost_service_1.UserPostService.createOneUserPost(Object.assign(Object.assign({}, payload), { description,
                     type,
                     visibility,
                     videoUrl,
                     title, packages: visibility === "PAID_MEMBER" ? packages : [] }));
-                // If image exists, get signed URL
                 if (created.image)
                     created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
                 return res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {
                 console.log(error);
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -277,7 +271,7 @@ class _UserPostController {
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -297,7 +291,7 @@ class _UserPostController {
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
-                logger_core_1.default.error("Error: ", error);
+                console.log("Error: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });

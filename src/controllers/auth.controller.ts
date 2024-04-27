@@ -45,7 +45,7 @@ class _AuthController {
       const accessToken = await signJwt(created);
       return res.status(201).json({ messge: successMessages.CREATED, accessToken, user: created });
     } catch (err) {
-      logger.error("Error in register", err);
+      console.log("Error in register", err);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: err });
@@ -69,7 +69,7 @@ class _AuthController {
         .status(200)
         .json({ messge: successMessages.SUCCESS, accessToken, user: foundUser });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -83,8 +83,8 @@ class _AuthController {
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-      const smsRes = await sendOtpSms(number, otpGenerated);
-      if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      // const smsRes = await sendOtpSms(number, otpGenerated);
+      // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
       const commonProps = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
@@ -103,7 +103,7 @@ class _AuthController {
       }
       return res.status(200).json({ message: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -137,7 +137,7 @@ class _AuthController {
       );
       return res.status(200).json({ message: successMessages.SUCCESS, email });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -171,7 +171,7 @@ class _AuthController {
       );
       return res.status(200).json({ message: successMessages.SUCCESS, email });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -203,7 +203,7 @@ class _AuthController {
       );
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -227,7 +227,7 @@ class _AuthController {
       const accessToken = await signJwt(res.locals.user);
       return res.status(200).json({ message: successMessages.SUCCESS, accessToken });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -272,7 +272,7 @@ class _AuthController {
         .status(201)
         .json({ messge: successMessages.SUCCESS, accessToken, user: createdUser });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -323,7 +323,7 @@ class _AuthController {
         .status(200)
         .json({ message: successMessages.SUCCESS, accessToken: token, user: foundUser });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

@@ -12,7 +12,7 @@ if (res.length < 1) {
     const port = config_1.default.main.port;
     server_1.default
         .listen(port, () => logger_core_1.default.info(`SERVER UP AT PORT ${port}`))
-        .on("error", (e) => logger_core_1.default.error("Error in starting server", e));
+        .on("error", (e) => console.log("Error in starting server", e));
 }
 else
     logger_core_1.default.info(`SERVER STOPPED DUE TO UNSET ENV VARS: ${res}`);

@@ -8,28 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
+const user_validator_1 = require("../validators/user.validator");
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -39,7 +25,7 @@ class _UserController {
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -58,7 +44,7 @@ class _UserController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -74,7 +60,7 @@ class _UserController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -84,7 +70,11 @@ class _UserController {
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const update = __rest(req.body, []);
+                const { update } = req.body;
+                const validation = user_validator_1.userUpdateSchema.validate(update);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const image = req.file;
                 if (image)
                     update.profileImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
@@ -92,7 +82,7 @@ class _UserController {
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -117,7 +107,7 @@ class _UserController {
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -128,29 +118,22 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const id = res.locals.user.id;
-                const { pageName, industry, gender, description, youtubeHandle, instagramHandle, facebookHandle, twitterHandle, } = req.body;
+                const { data } = req.body;
+                const validation = user_validator_1.userUpdateSchema.validate(data, { stripUnknown: true });
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const foundUser = yield user_service_1.UserService.getOneUser({ id });
                 if (!foundUser)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (foundUser.role.includes("CREATOR"))
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
-                const updatedBody = {
-                    pageName,
-                    industry,
-                    gender,
-                    bio: description,
-                    youtubeHandle,
-                    instagramHandle,
-                    facebookHandle,
-                    twitterHandle,
-                    isCreator: true,
-                    role: ["CREATOR", ...foundUser.role],
-                };
+                const updatedBody = Object.assign(Object.assign({}, data), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -165,7 +148,7 @@ class _UserController {
                 return res.status(200).json({ messge: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });

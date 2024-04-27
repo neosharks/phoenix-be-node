@@ -32,7 +32,7 @@ class _InsightController {
 
       return res.status(200).send({ message: successMessages.FETCHED, data: obj });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

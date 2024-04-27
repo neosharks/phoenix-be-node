@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _NotificationService {
     getAllNotificationOfUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -35,7 +34,7 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -49,7 +48,7 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -68,7 +67,7 @@ class _NotificationService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });

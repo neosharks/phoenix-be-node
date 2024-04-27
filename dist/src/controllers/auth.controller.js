@@ -21,7 +21,6 @@ const helper_lib_1 = require("../lib/helper.lib");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
-const sms_core_1 = __importDefault(require("../core/sms.core"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -48,7 +47,7 @@ class _AuthController {
                 const created = yield user_service_1.UserService.createOneUser(isCreator
                     ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {
-                    yield (0, email_core_1.default)(body.email, "Welcome to Qalakar!", "SIGNUP", {
+                    yield (0, email_core_1.default)(body.email, "Welcome to Quiber!", "SIGNUP", {
                         firstName: body.firstName,
                         lastName: body.lastName,
                     });
@@ -57,7 +56,7 @@ class _AuthController {
                 return res.status(201).json({ messge: api_constant_1.successMessages.CREATED, accessToken, user: created });
             }
             catch (err) {
-                logger_core_1.default.error("Error in register", err);
+                console.log("Error in register", err);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: err });
@@ -86,7 +85,7 @@ class _AuthController {
                     .json({ messge: api_constant_1.successMessages.SUCCESS, accessToken, user: foundUser });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -101,9 +100,8 @@ class _AuthController {
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-                const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
-                if (!smsRes)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
+                // const smsRes = await sendOtpSms(number, otpGenerated);
+                // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
                 const commonProps = {
                     verificationCode: otpGenerated,
                     verificationCodeSource: "SMS",
@@ -119,7 +117,7 @@ class _AuthController {
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -147,7 +145,7 @@ class _AuthController {
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, email });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -175,7 +173,7 @@ class _AuthController {
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, email });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -206,7 +204,7 @@ class _AuthController {
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -234,7 +232,7 @@ class _AuthController {
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, accessToken });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -274,7 +272,7 @@ class _AuthController {
                     .json({ messge: api_constant_1.successMessages.SUCCESS, accessToken, user: createdUser });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -309,7 +307,7 @@ class _AuthController {
                     foundUser = yield user_service_1.UserService.createOneUser(user);
                     if (email && email.length > 0) {
                         logger_core_1.default.info("sending email to: ", email);
-                        yield (0, email_core_1.default)(email, "Welcome to Qalakar!", "SIGNUP", {
+                        yield (0, email_core_1.default)(email, "Welcome to Quiber!", "SIGNUP", {
                             firstName: given_name,
                             lastName: family_name,
                         });
@@ -324,7 +322,7 @@ class _AuthController {
                     .json({ message: api_constant_1.successMessages.SUCCESS, accessToken: token, user: foundUser });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });

@@ -18,11 +18,11 @@ function sendOtpSms(phoneNumber, otp) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const response = yield axios_1.default.post("https://www.fast2sms.com/dev/bulkV2", {
-                variables_values: otp,
                 route: "dlt",
                 numbers: phoneNumber,
-                message: `Your otp: ${otp}`,
-                sender_id: "AX-QKROTP",
+                message: 168065,
+                sender_id: "QKROTP",
+                variables_values: otp,
             }, {
                 headers: {
                     authorization: config_1.default.sms.fast2sms.key,

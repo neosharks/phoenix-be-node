@@ -27,7 +27,7 @@ class _UserPostController {
         returnPosts = await Promise.all(
           returnPosts.map(async (ele: any) => {
             if (ele?.image?.length > 0) {
-              if (!ele.isPrivate) ele.image = await getObjectSignedUrl(ele.image);
+              if (ele.visibility !== "PAID_MEMBER") ele.image = await getObjectSignedUrl(ele.image);
               else ele.image = await getBlurredImage(ele.image);
             }
             return ele;
@@ -36,7 +36,7 @@ class _UserPostController {
       }
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -76,7 +76,7 @@ class _UserPostController {
       }
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -93,7 +93,7 @@ class _UserPostController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -123,7 +123,7 @@ class _UserPostController {
       }
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -154,7 +154,7 @@ class _UserPostController {
       }
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -172,7 +172,7 @@ class _UserPostController {
       await UserPostService.updateOneUserPost({ id: postId }, updates);
       res.status(201).send({ message: successMessages.UPDATED });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -233,7 +233,7 @@ class _UserPostController {
       return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       console.log(error);
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -248,7 +248,7 @@ class _UserPostController {
       const created = await UserPostService.createOneComment({ description, authorId, userPostId });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -266,7 +266,7 @@ class _UserPostController {
       await UserPostService.delete(postId);
       res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("Error: ", error);
+      console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

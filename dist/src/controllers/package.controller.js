@@ -8,16 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageController = void 0;
 const package_service_1 = require("../services/package.service");
 const chat_service_1 = require("../services/chat.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const api_constant_1 = require("../constant/api.constant");
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 const payment_service_1 = require("../services/payment.service");
 class _PackageController {
     getAllPackagesOfCreator(req, res) {
@@ -36,7 +32,7 @@ class _PackageController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, packages: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -53,7 +49,7 @@ class _PackageController {
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -62,14 +58,26 @@ class _PackageController {
     }
     getPackageNames(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { username } = res.locals.user;
             try {
+                const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
+                    User: {
+                        username,
+                    },
+                });
+                let allPackagesEnums = ["SUPPORT", "BRONZE", "SILVER", "GOLD", "PLATINUM", "RUBY"];
+                if (found && found.length > 0) {
+                    found.forEach((ele) => {
+                        allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
+                    });
+                }
                 return res.status(201).send({
                     message: api_constant_1.successMessages.SUCCESS,
-                    data: ["SUPPORT", "BROZE", "SILVER", "GOLD", "PLATINUM", "RUBY"],
+                    data: allPackagesEnums,
                 });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -92,7 +100,7 @@ class _PackageController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -115,7 +123,7 @@ class _PackageController {
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -135,7 +143,7 @@ class _PackageController {
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -203,7 +211,7 @@ class _PackageController {
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -219,7 +227,7 @@ class _PackageController {
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -236,7 +244,7 @@ class _PackageController {
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -250,7 +258,7 @@ class _PackageController {
                 res.status(201).send({ message: api_constant_1.successMessages.FETCHED, tiers: tiers });
             }
             catch (error) {
-                logger_core_1.default.error("ERROR: ", error);
+                console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });

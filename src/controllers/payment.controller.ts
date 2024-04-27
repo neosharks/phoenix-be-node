@@ -44,25 +44,20 @@ class _PaymentController {
           customer_name: `${firstName} ${lastName}`,
           customer_email: email,
         },
-        order_meta: {
-          return_url: `${config.main.feUrl}?order_id=order_123`,
-        },
       };
       let response;
       try {
         response = await Cashfree.PGCreateOrder("2023-08-01", request);
         console.log(response);
       } catch (error) {
-        logger.error(error);
+        console.log(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
       }
       await PaymentService.createOnePayment({ userId: id, packageId, orderId: order_id });
       return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
     } catch (error: any) {
-      logger.error(error.message);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      console.log(error);
+      return res.status(errorCode.INTERNAL_SERVER).json({ message: errorMessage.INTERNAL_SERVER });
     }
   }
 
@@ -85,7 +80,7 @@ class _PaymentController {
       );
       return res.status(200).json({ status: response?.data?.order_status });
     } catch (error: any) {
-      logger.error(error);
+      console.log(error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

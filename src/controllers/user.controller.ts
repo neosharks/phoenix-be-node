@@ -16,7 +16,7 @@ class _UserController {
       const found = await UserService.getOneUser({ id });
       return res.status(201).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -31,7 +31,7 @@ class _UserController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -44,7 +44,7 @@ class _UserController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -63,7 +63,7 @@ class _UserController {
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -86,7 +86,7 @@ class _UserController {
       await PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -114,7 +114,7 @@ class _UserController {
       await UserService.updateOneUser({ id }, updatedBody);
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -127,7 +127,7 @@ class _UserController {
       await UserService.deleteOneUser(id);
       return res.status(200).json({ messge: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

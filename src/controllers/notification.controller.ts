@@ -12,7 +12,7 @@ class _NotificationController {
       });
       return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -25,7 +25,7 @@ class _NotificationController {
       await NotificationService.markAllAsRead(id);
       return res.status(200).send({ message: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

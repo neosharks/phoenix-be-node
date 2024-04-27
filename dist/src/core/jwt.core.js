@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyJwt = exports.signJwt = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../../config"));
-const logger_core_1 = __importDefault(require("./logger.core"));
 // TODO: IMPLEMENT REFRESH TOKEN AND ASYMETRIC KEY GENERATION
 const signJwt = (user, options) => __awaiter(void 0, void 0, void 0, function* () {
     return jsonwebtoken_1.default.sign({ id: user.id }, config_1.default.jwt.accessTokenKey, {
@@ -33,7 +32,7 @@ const verifyJwt = (token) => {
         };
     }
     catch (e) {
-        logger_core_1.default.error(e);
+        console.log(e);
         return {
             valid: false,
             expired: e.message === "jwt expired",

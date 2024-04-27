@@ -8,7 +8,7 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 
 process.on("uncaughtException", (e) => {
-  Logger.error("-----uncaughtException-----", e);
+  console.log("-----uncaughtException-----", e);
   process.exit(1);
 });
 

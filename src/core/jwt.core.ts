@@ -19,7 +19,7 @@ export const verifyJwt = (token: string) => {
       decoded,
     };
   } catch (e: any) {
-    logger.error(e);
+    console.log(e);
     return {
       valid: false,
       expired: e.message === "jwt expired",

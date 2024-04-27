@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InsightService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
-const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _InsightService {
     getAllPackagesOfCreator(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -29,7 +28,7 @@ class _InsightService {
                 });
             }
             catch (error) {
-                logger_core_1.default.error(error);
+                console.log(error);
             }
         });
     }

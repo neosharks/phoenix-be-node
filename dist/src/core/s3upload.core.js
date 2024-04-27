@@ -19,7 +19,6 @@ const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const multer_1 = __importDefault(require("multer"));
 const crypto_1 = __importDefault(require("crypto"));
 const config_1 = __importDefault(require("../../config"));
-const logger_core_1 = __importDefault(require("./logger.core"));
 const bucketName = config_1.default.aws.bucketName;
 const region = config_1.default.aws.region;
 const accessKeyId = config_1.default.aws.accessId;
@@ -79,7 +78,7 @@ function GetUploadedFile(image) {
             return imageName;
         }
         catch (err) {
-            logger_core_1.default.error("Error in image upload", err);
+            console.log("Error in image upload", err);
             throw err;
         }
     });

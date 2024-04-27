@@ -2,7 +2,7 @@ import Jimp from "jimp";
 import logger from "../core/logger.core";
 import { getObjectSignedUrl } from "../core/s3upload.core";
 
-const BLUR_NUMBER = 50;
+const BLUR_NUMBER = 70;
 
 export const getBlurredImage = async (incomingImage: any) => {
   try {
@@ -12,7 +12,7 @@ export const getBlurredImage = async (incomingImage: any) => {
     const blurredImageBase64 = await image.getBase64Async(Jimp.AUTO);
     return blurredImageBase64;
   } catch (err) {
-    logger.error("Error in blurring", err);
+    console.log("Error in blurring", err);
     return "";
   }
 };

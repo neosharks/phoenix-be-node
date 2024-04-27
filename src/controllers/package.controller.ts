@@ -20,7 +20,7 @@ class _PackageController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -34,7 +34,7 @@ class _PackageController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -60,7 +60,7 @@ class _PackageController {
         data: allPackagesEnums,
       });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -80,7 +80,7 @@ class _PackageController {
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -99,7 +99,7 @@ class _PackageController {
       if (!found) return res.status(404).send({ message: errorMessage.MISSING_PARAMS });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -117,7 +117,7 @@ class _PackageController {
       await PackageService.createOnePackage({ tier, name, price, description, userId: id });
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -187,7 +187,7 @@ class _PackageController {
 
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -202,7 +202,7 @@ class _PackageController {
       await PackageService.createOneTier(body);
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -217,7 +217,7 @@ class _PackageController {
       });
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -229,7 +229,7 @@ class _PackageController {
       const tiers = await PackageService.getAllTiers();
       res.status(201).send({ message: successMessages.FETCHED, tiers: tiers });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

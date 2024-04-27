@@ -48,7 +48,7 @@ const sendEmail = async (
     logger.info(`Email sent to ${receiverEmail}`);
     return true;
   } catch (err) {
-    logger.error("Failed to send email", err);
+    console.log("Failed to send email", err);
     return false;
   }
 };

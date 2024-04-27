@@ -22,7 +22,7 @@ class _ChatController {
       const created = await ChatService.createOneChat(participants, "UNLIMITED");
       return res.status(201).json({ message: successMessages.CREATED, data: created });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -52,7 +52,7 @@ class _ChatController {
       }
       return res.status(200).json({ message: successMessages.SUCCESS, chats: finalData });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -64,7 +64,7 @@ class _ChatController {
       const allUser = await UserService.getAllUser();
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -101,7 +101,7 @@ class _ChatController {
         });
       return res.status(201).json({ message: successMessages.SUCCESS, data: createdChat });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
@@ -125,7 +125,7 @@ class _ChatController {
       };
       return res.status(200).json({ message: successMessages.SUCCESS, chat: response });
     } catch (error) {
-      logger.error("ERROR: ", error);
+      console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
