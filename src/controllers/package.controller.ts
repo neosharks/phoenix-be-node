@@ -126,7 +126,7 @@ class _PackageController {
 
   async buyPackage(req: Request, res: Response) {
     try {
-      const { packageId, orderID } = req.body;
+      const { packageId, orderId } = req.body;
       if (!packageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
@@ -145,7 +145,7 @@ class _PackageController {
       if (foundAlreadyPurchase)
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
 
-      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderId });
       if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
 
       if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
