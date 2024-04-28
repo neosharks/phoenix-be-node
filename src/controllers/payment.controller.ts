@@ -10,7 +10,7 @@ import { PaymentService } from "../services/payment.service";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
-Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
+Cashfree.XEnvironment = Cashfree.Environment.PRODUCTION;
 
 function generateOrderId() {
   const uniqueId = crypto.randomBytes(16).toString("hex");

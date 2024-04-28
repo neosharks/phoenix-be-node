@@ -22,7 +22,7 @@ const axios_1 = __importDefault(require("axios"));
 const payment_service_1 = require("../services/payment.service");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
-cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.SANDBOX;
+cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.PRODUCTION;
 function generateOrderId() {
     const uniqueId = crypto_1.default.randomBytes(16).toString("hex");
     const hash = crypto_1.default.createHash("sha256");
