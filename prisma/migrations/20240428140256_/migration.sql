@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "CURRENCY" AS ENUM ('INR');
+
+-- CreateEnum
 CREATE TYPE "ROLE" AS ENUM ('PATRON', 'CREATOR', 'ADMIN');
 
 -- CreateEnum
@@ -225,6 +228,8 @@ CREATE TABLE "Payment" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "orderId" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL DEFAULT 0,
+    "currency" "CURRENCY" NOT NULL DEFAULT 'INR',
     "status" "PAYMENT_STATUS" NOT NULL DEFAULT 'CREATED',
     "packageId" TEXT NOT NULL,
 

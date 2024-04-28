@@ -16,12 +16,14 @@ class _PaymentService {
 
   async createOnePayment(dataValues: any) {
     try {
-      const { userId, orderId, packageId } = dataValues;
+      const { userId, orderId, packageId, amount, currency } = dataValues;
       return await prisma.payment.create({
         data: {
           userId,
           orderId,
           packageId,
+          amount,
+          currency,
         },
       });
     } catch (error) {

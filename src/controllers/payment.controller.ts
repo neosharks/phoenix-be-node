@@ -54,7 +54,13 @@ class _PaymentController {
         console.log(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
       }
-      await PaymentService.createOnePayment({ userId: id, packageId, orderId: order_id });
+      await PaymentService.createOnePayment({
+        userId: id,
+        packageId,
+        orderId: order_id,
+        amount: price,
+        currency: "INR",
+      });
       return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
     } catch (error: any) {
       console.log(error);

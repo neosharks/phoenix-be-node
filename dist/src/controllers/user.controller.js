@@ -94,7 +94,6 @@ class _UserController {
             try {
                 const image = req.file;
                 let update = {};
-                console.log(image);
                 if (image)
                     update.coverImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
@@ -113,7 +112,6 @@ class _UserController {
             try {
                 const image = req.file;
                 let update = {};
-                console.log(image);
                 if (image)
                     update.profileImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
@@ -178,8 +176,7 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const id = res.locals.user.id;
-                const { data } = req.body;
-                const validation = user_validator_1.userUpdateSchema.validate(data, { stripUnknown: true });
+                const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -188,7 +185,7 @@ class _UserController {
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (foundUser.role.includes("CREATOR"))
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
-                const updatedBody = Object.assign(Object.assign({}, data), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
+                const updatedBody = Object.assign(Object.assign({}, req.body), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }

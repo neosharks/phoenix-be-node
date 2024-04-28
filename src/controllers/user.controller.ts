@@ -72,7 +72,6 @@ class _UserController {
     try {
       const image = req.file;
       let update: any = {};
-      console.log(image);
       if (image) update.coverImage = await GetUploadedFile(image);
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
@@ -88,7 +87,6 @@ class _UserController {
     try {
       const image = req.file;
       let update: any = {};
-      console.log(image);
       if (image) update.profileImage = await GetUploadedFile(image);
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
@@ -145,8 +143,7 @@ class _UserController {
   async creatorOnboard(req: Request, res: Response) {
     try {
       const id = res.locals.user.id;
-      const { data } = req.body;
-      const validation = userUpdateSchema.validate(data, { stripUnknown: true });
+      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -156,7 +153,7 @@ class _UserController {
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
 
       const updatedBody = {
-        ...data,
+        ...req.body,
         isCreator: true,
         role: ["CREATOR", ...foundUser.role],
       };

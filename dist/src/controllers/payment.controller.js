@@ -66,7 +66,13 @@ class _PaymentController {
                     console.log(error);
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
                 }
-                yield payment_service_1.PaymentService.createOnePayment({ userId: id, packageId, orderId: order_id });
+                yield payment_service_1.PaymentService.createOnePayment({
+                    userId: id,
+                    packageId,
+                    orderId: order_id,
+                    amount: price,
+                    currency: "INR",
+                });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: response === null || response === void 0 ? void 0 : response.data });
             }
             catch (error) {
