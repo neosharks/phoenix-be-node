@@ -83,8 +83,8 @@ class _AuthController {
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-      // const smsRes = await sendOtpSms(number, otpGenerated);
-      // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      const smsRes = await sendOtpSms(number, otpGenerated);
+      if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
       const commonProps = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
