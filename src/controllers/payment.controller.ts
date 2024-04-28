@@ -11,6 +11,7 @@ import { PaymentService } from "../services/payment.service";
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
 Cashfree.XEnvironment = Cashfree.Environment.PRODUCTION;
+// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 function generateOrderId() {
   const uniqueId = crypto.randomBytes(16).toString("hex");
@@ -47,7 +48,7 @@ class _PaymentController {
       };
       let response;
       try {
-        response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
         console.log(response);
       } catch (error) {
         console.log(error);
@@ -66,10 +67,10 @@ class _PaymentController {
       const { orderId } = req.body;
       if (!orderId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const url = `https://sandbox.cashfree.com/pg/orders/${orderId}`;
+      const url = `${config.payment.cashfree.url}/orders/${orderId}`;
       const headers = {
         accept: "application/json",
-        "x-api-version": "2023-08-01",
+        "x-api-version": config.payment.cashfree.version,
         "x-client-id": config.payment.cashfree.clientId,
         "x-client-secret": config.payment.cashfree.clientSecret,
       };

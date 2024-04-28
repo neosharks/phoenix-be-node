@@ -23,6 +23,7 @@ const payment_service_1 = require("../services/payment.service");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
 cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.PRODUCTION;
+// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 function generateOrderId() {
     const uniqueId = crypto_1.default.randomBytes(16).toString("hex");
     const hash = crypto_1.default.createHash("sha256");
@@ -58,7 +59,7 @@ class _PaymentController {
                 };
                 let response;
                 try {
-                    response = yield cashfree_pg_1.Cashfree.PGCreateOrder("2023-08-01", request);
+                    response = yield cashfree_pg_1.Cashfree.PGCreateOrder(config_1.default.payment.cashfree.version, request);
                     console.log(response);
                 }
                 catch (error) {
@@ -81,10 +82,10 @@ class _PaymentController {
                 const { orderId } = req.body;
                 if (!orderId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const url = `https://sandbox.cashfree.com/pg/orders/${orderId}`;
+                const url = `${config_1.default.payment.cashfree.url}/orders/${orderId}`;
                 const headers = {
                     accept: "application/json",
-                    "x-api-version": "2023-08-01",
+                    "x-api-version": config_1.default.payment.cashfree.version,
                     "x-client-id": config_1.default.payment.cashfree.clientId,
                     "x-client-secret": config_1.default.payment.cashfree.clientSecret,
                 };
