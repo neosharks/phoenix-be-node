@@ -51,7 +51,7 @@ class _PaymentController {
                     order_id,
                     customer_details: {
                         customer_id: username,
-                        customer_phone: phoneNumber,
+                        customer_phone: phoneNumber || "8174901463",
                         customer_name: `${firstName} ${lastName}`,
                         customer_email: email,
                     },

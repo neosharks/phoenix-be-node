@@ -21,6 +21,7 @@ const helper_lib_1 = require("../lib/helper.lib");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
+const sms_core_1 = __importDefault(require("../core/sms.core"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -100,8 +101,9 @@ class _AuthController {
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-                // const smsRes = await sendOtpSms(number, otpGenerated);
-                // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+                const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
+                if (!smsRes)
+                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
                 const commonProps = {
                     verificationCode: otpGenerated,
                     verificationCodeSource: "SMS",
