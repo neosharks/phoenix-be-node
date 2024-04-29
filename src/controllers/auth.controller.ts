@@ -78,19 +78,26 @@ class _AuthController {
 
   async sendOtp(req: Request, res: Response) {
     try {
-      const { number } = req.body;
+      const { number, referralUsername } = req.body;
       if (!number)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
       const smsRes = await sendOtpSms(number, otpGenerated);
       if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
-      const commonProps = {
+      const commonProps: any = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
       };
       if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
       else {
+        if (referralUsername) {
+          const referralUser = await UserService.getOneUser({ username: referralUsername });
+          if (referralUser) {
+            commonProps.referralTimeStamp = new Date();
+            commonProps.referralUserId = referralUser.id;
+          }
+        }
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
@@ -281,7 +288,7 @@ class _AuthController {
 
   async googleAuth(req: Request, res: Response) {
     try {
-      const { googleAccessToken } = req.body;
+      const { googleAccessToken, referralUsername } = req.body;
       if (!googleAccessToken)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const FetchResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -294,7 +301,7 @@ class _AuthController {
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-        const user = {
+        const user: any = {
           googleAuthId: sub,
           email: email,
           firstName: given_name,
@@ -303,6 +310,13 @@ class _AuthController {
           username: email.split("@")[0],
           emailVerified: true,
         };
+        if (referralUsername) {
+          const referralUser = await UserService.getOneUser({ username: referralUsername });
+          if (referralUser) {
+            user.referralTimeStamp = new Date();
+            user.referralUserId = referralUser.id;
+          }
+        }
         foundUser = await UserService.createOneUser(user);
 
         if (email && email.length > 0) {

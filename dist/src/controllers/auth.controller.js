@@ -96,7 +96,7 @@ class _AuthController {
     sendOtp(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { number } = req.body;
+                const { number, referralUsername } = req.body;
                 if (!number)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
@@ -111,6 +111,13 @@ class _AuthController {
                 if (foundUser)
                     yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign({}, commonProps));
                 else {
+                    if (referralUsername) {
+                        const referralUser = yield user_service_1.UserService.getOneUser({ username: referralUsername });
+                        if (referralUser) {
+                            commonProps.referralTimeStamp = new Date();
+                            commonProps.referralUserId = referralUser.id;
+                        }
+                    }
                     const username = (0, helper_lib_1.generateRandomUsername)();
                     const randomNum = (Math.random() * 25) | 1;
                     const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
@@ -284,7 +291,7 @@ class _AuthController {
     googleAuth(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { googleAccessToken } = req.body;
+                const { googleAccessToken, referralUsername } = req.body;
                 if (!googleAccessToken)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const FetchResponse = yield axios_1.default.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -306,6 +313,13 @@ class _AuthController {
                         username: email.split("@")[0],
                         emailVerified: true,
                     };
+                    if (referralUsername) {
+                        const referralUser = yield user_service_1.UserService.getOneUser({ username: referralUsername });
+                        if (referralUser) {
+                            user.referralTimeStamp = new Date();
+                            user.referralUserId = referralUser.id;
+                        }
+                    }
                     foundUser = yield user_service_1.UserService.createOneUser(user);
                     if (email && email.length > 0) {
                         logger_core_1.default.info("sending email to: ", email);
