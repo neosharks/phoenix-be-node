@@ -11,6 +11,8 @@ authRoutes.post("/login", AuthController.login);
 
 authRoutes.post("/sendOtp", AuthController.sendOtp);
 
+authRoutes.post("/resendOtp", AuthController.resendOtp);
+
 authRoutes.post("/forgetPassword", AuthController.forgetPassword);
 
 authRoutes.post("/verifyForgetPassword", AuthController.verifyForgetPassword);

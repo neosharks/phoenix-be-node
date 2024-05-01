@@ -100,14 +100,13 @@ class _UserController {
 
   async update(req: Request, res: Response) {
     try {
-      const { update } = req.body;
-      const validation = userUpdateSchema.validate(update, { stripUnknown: true });
+      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
       const image = req.file;
-      if (image) update.profileImage = await GetUploadedFile(image);
-      await UserService.updateOneUser({ id: res.locals.user.id }, update);
+      if (image) req.body.profileImage = await GetUploadedFile(image);
+      await UserService.updateOneUser({ id: res.locals.user.id }, req.body);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -143,6 +142,7 @@ class _UserController {
   async creatorOnboard(req: Request, res: Response) {
     try {
       const id = res.locals.user.id;
+      const { username } = req.body;
       const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
@@ -151,6 +151,9 @@ class _UserController {
       if (!foundUser) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (foundUser.role.includes("CREATOR"))
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+      const foundUsername = await UserService.getOneUser({ username });
+      if (foundUsername && foundUsername.id !== id)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_USERNAME });
 
       const updatedBody = {
         ...req.body,
