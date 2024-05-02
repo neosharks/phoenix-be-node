@@ -8,6 +8,7 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
+import { userPostSchema } from "../validators/userPost.validator";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -104,6 +105,10 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
+      const validation = userPostSchema.validate(postId);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!postId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
@@ -134,6 +139,10 @@ class _UserPostController {
     try {
       const { pollId, selectedId } = req.body;
       const { id } = res.locals.user;
+      const validation = userPostSchema.validate({ pollId, selectedId });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!pollId || !selectedId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
@@ -164,6 +173,10 @@ class _UserPostController {
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
+      const validation = userPostSchema.validate({ postId, updates });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!postId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
@@ -182,6 +195,10 @@ class _UserPostController {
   async createOneUserPost(req: any, res: Response) {
     try {
       const body = req.body;
+      const validation = userPostSchema.validate(body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
 
@@ -243,6 +260,10 @@ class _UserPostController {
   async commentOnPostByUser(req: any, res: Response) {
     try {
       const { description, authorId, userPostId } = req.body;
+      const validation = userPostSchema.validate({ description, authorId, userPostId });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!description || !authorId || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const created = await UserPostService.createOneComment({ description, authorId, userPostId });

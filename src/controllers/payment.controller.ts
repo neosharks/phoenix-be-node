@@ -7,6 +7,7 @@ import { PackageService } from "../services/package.service";
 import config from "../../config";
 import axios from "axios";
 import { PaymentService } from "../services/payment.service";
+import { paymentSchema } from "../validators/payment.validator";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
@@ -23,6 +24,10 @@ function generateOrderId() {
 class _PaymentController {
   async order(req: Request, res: Response) {
     const { packageId } = req.body;
+    const validation = paymentSchema.validate(packageId);
+    if (validation.error) {
+      return res.status(400).json({ error: validation.error.details[0].message });
+    }
     if (!packageId)
       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
     const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
@@ -64,6 +69,10 @@ class _PaymentController {
   async verify(req: Request, res: Response) {
     try {
       const { orderId } = req.body;
+      const validation = paymentSchema.validate(orderId);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!orderId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const url = `https://sandbox.cashfree.com/pg/orders/${orderId}`;

@@ -4,6 +4,7 @@ import Logger from "../core/logger.core";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
+import { chatSchema, paginationSchema } from "../validators/chat.validator";
 import logger from "../core/logger.core";
 import { PackageService } from "../services/package.service";
 
@@ -11,6 +12,10 @@ class _ChatController {
   async createChat(req: Request, res: Response) {
     try {
       const { participants } = req.body;
+      const validation = chatSchema.validate({ participants });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const foundChat = await ChatService.getOneChat({
         OR: [
           { participantOneId: participants[0], participantTwoId: participants[1] },
@@ -31,10 +36,20 @@ class _ChatController {
 
   async getAllChatsByUser(req: Request, res: Response) {
     try {
+      const { error, value } = paginationSchema.validate(req.query);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
       const { id } = res.locals.user;
-      const foundChat = await ChatService.getAllChat({
-        OR: [{ participantOneId: id }, { participantTwoId: id }],
-      });
+      const { omit, obtain } = value;
+      const foundChat = await ChatService.getAllChat(
+        {
+          OR: [{ participantOneId: id }, { participantTwoId: id }],
+        },
+        omit,
+        obtain,
+      );
       const finalData: any = [];
       for (let i = 0; i < foundChat.length; i++) {
         const ele = foundChat[i];
@@ -61,7 +76,13 @@ class _ChatController {
 
   async getAllSearchableUsers(req: Request, res: Response) {
     try {
-      const allUser = await UserService.getAllUser();
+      const { error, value } = paginationSchema.validate(req.query);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
+      const { omit, obtain } = value;
+      const allUser = await UserService.getAllUser(omit, obtain);
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -74,6 +95,10 @@ class _ChatController {
   async createMessage(req: Request, res: Response) {
     try {
       const { chatId, senderId, message, contentType } = req.body;
+      const validation = chatSchema.validate({ chatId, senderId, message, contentType });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const { isCreator, firstName, lastName } = res.locals.user;
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });

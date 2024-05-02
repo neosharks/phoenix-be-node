@@ -6,11 +6,15 @@ import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
-
+import { packageSchema } from "../validators/package.validator";
 class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const validation = packageSchema.validate(username);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PackageService.getAllPackagesOfCreator({
         User: {
@@ -110,6 +114,10 @@ class _PackageController {
     try {
       const { id } = res.locals.user;
       const { tier, name, price, description } = req.body;
+      const validation = packageSchema.validate({ tier, name, price, description });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const allUserPackages = await PackageService.getAllPackagesOfCreator({ userId: id });
       const packageIndex = allUserPackages.findIndex((pac: any) => pac.name === name);
       if (packageIndex !== -1)
@@ -127,6 +135,10 @@ class _PackageController {
   async buyPackage(req: Request, res: Response) {
     try {
       const { packageId, orderID } = req.body;
+      const validation = packageSchema.validate({ packageId, orderID });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!packageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
@@ -199,6 +211,10 @@ class _PackageController {
   async createOneTier(req: Request, res: Response) {
     try {
       const body = req.body;
+      const validation = packageSchema.validate(body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       await PackageService.createOneTier(body);
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
@@ -212,6 +228,10 @@ class _PackageController {
   async createManyTier(req: Request, res: Response) {
     try {
       const { tiers } = req.body;
+      const validation = packageSchema.validate(tiers);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       tiers.map(async (ele: any) => {
         await PackageService.createOneTier(ele);
       });

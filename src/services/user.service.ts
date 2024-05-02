@@ -21,7 +21,7 @@ class _UserService {
     });
   }
 
-  async getAllUser() {
+  async getAllUser(omit: number, obtain: number) {
     return await prisma.user.findMany({
       select: {
         id: true,
@@ -33,6 +33,8 @@ class _UserService {
         phoneNumber: true,
         role: true,
       },
+      skip: omit,
+      take: obtain,
     });
   }
 

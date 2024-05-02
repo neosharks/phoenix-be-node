@@ -2,14 +2,25 @@ import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import { paginationSchema } from "../validators/chat.validator";
 
 class _NotificationController {
   async getAllNotificationByUser(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const allNotifications = await NotificationService.getAllNotificationOfUser({
-        notifiedUserId: id,
-      });
+      const { error, value } = paginationSchema.validate(req.query);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
+      const { omit, obtain } = value;
+      const allNotifications = await NotificationService.getAllNotificationOfUser(
+        {
+          notifiedUserId: id,
+        },
+        omit,
+        obtain,
+      );
       return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
     } catch (error) {
       console.log("ERROR: ", error);
