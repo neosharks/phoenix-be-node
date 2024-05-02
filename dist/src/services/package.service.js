@@ -40,13 +40,13 @@ class _PackageService {
     createOnePackage(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { tier, name, price, description, userId } = dataValues;
+                const { tier, name, price, description, creatorId } = dataValues;
                 return yield prisma_1.default.package.create({
                     data: {
                         name,
                         price,
                         description,
-                        userId,
+                        creatorId,
                         tier: {
                             connect: tier.map((ele) => {
                                 return { id: ele };
@@ -54,6 +54,17 @@ class _PackageService {
                         },
                     },
                 });
+            }
+            catch (error) {
+                console.log(error);
+                throw error;
+            }
+        });
+    }
+    updatePackage(props, dataValues) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.package.update({ where: props, data: dataValues });
             }
             catch (error) {
                 console.log(error);

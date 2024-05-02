@@ -7,6 +7,7 @@ import { PackageService } from "../services/package.service";
 import config from "../../config";
 import axios from "axios";
 import { PaymentService } from "../services/payment.service";
+import { AssignTierAndLink } from "./package.controller";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
@@ -24,6 +25,7 @@ function generateOrderId() {
 class _PaymentController {
   async order(req: Request, res: Response) {
     const { packageId } = req.body;
+    const user = res.locals.user;
     if (!packageId)
       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
     const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
@@ -32,6 +34,10 @@ class _PaymentController {
       if (!foundPackage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       const { price } = foundPackage;
+      if (price === 0) {
+        await AssignTierAndLink(foundPackage, user);
+        return res.status(200).send({ message: successMessages.SUCCESS });
+      }
       if (!price)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.INCORRECT_DATA });
       const order_id = await generateOrderId();

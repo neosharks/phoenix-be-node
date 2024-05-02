@@ -9,6 +9,7 @@ const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middlew
 const role_constant_1 = require("../constant/role.constant");
 const packageRoutes = express_1.default.Router();
 packageRoutes.post("/createOnePackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), package_controller_1.PackageController.createOnePackage);
+packageRoutes.post("/updatePackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), package_controller_1.PackageController.updatePackage);
 packageRoutes.get("/getAllPackagesOfCreator/:username", package_controller_1.PackageController.getAllPackagesOfCreator);
 packageRoutes.get("/getOnePackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.getOnePackage);
 packageRoutes.get("/getPackageNames", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), package_controller_1.PackageController.getPackageNames);

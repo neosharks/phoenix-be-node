@@ -69,6 +69,7 @@ model User {
   UserPostAuthor UserPost[]      @relation("userPostAuthor")
   likedByUser    UserPost[]      @relation("likedByUser")
   Payment        Payment[]
+  ClickStream    ClickStream[]
 
   @@index([email, username, phoneNumber])
 }
@@ -89,15 +90,14 @@ model Package {
   name          PACKAGE_NAMES   @default(SUPPORT)
   price         Int
   description   String
-  User          User            @relation(fields: [userId], references: [id])
-  userId        String
+  creator       User            @relation(fields: [creatorId], references: [id])
+  creatorId     String
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   PatronCreator PatronCreator[]
   UserPost      UserPost?       @relation(fields: [userPostId], references: [id])
   userPostId    String?
   Payment       Payment[]
-  ClickStream   ClickStream[]
 }
 
 model Message {
@@ -221,13 +221,11 @@ model Payment {
 }
 
 model ClickStream {
-  id       String @id @default(cuid())
-  user     User?  @relation(fields: [userId], references: [id])
-  userId   String
-  metadata Json
-
-  Package   Package? @relation(fields: [packageId], references: [id])
-  packageId String?
+  id     String  @id @default(cuid())
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+  info   Json
+  type   String
 }
 
 enum CURRENCY {

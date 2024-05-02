@@ -20,6 +20,7 @@ const package_service_1 = require("../services/package.service");
 const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const payment_service_1 = require("../services/payment.service");
+const package_controller_1 = require("./package.controller");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
 cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.PRODUCTION;
@@ -35,6 +36,7 @@ class _PaymentController {
     order(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { packageId } = req.body;
+            const user = res.locals.user;
             if (!packageId)
                 return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
             const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
@@ -43,6 +45,10 @@ class _PaymentController {
                 if (!foundPackage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const { price } = foundPackage;
+                if (price === 0) {
+                    yield (0, package_controller_1.AssignTierAndLink)(foundPackage, user);
+                    return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
+                }
                 if (!price)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 const order_id = yield generateOrderId();

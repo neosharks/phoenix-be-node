@@ -28,7 +28,8 @@ class _UserController {
   async getUserByUsername(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      if (!username || typeof username !== "string")
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserService.getOneUser({ username });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (found.coverImage) found.coverImage = await getObjectSignedUrl(found.coverImage);

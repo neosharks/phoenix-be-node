@@ -11,6 +11,12 @@ packageRoutes.post(
   PackageController.createOnePackage,
 );
 
+packageRoutes.post(
+  "/updatePackage",
+  checkRoleAuth([userRole.CREATOR]),
+  PackageController.updatePackage,
+);
+
 packageRoutes.get("/getAllPackagesOfCreator/:username", PackageController.getAllPackagesOfCreator);
 
 packageRoutes.get("/getOnePackage", checkRoleAuth(), PackageController.getOnePackage);

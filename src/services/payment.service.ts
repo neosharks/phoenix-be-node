@@ -31,6 +31,7 @@ class _PaymentService {
       throw error;
     }
   }
+
   async updateOneByProps(query: any, data: any) {
     try {
       return await prisma.payment.update({ where: query, data: data });

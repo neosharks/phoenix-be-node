@@ -11,6 +11,7 @@ const authRoutes = express_1.default.Router();
 authRoutes.post("/register", auth_controller_1.AuthController.register);
 authRoutes.post("/login", auth_controller_1.AuthController.login);
 authRoutes.post("/sendOtp", auth_controller_1.AuthController.sendOtp);
+authRoutes.post("/resendOtp", auth_controller_1.AuthController.resendOtp);
 authRoutes.post("/forgetPassword", auth_controller_1.AuthController.forgetPassword);
 authRoutes.post("/verifyForgetPassword", auth_controller_1.AuthController.verifyForgetPassword);
 authRoutes.post("/loginViaNumber", auth_controller_1.AuthController.loginViaNumber);

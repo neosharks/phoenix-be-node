@@ -6,6 +6,44 @@ import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
+import { updatePackageSchema } from "../validators/package.validator";
+
+export const AssignTierAndLink = async (foundPackage: any, user: any) => {
+  const { tier, creatorId } = foundPackage;
+  tier &&
+    tier.length > 0 &&
+    tier.map(async (ele: any) => {
+      if (ele.tierType === "ONE_TIME_MESSAGE") {
+        const foundChat = await ChatService.getOneChat({
+          OR: [
+            { participantOneId: user.id, participantTwoId: creatorId },
+            { participantOneId: creatorId, participantTwoId: user.id },
+          ],
+        });
+        if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "LIMITED");
+        else
+          await ChatService.updateOneChat(
+            { id: foundChat.id },
+            { pendingAllowed: foundChat.pendingAllowed + 1 },
+          );
+      }
+      if (ele.tierType === "UNLIMITED_MESSAGE") {
+        const foundChat = await ChatService.getOneChat({
+          OR: [
+            { participantOneId: user.id, participantTwoId: creatorId },
+            { participantOneId: creatorId, participantTwoId: user.id },
+          ],
+        });
+        if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "UNLIMITED");
+        else
+          await ChatService.updateOneChat(
+            { id: foundChat.id },
+            { pendingAllowed: foundChat.pendingAllowed + 1000 },
+          );
+      }
+    });
+  await PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", foundPackage.id);
+};
 
 class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
@@ -44,17 +82,17 @@ class _PackageController {
   async getPackageNames(req: Request, res: Response) {
     const { username } = res.locals.user;
     try {
-      const found = await PackageService.getAllPackagesOfCreator({
-        User: {
-          username,
-        },
-      });
+      // const found = await PackageService.getAllPackagesOfCreator({
+      //   User: {
+      //     username,
+      //   },
+      // });
       let allPackagesEnums = ["SUPPORT", "BRONZE", "SILVER", "GOLD", "PLATINUM", "RUBY"];
-      if (found && found.length > 0) {
-        found.forEach((ele) => {
-          allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
-        });
-      }
+      // if (found && found.length > 0) {
+      //   found.forEach((ele) => {
+      //     allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
+      //   });
+      // }
       return res.status(201).send({
         message: successMessages.SUCCESS,
         data: allPackagesEnums,
@@ -114,7 +152,27 @@ class _PackageController {
       const packageIndex = allUserPackages.findIndex((pac: any) => pac.name === name);
       if (packageIndex !== -1)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_ENTRY });
-      await PackageService.createOnePackage({ tier, name, price, description, userId: id });
+      await PackageService.createOnePackage({ tier, name, price, description, creatorId: id });
+      res.status(201).send({ message: successMessages.CREATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async updatePackage(req: Request, res: Response) {
+    try {
+      const postId = req.body.id;
+      const validation = updatePackageSchema.validate(req.body, { stripUnknown: true });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
+      const foundPackage = await PackageService.getOnePackage({ id: postId });
+      if (!foundPackage)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      await PackageService.updatePackage({ id: postId }, req.body);
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -131,7 +189,7 @@ class _PackageController {
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
       if (!foundPackage) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      const { tier, userId } = foundPackage;
+      const { tier, creatorId } = foundPackage;
       const tierUserPackage = await PackageService.getOnePackage({
         id: packageId,
         userId: user.id,
@@ -139,7 +197,7 @@ class _PackageController {
       if (tierUserPackage) return res.status(400).send({ message: errorMessage.NOT_ALLOWED });
       const foundAlreadyPurchase = await PatronCreatorService.getFirst({
         patronId: user.id,
-        creatorId: userId,
+        creatorId: creatorId,
         packageId: foundPackage.id,
       });
       if (foundAlreadyPurchase)
@@ -151,39 +209,7 @@ class _PackageController {
       if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
         return res.status(400).send({ message: errorMessage.DATA_MISMATCH });
 
-      tier &&
-        tier.length > 0 &&
-        tier.map(async (ele) => {
-          if (ele.tierType === "ONE_TIME_MESSAGE") {
-            const foundChat = await ChatService.getOneChat({
-              OR: [
-                { participantOneId: user.id, participantTwoId: userId },
-                { participantOneId: userId, participantTwoId: user.id },
-              ],
-            });
-            if (!foundChat) await ChatService.createOneChat([user.id, userId], "LIMITED");
-            else
-              await ChatService.updateOneChat(
-                { id: foundChat.id },
-                { pendingAllowed: foundChat.pendingAllowed + 1 },
-              );
-          }
-          if (ele.tierType === "UNLIMITED_MESSAGE") {
-            const foundChat = await ChatService.getOneChat({
-              OR: [
-                { participantOneId: user.id, participantTwoId: userId },
-                { participantOneId: userId, participantTwoId: user.id },
-              ],
-            });
-            if (!foundChat) await ChatService.createOneChat([user.id, userId], "UNLIMITED");
-            else
-              await ChatService.updateOneChat(
-                { id: foundChat.id },
-                { pendingAllowed: foundChat.pendingAllowed + 1000 },
-              );
-          }
-        });
-      await PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", packageId);
+      await AssignTierAndLink(foundPackage, user);
 
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
