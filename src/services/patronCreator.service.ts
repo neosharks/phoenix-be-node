@@ -38,8 +38,8 @@ class _PatronCreatorService {
           },
         },
       },
-      skip: skip,
-      take: take,
+      skip,
+      take,
     });
   }
 }

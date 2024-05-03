@@ -20,8 +20,3 @@ export const chatSchema = Joi.object({
   participantOne: Joi.string(),
   participantTwo: Joi.string(),
 });
-
-export const paginationSchema = Joi.object({
-  skip: Joi.number().integer().min(0).default(0),
-  take: Joi.number().integer().min(1).default(10),
-});

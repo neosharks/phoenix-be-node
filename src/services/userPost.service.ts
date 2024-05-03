@@ -48,8 +48,8 @@ class _UserPostService {
           },
         },
       },
-      skip: skip,
-      take: take,
+      skip,
+      take,
     });
   }
 

@@ -7,7 +7,6 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
 import { packageSchema, updatePackageSchema } from "../validators/package.validator";
-import { paginationSchema } from "../validators/chat.validator";
 
 import { number } from "joi";
 
@@ -52,19 +51,16 @@ class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      const skip = req.query.page || 0;
-      const validation = packageSchema.validate(username);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
-
+      const skip = Number(req.query.page) || 0;
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PackageService.getAllPackagesOfCreator({
-        User: {
-          username: username,
+      const found = await PackageService.getAllPackagesOfCreator(
+        {
+          User: {
+            username: username,
+          },
         },
         skip,
-      });
+      );
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {
@@ -118,24 +114,19 @@ class _PackageController {
   async useGetAllSubscriptions(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      const validation = packageSchema.validate(username);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
-      const { error, value } = paginationSchema.validate(req.query || null);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-      const { skip, take } = value;
+      const skip = req.query.page || 0;
+      const take = req.query.page || 0;
       if (!username)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PatronCreatorService.getAll({
-        patron: {
-          username: username,
+      const found = await PatronCreatorService.getAll(
+        {
+          patron: {
+            username: username,
+          },
         },
-        skip,
-        take,
-      });
+        Number(skip),
+        Number(take),
+      );
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -149,23 +140,19 @@ class _PackageController {
   async getAllPatronsByCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      const validation = packageSchema.validate(username);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
-      const { error, value } = paginationSchema.validate(req.query || null);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-      const { skip, take } = value;
+      const skip = req.query.page || 0;
+      const take = req.query.setPage || 0;
+
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PatronCreatorService.getAll({
-        creator: {
-          username: username,
+      const found = await PatronCreatorService.getAll(
+        {
+          creator: {
+            username: username,
+          },
         },
-        skip,
-        take,
-      });
+        Number(skip),
+        Number(take),
+      );
       if (!found) return res.status(404).send({ message: errorMessage.MISSING_PARAMS });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -184,7 +171,13 @@ class _PackageController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      const allUserPackages = await PackageService.getAllPackagesOfCreator({ userId: id });
+      const skip = req.query.page || 0;
+      const allUserPackages = await PackageService.getAllPackagesOfCreator(
+        {
+          userId: id,
+        },
+        Number(skip),
+      );
       const packageIndex = allUserPackages.findIndex((pac: any) => pac.name === name);
       if (packageIndex !== -1)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_ENTRY });
@@ -300,12 +293,9 @@ class _PackageController {
 
   async getAllTiers(req: Request, res: Response) {
     try {
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-      const { skip, take } = value;
-      const tiers = await PackageService.getAllTiers(skip, take);
+      const skip = req.query.page || 0;
+      const take = req.query.setPage || 0;
+      const tiers = await PackageService.getAllTiers(Number(skip), Number(take));
       res.status(201).send({ message: successMessages.FETCHED, tiers: tiers });
     } catch (error) {
       console.log("ERROR: ", error);

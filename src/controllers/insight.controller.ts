@@ -3,18 +3,12 @@ import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { InsightService } from "../services/insights.service";
-import { paginationSchema } from "../validators/chat.validator";
 
 class _InsightController {
   async get(req: Request, res: Response) {
     try {
       const { id, isCreator } = res.locals.user;
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-
-      const { skip, take } = value;
+      const skip = req.query.page || 0;
       if (!isCreator)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.NOT_ALLOWED });
 
@@ -24,8 +18,7 @@ class _InsightController {
         {
           creatorId: id,
         },
-        skip,
-        take,
+        Number(skip),
       );
 
       let obj: any = {};

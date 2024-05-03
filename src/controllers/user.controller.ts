@@ -7,7 +7,6 @@ import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
-import { paginationSchema } from "../validators/chat.validator";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -29,10 +28,6 @@ class _UserController {
   async getUserByUsername(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      const validation = userUpdateSchema.validate(username);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       if (!username || typeof username !== "string")
         return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserService.getOneUser({ username });
@@ -51,12 +46,13 @@ class _UserController {
   async getAllCreator(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-      const { skip, take } = value;
-      let found = await UserService.getAllUserByParams({ isCreator: true }, skip, take);
+      const skip = req.query.page || 0;
+      const take = req.query.page || 0;
+      let found = await UserService.getAllUserByParams(
+        { isCreator: true },
+        Number(skip),
+        Number(take),
+      );
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       found = found.filter((ele) => ele.id !== id);
       if (found.length > 0) {

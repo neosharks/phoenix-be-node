@@ -5,9 +5,9 @@ class _PackageService {
     try {
       return await prisma.package.findMany({
         where: query,
+        include: { tier: true },
         skip,
         take: 10,
-        include: { tier: true },
       });
     } catch (error) {
       console.log(error);
@@ -59,8 +59,8 @@ class _PackageService {
   async getAllTiers(skip?: any, take?: any) {
     try {
       return await prisma.tier.findMany({
-        skip: skip,
-        take: take,
+        skip,
+        take,
       });
     } catch (error) {
       console.log(error);

@@ -19,12 +19,12 @@ class _UserService {
         industry: true,
         coverImage: true,
       },
-      skip: skip,
-      take: take,
+      skip,
+      take,
     });
   }
 
-  async getAllUser(skip: number, take: number) {
+  async getAllUser(skip?: any, take?: any) {
     return await prisma.user.findMany({
       select: {
         id: true,
@@ -36,8 +36,8 @@ class _UserService {
         phoneNumber: true,
         role: true,
       },
-      skip: skip,
-      take: take,
+      skip,
+      take,
     });
   }
 

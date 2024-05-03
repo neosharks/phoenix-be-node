@@ -96,7 +96,7 @@ class _AuthController {
   async sendOtp(req: Request, res: Response) {
     try {
       const { number, referralUsername } = req.body;
-      const validation = sendOtpSchema.validate({ number, referralUsername });
+      const validation = sendOtpSchema.validate({ number });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -110,6 +110,7 @@ class _AuthController {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
       };
+      console.log(foundUser);
       if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
       else {
         const username = generateRandomUsername();

@@ -4,7 +4,7 @@ import Logger from "../core/logger.core";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { chatSchema, paginationSchema } from "../validators/chat.validator";
+import { chatSchema } from "../validators/chat.validator";
 import logger from "../core/logger.core";
 import { PackageService } from "../services/package.service";
 
@@ -36,19 +36,15 @@ class _ChatController {
 
   async getAllChatsByUser(req: Request, res: Response) {
     try {
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-
+      const skip = req.query.page || 0;
+      const take = req.query.setPage || 0;
       const { id } = res.locals.user;
-      const { skip, take } = value;
       const foundChat = await ChatService.getAllChat(
         {
           OR: [{ participantOneId: id }, { participantTwoId: id }],
         },
-        skip,
-        take,
+        Number(skip),
+        Number(take),
       );
       const finalData: any = [];
       for (let i = 0; i < foundChat.length; i++) {
@@ -76,13 +72,9 @@ class _ChatController {
 
   async getAllSearchableUsers(req: Request, res: Response) {
     try {
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-
-      const { skip, take } = value;
-      const allUser = await UserService.getAllUser(skip, take);
+      const skip = req.query.page || 0;
+      const take = req.query.page || 0;
+      const allUser = await UserService.getAllUser(Number(skip), Number(take));
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
       console.log("ERROR: ", error);

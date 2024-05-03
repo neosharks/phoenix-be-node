@@ -38,7 +38,7 @@ class _ChatService {
     }
   }
 
-  async getAllChat(query: any, skip: number, take: number) {
+  async getAllChat(query: any, skip?: any, take?: any) {
     try {
       return await prisma.chat.findMany({
         where: query,
@@ -66,8 +66,8 @@ class _ChatService {
             },
           },
         },
-        skip: skip,
-        take: take,
+        skip,
+        take,
       });
     } catch (error) {
       console.log("ERROR: ", error);

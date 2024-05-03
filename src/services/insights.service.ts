@@ -2,17 +2,17 @@ import prisma from "../../prisma";
 import logger from "../core/logger.core";
 
 class _InsightService {
-  async getAllPackagesOfCreator(query: any, skip: number, take: number) {
+  async getAllPackagesOfCreator(query: any, skip: any = 0) {
     try {
       return await prisma.patronCreator.findMany({
         where: query,
-        skip: skip,
-        take: take,
         orderBy: [
           {
             createdAt: "asc",
           },
         ],
+        skip,
+        take: 10,
       });
     } catch (error) {
       console.log(error);
