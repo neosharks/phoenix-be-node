@@ -11,10 +11,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonController = void 0;
 const api_constant_1 = require("../constant/api.constant");
+const common_service_1 = require("../services/common.service");
+const user_service_1 = require("../services/user.service");
 class _CommonController {
     getS3SignedUrl(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
+        });
+    }
+    clickStream(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { userId, type, info } = req.body;
+                const payload = { type, info };
+                if (userId) {
+                    const foundUser = yield user_service_1.UserService.getOneUser({ id: userId });
+                    if (!foundUser)
+                        return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                    payload.userId = userId;
+                }
+                yield common_service_1.CommonService.createClickStream(payload);
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
         });
     }
 }
