@@ -102,46 +102,16 @@ class _AuthController {
       }
       if (!number)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
-      const numberString = number.toString();
-      const checkRes = numberString.includes("99999");
+      const foundUser = await UserService.getOneUser({ phoneNumber: number });
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-      const commonProps: any = {
+      // const smsRes = await sendOtpSms(number, otpGenerated);
+      // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      const commonProps = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
-        verificationCodeTimestamp: new Date(),
       };
-      if (checkRes) {
-        otpGenerated = 1111;
-        commonProps.verificationCode = otpGenerated;
-      } else {
-        const smsRes = await sendOtpSms(number, otpGenerated);
-        if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
-      }
-      const foundUser = await UserService.getOneUser({ phoneNumber: number });
-      if (foundUser) {
-        //Fix this
-        const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
-        if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
-          const fiveMinutesAgo = new Date();
-          fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
-          const dateVC = new Date(verificationCodeTimestamp);
-          if (dateVC < fiveMinutesAgo)
-            return res
-              .status(errorCode.GENERIC)
-              .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
-        }
-        await UserService.updateOneUser(
-          { phoneNumber: number },
-          { ...commonProps, verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 },
-        );
-      } else {
-        if (referralUsername) {
-          const referralUser = await UserService.getOneUser({ username: referralUsername });
-          if (referralUser) {
-            commonProps.referralTimeStamp = new Date();
-            commonProps.referralUserId = referralUser.id;
-          }
-        }
+      if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
+      else {
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
@@ -149,7 +119,6 @@ class _AuthController {
           username,
           phoneNumber: number,
           profileImage,
-          verificationCodeAttempts: 1,
           ...commonProps,
         });
       }
@@ -394,7 +363,7 @@ class _AuthController {
 
   async googleAuth(req: Request, res: Response) {
     try {
-      const { googleAccessToken, referralUsername } = req.body;
+      const { googleAccessToken } = req.body;
       if (!googleAccessToken)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const FetchResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -407,7 +376,7 @@ class _AuthController {
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-        const user: any = {
+        const user = {
           googleAuthId: sub,
           email: email,
           firstName: given_name,
@@ -416,13 +385,6 @@ class _AuthController {
           username: email.split("@")[0],
           emailVerified: true,
         };
-        if (referralUsername) {
-          const referralUser = await UserService.getOneUser({ username: referralUsername });
-          if (referralUser) {
-            user.referralTimeStamp = new Date();
-            user.referralUserId = referralUser.id;
-          }
-        }
         foundUser = await UserService.createOneUser(user);
 
         if (email && email.length > 0) {
