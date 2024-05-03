@@ -14,7 +14,7 @@ class _InsightController {
         return res.status(400).json({ error: error.details[0].message });
       }
 
-      const { omit, obtain } = value;
+      const { skip, take } = value;
       if (!isCreator)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.NOT_ALLOWED });
 
@@ -24,8 +24,8 @@ class _InsightController {
         {
           creatorId: id,
         },
-        omit,
-        obtain,
+        skip,
+        take,
       );
 
       let obj: any = {};

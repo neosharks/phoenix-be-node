@@ -22,6 +22,6 @@ export const chatSchema = Joi.object({
 });
 
 export const paginationSchema = Joi.object({
-  omit: Joi.number().integer().min(0).default(0),
-  obtain: Joi.number().integer().min(1).default(10),
+  skip: Joi.number().integer().min(0).default(0),
+  take: Joi.number().integer().min(1).default(10),
 });

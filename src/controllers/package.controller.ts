@@ -6,8 +6,10 @@ import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
-import { packageSchema } from "../validators/package.validator";
-import { updatePackageSchema } from "../validators/package.validator";
+import { packageSchema, updatePackageSchema } from "../validators/package.validator";
+import { paginationSchema } from "../validators/chat.validator";
+
+import { number } from "joi";
 
 export const AssignTierAndLink = async (foundPackage: any, user: any) => {
   const { tier, creatorId } = foundPackage;
@@ -50,15 +52,18 @@ class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const skip = req.query.page || 0;
       const validation = packageSchema.validate(username);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
+
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PackageService.getAllPackagesOfCreator({
         User: {
           username: username,
         },
+        skip,
       });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
@@ -113,12 +118,23 @@ class _PackageController {
   async useGetAllSubscriptions(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const validation = packageSchema.validate(username);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
+      const { error, value } = paginationSchema.validate(req.query || null);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+      const { skip, take } = value;
       if (!username)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PatronCreatorService.getAll({
         patron: {
           username: username,
         },
+        skip,
+        take,
       });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
@@ -133,11 +149,22 @@ class _PackageController {
   async getAllPatronsByCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const validation = packageSchema.validate(username);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
+      const { error, value } = paginationSchema.validate(req.query || null);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+      const { skip, take } = value;
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PatronCreatorService.getAll({
         creator: {
           username: username,
         },
+        skip,
+        take,
       });
       if (!found) return res.status(404).send({ message: errorMessage.MISSING_PARAMS });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
@@ -153,7 +180,7 @@ class _PackageController {
     try {
       const { id } = res.locals.user;
       const { tier, name, price, description } = req.body;
-      const validation = packageSchema.validate({ tier, name, price, description });
+      const validation = updatePackageSchema.validate({ tier, name, price, description });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -174,7 +201,7 @@ class _PackageController {
   async updatePackage(req: Request, res: Response) {
     try {
       const postId = req.body.id;
-      const validation = updatePackageSchema.validate(req.body, { stripUnknown: true });
+      const validation = packageSchema.validate(req.body, { stripUnknown: true });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -193,8 +220,8 @@ class _PackageController {
 
   async buyPackage(req: Request, res: Response) {
     try {
-      const { packageId, orderID } = req.body;
-      const validation = packageSchema.validate({ packageId, orderID });
+      const { packageId, orderId } = req.body;
+      const validation = packageSchema.validate({ packageId, orderId });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -216,7 +243,7 @@ class _PackageController {
       if (foundAlreadyPurchase)
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
 
-      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderId });
       if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
 
       if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
@@ -238,7 +265,7 @@ class _PackageController {
   async createOneTier(req: Request, res: Response) {
     try {
       const body = req.body;
-      const validation = packageSchema.validate(body);
+      const validation = updatePackageSchema.validate(body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -255,7 +282,7 @@ class _PackageController {
   async createManyTier(req: Request, res: Response) {
     try {
       const { tiers } = req.body;
-      const validation = packageSchema.validate(tiers);
+      const validation = updatePackageSchema.validate(tiers);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -273,7 +300,12 @@ class _PackageController {
 
   async getAllTiers(req: Request, res: Response) {
     try {
-      const tiers = await PackageService.getAllTiers();
+      const { error, value } = paginationSchema.validate(req.query);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+      const { skip, take } = value;
+      const tiers = await PackageService.getAllTiers(skip, take);
       res.status(201).send({ message: successMessages.FETCHED, tiers: tiers });
     } catch (error) {
       console.log("ERROR: ", error);

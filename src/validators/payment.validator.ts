@@ -1,28 +1,6 @@
 import * as Joi from "joi";
 
 export const paymentSchema = Joi.object({
-  firstName: Joi.string().min(1),
-  lastName: Joi.string().min(1),
-  profileImage: Joi.string().uri(),
-  email: Joi.string().email().lowercase(),
-  username: Joi.string(),
-  tiers: Joi.array().items(Joi.string()),
-  role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),
-  tierType: Joi.string(),
-  description: Joi.string(),
-  createdAt: Joi.date().iso(),
-  updatedAt: Joi.date().iso(),
-  participantOneId: Joi.string(),
-  participantTwoId: Joi.string(),
-  type: Joi.string(),
-  unreadCount: Joi.number(),
-  pendingAllowed: Joi.string(),
-  userId: Joi.string(),
   orderId: Joi.string(),
-  status: Joi.string(),
   packageId: Joi.string(),
-  orderID: Joi.string(),
-  expiry: Joi.date().iso(),
-  userPostId: Joi.string(),
-  price: Joi.number(),
 });

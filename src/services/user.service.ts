@@ -5,7 +5,7 @@ class _UserService {
     return await prisma.user.findUnique({ where: query });
   }
 
-  async getAllUserByParams(query: any) {
+  async getAllUserByParams(query: any, skip?: any, take?: any) {
     return await prisma.user.findMany({
       where: query,
       select: {
@@ -19,10 +19,12 @@ class _UserService {
         industry: true,
         coverImage: true,
       },
+      skip: skip,
+      take: take,
     });
   }
 
-  async getAllUser(omit: number, obtain: number) {
+  async getAllUser(skip: number, take: number) {
     return await prisma.user.findMany({
       select: {
         id: true,
@@ -34,8 +36,8 @@ class _UserService {
         phoneNumber: true,
         role: true,
       },
-      skip: omit,
-      take: obtain,
+      skip: skip,
+      take: take,
     });
   }
 

@@ -10,6 +10,7 @@ import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";
 import { NotificationService } from "../services/notification.service";
+import { paginationSchema } from "../validators/chat.validator";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -49,7 +50,12 @@ class _UserPostController {
     try {
       const { id } = res.locals.user;
       let returnPosts: any = [];
-      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id });
+      const { error, value } = paginationSchema.validate(req.query);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+      const { skip, take } = value;
+      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id }, skip, take);
 
       for (let i = 0; i < foundPatronCreator.length; i++) {
         const ele = foundPatronCreator[i];
@@ -58,7 +64,7 @@ class _UserPostController {
         });
         returnPosts = [...returnPosts, ...allPostsByUser];
       }
-      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id });
+      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
       returnPosts = [...returnPosts, ...allUserPosts];
       if (returnPosts.length === 0)
         return res.status(200).send({ message: errorMessage.NOT_FOUND });

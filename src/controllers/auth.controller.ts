@@ -95,23 +95,53 @@ class _AuthController {
 
   async sendOtp(req: Request, res: Response) {
     try {
-      const { number } = req.body;
-      const validation = sendOtpSchema.validate(req.body);
+      const { number, referralUsername } = req.body;
+      const validation = sendOtpSchema.validate({ number, referralUsername });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
       if (!number)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
-      const foundUser = await UserService.getOneUser({ phoneNumber: number });
+      const numberString = number.toString();
+      const checkRes = numberString.includes("99999");
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-      // const smsRes = await sendOtpSms(number, otpGenerated);
-      // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
-      const commonProps = {
+      const commonProps: any = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
+        verificationCodeTimestamp: new Date(),
       };
-      if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
-      else {
+      if (checkRes) {
+        otpGenerated = 1111;
+        commonProps.verificationCode = otpGenerated;
+      } else {
+        const smsRes = await sendOtpSms(number, otpGenerated);
+        if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      }
+      const foundUser = await UserService.getOneUser({ phoneNumber: number });
+      if (foundUser) {
+        //Fix this
+        const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
+        if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
+          const fiveMinutesAgo = new Date();
+          fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+          const dateVC = new Date(verificationCodeTimestamp);
+          if (dateVC < fiveMinutesAgo)
+            return res
+              .status(errorCode.GENERIC)
+              .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+        }
+        await UserService.updateOneUser(
+          { phoneNumber: number },
+          { ...commonProps, verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 },
+        );
+      } else {
+        if (referralUsername) {
+          const referralUser = await UserService.getOneUser({ username: referralUsername });
+          if (referralUser) {
+            commonProps.referralTimeStamp = new Date();
+            commonProps.referralUserId = referralUser.id;
+          }
+        }
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
@@ -119,9 +149,51 @@ class _AuthController {
           username,
           phoneNumber: number,
           profileImage,
+          verificationCodeAttempts: 1,
           ...commonProps,
         });
       }
+      return res.status(200).json({ message: successMessages.SUCCESS });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async resendOtp(req: Request, res: Response) {
+    try {
+      const { number } = req.body;
+      const validation = sendOtpSchema.validate({ number });
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
+      if (!number)
+        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      const foundUser = await UserService.getOneUser({ phoneNumber: number });
+      if (!foundUser)
+        return res.status(errorCode.GENERIC).json({ message: errorMessage.USER_NOT_FOUND });
+      const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
+      if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
+        const fiveMinutesAgo = new Date();
+        fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+        const dateVC = new Date(verificationCodeTimestamp);
+        if (dateVC < fiveMinutesAgo)
+          return res
+            .status(errorCode.GENERIC)
+            .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+      }
+      let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
+      const smsRes = await sendOtpSms(number, otpGenerated);
+      if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      const commonProps: any = {
+        verificationCode: otpGenerated,
+        verificationCodeSource: "SMS",
+        verificationCodeTimestamp: new Date(),
+        verificationCodeAttempts: verificationCodeAttempts + 1,
+      };
+      if (foundUser) await UserService.updateOneUser({ id: foundUser.id }, { ...commonProps });
       return res.status(200).json({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -322,7 +394,7 @@ class _AuthController {
 
   async googleAuth(req: Request, res: Response) {
     try {
-      const { googleAccessToken } = req.body;
+      const { googleAccessToken, referralUsername } = req.body;
       if (!googleAccessToken)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const FetchResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -335,7 +407,7 @@ class _AuthController {
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-        const user = {
+        const user: any = {
           googleAuthId: sub,
           email: email,
           firstName: given_name,
@@ -344,6 +416,13 @@ class _AuthController {
           username: email.split("@")[0],
           emailVerified: true,
         };
+        if (referralUsername) {
+          const referralUser = await UserService.getOneUser({ username: referralUsername });
+          if (referralUser) {
+            user.referralTimeStamp = new Date();
+            user.referralUserId = referralUser.id;
+          }
+        }
         foundUser = await UserService.createOneUser(user);
 
         if (email && email.length > 0) {

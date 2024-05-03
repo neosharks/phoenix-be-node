@@ -1,9 +1,14 @@
 import prisma from "../../prisma";
 
 class _PackageService {
-  async getAllPackagesOfCreator(query: any) {
+  async getAllPackagesOfCreator(query: any, skip: any = 0) {
     try {
-      return await prisma.package.findMany({ where: query, include: { tier: true } });
+      return await prisma.package.findMany({
+        where: query,
+        skip,
+        take: 10,
+        include: { tier: true },
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -18,7 +23,6 @@ class _PackageService {
       throw error;
     }
   }
-
   async createOnePackage(dataValues: any) {
     try {
       const { tier, name, price, description, creatorId } = dataValues;
@@ -52,9 +56,12 @@ class _PackageService {
 
   //------------------------
 
-  async getAllTiers() {
+  async getAllTiers(skip?: any, take?: any) {
     try {
-      return await prisma.tier.findMany({});
+      return await prisma.tier.findMany({
+        skip: skip,
+        take: take,
+      });
     } catch (error) {
       console.log(error);
       throw error;

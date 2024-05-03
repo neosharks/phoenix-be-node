@@ -1,3 +1,4 @@
+import { skip } from "node:test";
 import prisma from "../../prisma";
 
 class _PatronCreatorService {
@@ -9,7 +10,7 @@ class _PatronCreatorService {
     return await prisma.patronCreator.findUnique({ where: query });
   }
 
-  async getAll(query: any) {
+  async getAll(query: any, skip?: any, take?: any) {
     return await prisma.patronCreator.findMany({
       where: query,
       include: {
@@ -37,6 +38,8 @@ class _PatronCreatorService {
           },
         },
       },
+      skip: skip,
+      take: take,
     });
   }
 }

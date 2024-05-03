@@ -42,13 +42,13 @@ class _ChatController {
       }
 
       const { id } = res.locals.user;
-      const { omit, obtain } = value;
+      const { skip, take } = value;
       const foundChat = await ChatService.getAllChat(
         {
           OR: [{ participantOneId: id }, { participantTwoId: id }],
         },
-        omit,
-        obtain,
+        skip,
+        take,
       );
       const finalData: any = [];
       for (let i = 0; i < foundChat.length; i++) {
@@ -81,8 +81,8 @@ class _ChatController {
         return res.status(400).json({ error: error.details[0].message });
       }
 
-      const { omit, obtain } = value;
-      const allUser = await UserService.getAllUser(omit, obtain);
+      const { skip, take } = value;
+      const allUser = await UserService.getAllUser(skip, take);
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
       console.log("ERROR: ", error);
