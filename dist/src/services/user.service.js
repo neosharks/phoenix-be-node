@@ -33,6 +33,7 @@ class _UserService {
                     username: true,
                     role: true,
                     industry: true,
+                    coverImage: true,
                 },
             });
         });

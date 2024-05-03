@@ -20,6 +20,20 @@ userRoutes.post(
   UserController.update,
 );
 
+userRoutes.post(
+  "/updateCoverImage",
+  checkRoleAuth(),
+  uploadFileMiddleware.single("image"),
+  UserController.updateCoverImage,
+);
+
+userRoutes.post(
+  "/updateProfileImage",
+  checkRoleAuth(),
+  uploadFileMiddleware.single("image"),
+  UserController.updateProfileImage,
+);
+
 userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 
 userRoutes.delete("/delete", UserController.delete);

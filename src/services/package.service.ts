@@ -21,13 +21,13 @@ class _PackageService {
 
   async createOnePackage(dataValues: any) {
     try {
-      const { tier, name, price, description, userId } = dataValues;
+      const { tier, name, price, description, creatorId } = dataValues;
       return await prisma.package.create({
         data: {
           name,
           price,
           description,
-          userId,
+          creatorId,
           tier: {
             connect: tier.map((ele: any) => {
               return { id: ele };
@@ -35,6 +35,15 @@ class _PackageService {
           },
         },
       });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async updatePackage(props: any, dataValues: any) {
+    try {
+      return await prisma.package.update({ where: props, data: dataValues });
     } catch (error) {
       console.log(error);
       throw error;

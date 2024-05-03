@@ -21,6 +21,7 @@ const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
 const image_lib_1 = require("../lib/image.lib");
 const helper_lib_1 = require("../lib/helper.lib");
+const notification_service_1 = require("../services/notification.service");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -137,6 +138,13 @@ class _UserPostController {
                     yield prisma_1.default.userPost.update({
                         where: { id: postId },
                         data: { likedBy: { connect: { id: id } } },
+                    });
+                    yield notification_service_1.NotificationService.createOneNotification({
+                        aboutUserId: id,
+                        notifiedUserId: foundPost.authorId,
+                        message: ` have liked on your post`,
+                        link: postId,
+                        type: "NEW_LIKE",
                     });
                 }
                 else {
@@ -265,9 +273,21 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { description, authorId, userPostId } = req.body;
+                const { id } = res.locals.user;
                 if (!description || !authorId || !userPostId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const created = yield userPost_service_1.UserPostService.createOneComment({ description, authorId, userPostId });
+                const created = yield userPost_service_1.UserPostService.createOneComment({
+                    description,
+                    authorId,
+                    userPostId,
+                });
+                yield notification_service_1.NotificationService.createOneNotification({
+                    aboutUserId: id,
+                    notifiedUserId: authorId,
+                    message: `${created.firstName + " " + created.lastName} have commented on your post`,
+                    link: userPostId,
+                    type: "NEW_COMMENT",
+                });
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
             }
             catch (error) {
@@ -282,11 +302,15 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { postId } = req.body;
+                const { id } = res.locals.user;
                 if (!postId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (id !== foundPost.authorId) {
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                }
                 yield userPost_service_1.UserPostService.delete(postId);
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }

@@ -3,7 +3,7 @@ import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
 
 class _NotificationService {
-  async getAllNotificationOfUser(query: any, omit: number, obtain: number) {
+  async getAllNotificationOfUser(query: any, skip: any = 0) {
     try {
       return await prisma.notification.findMany({
         where: query,
@@ -17,8 +17,8 @@ class _NotificationService {
             },
           },
         },
-        skip: omit,
-        take: obtain,
+        skip,
+        take: 10,
       });
     } catch (error) {
       console.log("ERROR: ", error);

@@ -50,6 +50,8 @@ exports.default = {
         cashfree: {
             clientId: (_j = process.env.CASHFREE_CLIENT_ID) !== null && _j !== void 0 ? _j : "",
             clientSecret: (_k = process.env.CASHFREE_CLIENT_SECRET) !== null && _k !== void 0 ? _k : "",
+            url: process.env.CASHFREE_URL || "",
+            version: process.env.CASHFREE_VERSION || "2023-08-01",
         },
     },
     nodemailer: {

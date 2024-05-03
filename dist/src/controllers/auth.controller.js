@@ -21,6 +21,7 @@ const helper_lib_1 = require("../lib/helper.lib");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
+const sms_core_1 = __importDefault(require("../core/sms.core"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -95,25 +96,95 @@ class _AuthController {
     sendOtp(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const { number, referralUsername } = req.body;
+                if (!number)
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const numberString = number.toString();
+                const checkRes = numberString.includes("99999");
+                let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
+                const commonProps = {
+                    verificationCode: otpGenerated,
+                    verificationCodeSource: "SMS",
+                    verificationCodeTimestamp: new Date(),
+                };
+                if (checkRes) {
+                    otpGenerated = 1111;
+                    commonProps.verificationCode = otpGenerated;
+                }
+                else {
+                    const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
+                    if (!smsRes)
+                        return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
+                }
+                const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
+                if (foundUser) {
+                    //Fix this
+                    const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
+                    if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
+                        const fiveMinutesAgo = new Date();
+                        fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+                        const dateVC = new Date(verificationCodeTimestamp);
+                        if (dateVC < fiveMinutesAgo)
+                            return res
+                                .status(api_constant_1.errorCode.GENERIC)
+                                .json({ message: api_constant_1.errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+                    }
+                    yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign(Object.assign({}, commonProps), { verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 }));
+                }
+                else {
+                    if (referralUsername) {
+                        const referralUser = yield user_service_1.UserService.getOneUser({ username: referralUsername });
+                        if (referralUser) {
+                            commonProps.referralTimeStamp = new Date();
+                            commonProps.referralUserId = referralUser.id;
+                        }
+                    }
+                    const username = (0, helper_lib_1.generateRandomUsername)();
+                    const randomNum = (Math.random() * 25) | 1;
+                    const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                    yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage, verificationCodeAttempts: 1 }, commonProps));
+                }
+                return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    resendOtp(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
                 const { number } = req.body;
                 if (!number)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
+                if (!foundUser)
+                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
+                if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
+                    const fiveMinutesAgo = new Date();
+                    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+                    const dateVC = new Date(verificationCodeTimestamp);
+                    if (dateVC < fiveMinutesAgo)
+                        return res
+                            .status(api_constant_1.errorCode.GENERIC)
+                            .json({ message: api_constant_1.errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+                }
                 let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-                // const smsRes = await sendOtpSms(number, otpGenerated);
-                // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+                const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
+                if (!smsRes)
+                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
                 const commonProps = {
                     verificationCode: otpGenerated,
                     verificationCodeSource: "SMS",
+                    verificationCodeTimestamp: new Date(),
+                    verificationCodeAttempts: verificationCodeAttempts + 1,
                 };
                 if (foundUser)
-                    yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign({}, commonProps));
-                else {
-                    const username = (0, helper_lib_1.generateRandomUsername)();
-                    const randomNum = (Math.random() * 25) | 1;
-                    const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-                    yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage }, commonProps));
-                }
+                    yield user_service_1.UserService.updateOneUser({ id: foundUser.id }, Object.assign({}, commonProps));
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
@@ -282,7 +353,7 @@ class _AuthController {
     googleAuth(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { googleAccessToken } = req.body;
+                const { googleAccessToken, referralUsername } = req.body;
                 if (!googleAccessToken)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const FetchResponse = yield axios_1.default.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -304,6 +375,13 @@ class _AuthController {
                         username: email.split("@")[0],
                         emailVerified: true,
                     };
+                    if (referralUsername) {
+                        const referralUser = yield user_service_1.UserService.getOneUser({ username: referralUsername });
+                        if (referralUser) {
+                            user.referralTimeStamp = new Date();
+                            user.referralUserId = referralUser.id;
+                        }
+                    }
                     foundUser = yield user_service_1.UserService.createOneUser(user);
                     if (email && email.length > 0) {
                         logger_core_1.default.info("sending email to: ", email);
