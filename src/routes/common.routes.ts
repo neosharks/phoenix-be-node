@@ -6,4 +6,6 @@ const commonRoutes = express.Router();
 
 commonRoutes.get("/getS3SignedUrl", checkRoleAuth(), CommonController.getS3SignedUrl);
 
+commonRoutes.post("/clickStream", CommonController.clickStream);
+
 export default commonRoutes;
