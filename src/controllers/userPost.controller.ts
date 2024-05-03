@@ -9,6 +9,7 @@ import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";
+import { NotificationService } from "../services/notification.service";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -119,6 +120,13 @@ class _UserPostController {
         await prisma.userPost.update({
           where: { id: postId },
           data: { likedBy: { connect: { id: id } } },
+        });
+        await NotificationService.createOneNotification({
+          aboutUserId: id,
+          notifiedUserId: foundPost.authorId,
+          message: ` have liked on your post`,
+          link: postId,
+          type: "NEW_LIKE",
         });
       } else {
         await prisma.userPost.update({
@@ -264,9 +272,21 @@ class _UserPostController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
+      const { id } = res.locals.user;
       if (!description || !authorId || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const created = await UserPostService.createOneComment({ description, authorId, userPostId });
+      const created: any = await UserPostService.createOneComment({
+        description,
+        authorId,
+        userPostId,
+      });
+      await NotificationService.createOneNotification({
+        aboutUserId: id,
+        notifiedUserId: authorId,
+        message: `${created.firstName + " " + created.lastName} have commented on your post`,
+        link: userPostId,
+        type: "NEW_COMMENT",
+      });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });
     } catch (error) {
       console.log("Error: ", error);
@@ -279,11 +299,15 @@ class _UserPostController {
   async delete(req: any, res: Response) {
     try {
       const { postId } = req.body;
+      const { id } = res.locals.user;
       if (!postId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
       if (!foundPost)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (id !== foundPost.authorId) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_ALLOWED });
+      }
       await UserPostService.delete(postId);
       res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {

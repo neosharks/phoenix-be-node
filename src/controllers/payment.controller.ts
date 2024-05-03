@@ -8,10 +8,12 @@ import config from "../../config";
 import axios from "axios";
 import { PaymentService } from "../services/payment.service";
 import { paymentSchema } from "../validators/payment.validator";
+import { AssignTierAndLink } from "./package.controller";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
-Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
+Cashfree.XEnvironment = Cashfree.Environment.PRODUCTION;
+// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 function generateOrderId() {
   const uniqueId = crypto.randomBytes(16).toString("hex");
@@ -28,6 +30,7 @@ class _PaymentController {
     if (validation.error) {
       return res.status(400).json({ error: validation.error.details[0].message });
     }
+    const user = res.locals.user;
     if (!packageId)
       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
     const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
@@ -36,6 +39,10 @@ class _PaymentController {
       if (!foundPackage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       const { price } = foundPackage;
+      if (price === 0) {
+        await AssignTierAndLink(foundPackage, user);
+        return res.status(200).send({ message: successMessages.SUCCESS });
+      }
       if (!price)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.INCORRECT_DATA });
       const order_id = await generateOrderId();
@@ -45,20 +52,26 @@ class _PaymentController {
         order_id,
         customer_details: {
           customer_id: username,
-          customer_phone: phoneNumber,
+          customer_phone: phoneNumber || "8174901463",
           customer_name: `${firstName} ${lastName}`,
           customer_email: email,
         },
       };
       let response;
       try {
-        response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
         console.log(response);
       } catch (error) {
         console.log(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
       }
-      await PaymentService.createOnePayment({ userId: id, packageId, orderId: order_id });
+      await PaymentService.createOnePayment({
+        userId: id,
+        packageId,
+        orderId: order_id,
+        amount: price,
+        currency: "INR",
+      });
       return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
     } catch (error: any) {
       console.log(error);
@@ -75,10 +88,10 @@ class _PaymentController {
       }
       if (!orderId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const url = `https://sandbox.cashfree.com/pg/orders/${orderId}`;
+      const url = `${config.payment.cashfree.url}/orders/${orderId}`;
       const headers = {
         accept: "application/json",
-        "x-api-version": "2023-08-01",
+        "x-api-version": config.payment.cashfree.version,
         "x-client-id": config.payment.cashfree.clientId,
         "x-client-secret": config.payment.cashfree.clientSecret,
       };

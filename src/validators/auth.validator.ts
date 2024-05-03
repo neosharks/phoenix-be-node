@@ -14,6 +14,7 @@ export const loginSchema = Joi.object({
 
 export const sendOtpSchema = Joi.object({
   number: Joi.string(),
+  referralUsername: Joi.string(),
 });
 export const resetPasswordSchema = Joi.object({
   oldPassword: Joi.string().min(4),

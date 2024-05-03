@@ -8,18 +8,12 @@ class _NotificationController {
   async getAllNotificationByUser(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const { error, value } = paginationSchema.validate(req.query);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-
-      const { omit, obtain } = value;
+      const skip = req.query.page || 0;
       const allNotifications = await NotificationService.getAllNotificationOfUser(
         {
           notifiedUserId: id,
         },
-        omit,
-        obtain,
+        Number(skip),
       );
       return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
     } catch (error) {

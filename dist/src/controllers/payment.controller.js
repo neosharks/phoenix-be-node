@@ -20,9 +20,11 @@ const package_service_1 = require("../services/package.service");
 const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const payment_service_1 = require("../services/payment.service");
+const package_controller_1 = require("./package.controller");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
-cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.SANDBOX;
+cashfree_pg_1.Cashfree.XEnvironment = cashfree_pg_1.Cashfree.Environment.PRODUCTION;
+// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 function generateOrderId() {
     const uniqueId = crypto_1.default.randomBytes(16).toString("hex");
     const hash = crypto_1.default.createHash("sha256");
@@ -34,6 +36,7 @@ class _PaymentController {
     order(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { packageId } = req.body;
+            const user = res.locals.user;
             if (!packageId)
                 return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
             const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
@@ -42,6 +45,10 @@ class _PaymentController {
                 if (!foundPackage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const { price } = foundPackage;
+                if (price === 0) {
+                    yield (0, package_controller_1.AssignTierAndLink)(foundPackage, user);
+                    return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
+                }
                 if (!price)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 const order_id = yield generateOrderId();
@@ -51,21 +58,27 @@ class _PaymentController {
                     order_id,
                     customer_details: {
                         customer_id: username,
-                        customer_phone: phoneNumber,
+                        customer_phone: phoneNumber || "8174901463",
                         customer_name: `${firstName} ${lastName}`,
                         customer_email: email,
                     },
                 };
                 let response;
                 try {
-                    response = yield cashfree_pg_1.Cashfree.PGCreateOrder("2023-08-01", request);
+                    response = yield cashfree_pg_1.Cashfree.PGCreateOrder(config_1.default.payment.cashfree.version, request);
                     console.log(response);
                 }
                 catch (error) {
                     console.log(error);
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
                 }
-                yield payment_service_1.PaymentService.createOnePayment({ userId: id, packageId, orderId: order_id });
+                yield payment_service_1.PaymentService.createOnePayment({
+                    userId: id,
+                    packageId,
+                    orderId: order_id,
+                    amount: price,
+                    currency: "INR",
+                });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: response === null || response === void 0 ? void 0 : response.data });
             }
             catch (error) {
@@ -81,10 +94,10 @@ class _PaymentController {
                 const { orderId } = req.body;
                 if (!orderId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const url = `https://sandbox.cashfree.com/pg/orders/${orderId}`;
+                const url = `${config_1.default.payment.cashfree.url}/orders/${orderId}`;
                 const headers = {
                     accept: "application/json",
-                    "x-api-version": "2023-08-01",
+                    "x-api-version": config_1.default.payment.cashfree.version,
                     "x-client-id": config_1.default.payment.cashfree.clientId,
                     "x-client-secret": config_1.default.payment.cashfree.clientSecret,
                 };

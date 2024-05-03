@@ -34,12 +34,14 @@ class _PaymentService {
     createOnePayment(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId, orderId, packageId } = dataValues;
+                const { userId, orderId, packageId, amount, currency } = dataValues;
                 return yield prisma_1.default.payment.create({
                     data: {
                         userId,
                         orderId,
                         packageId,
+                        amount,
+                        currency,
                     },
                 });
             }
