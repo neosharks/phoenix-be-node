@@ -220,31 +220,42 @@ class _PackageController {
             try {
                 const { packageId, orderID } = req.body;
                 if (!packageId)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const user = res.locals.user;
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
                 if (!foundPackage)
-                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res
+                        .status(api_constant_1.errorCode.NOT_FOUND)
+                        .send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Package not found" });
                 const { tier, creatorId } = foundPackage;
                 const tierUserPackage = yield package_service_1.PackageService.getOnePackage({
                     id: packageId,
-                    userId: user.id,
+                    creatorId: user.id,
                 });
                 if (tierUserPackage)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                    return res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Cannot buy own package" });
                 const foundAlreadyPurchase = yield patronCreator_service_1.PatronCreatorService.getFirst({
                     patronId: user.id,
                     creatorId,
                     packageId: foundPackage.id,
                 });
                 if (foundAlreadyPurchase)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                    return res
+                        .status(400)
+                        .send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST, info: "Package already purchased" });
                 if (foundPackage.price !== 0) {
                     const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
                     if (!foundPayment)
-                        return res.status(400).send({ message: api_constant_1.errorMessage.NO_PAYMENT });
+                        return res.status(400).send({
+                            message: api_constant_1.errorMessage.NO_PAYMENT,
+                            info: "Payment not found for this purchase",
+                        });
                     if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
-                        return res.status(400).send({ message: api_constant_1.errorMessage.DATA_MISMATCH });
+                        return res
+                            .status(400)
+                            .send({ message: api_constant_1.errorMessage.DATA_MISMATCH, info: "Data mismatch for the purchase" });
                 }
                 tier &&
                     tier.length > 0 &&
