@@ -30,7 +30,7 @@ class _AuthController {
       body.password = hash;
       body.username = body.email.split("@")[0];
       const randomNum = (Math.random() * 25) | 1;
-      const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+      const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
       const created = await UserService.createOneUser(
         isCreator
           ? { ...body, profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }
@@ -123,7 +123,7 @@ class _AuthController {
         }
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
-        const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+        const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
         await UserService.createOneUser({
           username,
           phoneNumber: number,
@@ -361,7 +361,7 @@ class _AuthController {
       let foundUser = await UserService.getOneUser({ email });
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
-        const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+        const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
         const user: any = {
           googleAuthId: sub,
           email: email,

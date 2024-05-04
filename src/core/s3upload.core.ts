@@ -50,6 +50,7 @@ export function deleteFile(fileName: string) {
 }
 
 export async function getObjectSignedUrl(key: string) {
+  if (key.includes("phoenix-test-bucket")) return key;
   const params = {
     Bucket: bucketName,
     Key: key,

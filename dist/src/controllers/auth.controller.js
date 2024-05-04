@@ -44,7 +44,7 @@ class _AuthController {
                 body.password = hash;
                 body.username = body.email.split("@")[0];
                 const randomNum = (Math.random() * 25) | 1;
-                const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
                 const created = yield user_service_1.UserService.createOneUser(isCreator
                     ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {
@@ -141,7 +141,7 @@ class _AuthController {
                     }
                     const username = (0, helper_lib_1.generateRandomUsername)();
                     const randomNum = (Math.random() * 25) | 1;
-                    const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                    const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
                     yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage, verificationCodeAttempts: 1 }, commonProps));
                 }
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS });
@@ -365,7 +365,7 @@ class _AuthController {
                 let foundUser = yield user_service_1.UserService.getOneUser({ email });
                 if (!foundUser) {
                     const randomNum = (Math.random() * 25) | 1;
-                    const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+                    const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
                     const user = {
                         googleAuthId: sub,
                         email: email,
