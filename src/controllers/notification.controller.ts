@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
-import { paginationSchema } from "../validators/chat.validator";
 
 class _NotificationController {
   async getAllNotificationByUser(req: Request, res: Response) {

@@ -37,7 +37,7 @@ class _ChatController {
   async getAllChatsByUser(req: Request, res: Response) {
     try {
       const skip = req.query.page || 0;
-      const take = req.query.setPage || 0;
+      const take = req.query.setPage || 10;
       const { id } = res.locals.user;
       const foundChat = await ChatService.getAllChat(
         {
@@ -73,7 +73,7 @@ class _ChatController {
   async getAllSearchableUsers(req: Request, res: Response) {
     try {
       const skip = req.query.page || 0;
-      const take = req.query.page || 0;
+      const take = req.query.setPage || 10;
       const allUser = await UserService.getAllUser(Number(skip), Number(take));
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {

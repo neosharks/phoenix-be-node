@@ -47,7 +47,7 @@ class _UserController {
     try {
       const { id } = res.locals.user;
       const skip = req.query.page || 0;
-      const take = req.query.page || 0;
+      const take = req.query.setPage || 10;
       let found = await UserService.getAllUserByParams(
         { isCreator: true },
         Number(skip),

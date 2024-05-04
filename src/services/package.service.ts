@@ -4,7 +4,11 @@ class _PackageService {
   async getAllPackagesOfCreator(query: any, skip: any = 0) {
     try {
       return await prisma.package.findMany({
-        where: query,
+        where: {
+          creator: {
+            username: query.username,
+          },
+        },
         include: { tier: true },
         skip,
         take: 10,

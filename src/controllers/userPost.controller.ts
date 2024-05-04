@@ -50,7 +50,7 @@ class _UserPostController {
       const { id } = res.locals.user;
       let returnPosts: any = [];
       const skip = req.query.page || 0;
-      const take = req.query.page || 0;
+      const take = req.query.setPage || 10;
       const foundPatronCreator = await PatronCreatorService.getAll(
         { patronId: id },
         Number(skip),
