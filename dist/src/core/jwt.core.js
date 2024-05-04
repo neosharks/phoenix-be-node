@@ -18,7 +18,7 @@ const config_1 = __importDefault(require("../../config"));
 // TODO: IMPLEMENT REFRESH TOKEN AND ASYMETRIC KEY GENERATION
 const signJwt = (user, options) => __awaiter(void 0, void 0, void 0, function* () {
     return jsonwebtoken_1.default.sign({ id: user.id }, config_1.default.jwt.accessTokenKey, {
-        expiresIn: 86400, // expires in 24 hours
+        expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
     });
 });
 exports.signJwt = signJwt;

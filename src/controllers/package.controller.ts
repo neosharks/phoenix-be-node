@@ -7,6 +7,7 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
 import { updatePackageSchema } from "../validators/package.validator";
+import { UserService } from "../services/user.service";
 
 export const AssignTierAndLink = async (foundPackage: any, user: any) => {
   const { tier, creatorId } = foundPackage;
@@ -50,12 +51,14 @@ class _PackageController {
     try {
       const { username } = req.params;
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      const foundUser = await UserService.getOneUser({ username });
+      if (!foundUser)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.USER_NOT_FOUND });
       const found = await PackageService.getAllPackagesOfCreator({
-        User: {
-          username: username,
-        },
+        creatorId: foundUser.id,
       });
-      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      console.log(found);
+      if (!found) return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -82,17 +85,20 @@ class _PackageController {
   async getPackageNames(req: Request, res: Response) {
     const { username } = res.locals.user;
     try {
-      // const found = await PackageService.getAllPackagesOfCreator({
-      //   User: {
-      //     username,
-      //   },
-      // });
+      if (!username)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundUser = await UserService.getOneUser({ username });
+      if (!foundUser)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.USER_NOT_FOUND });
+      const found = await PackageService.getAllPackagesOfCreator({
+        creatorId: foundUser.id,
+      });
       let allPackagesEnums = ["SUPPORT", "BRONZE", "SILVER", "GOLD", "PLATINUM", "RUBY"];
-      // if (found && found.length > 0) {
-      //   found.forEach((ele) => {
-      //     allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
-      //   });
-      // }
+      if (found && found.length > 0) {
+        found.forEach((ele) => {
+          allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
+        });
+      }
       return res.status(201).send({
         message: successMessages.SUCCESS,
         data: allPackagesEnums,
@@ -148,7 +154,7 @@ class _PackageController {
     try {
       const { id } = res.locals.user;
       const { tier, name, price, description } = req.body;
-      const allUserPackages = await PackageService.getAllPackagesOfCreator({ userId: id });
+      const allUserPackages = await PackageService.getAllPackagesOfCreator({ creatorId: id });
       const packageIndex = allUserPackages.findIndex((pac: any) => pac.name === name);
       if (packageIndex !== -1)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_ENTRY });
@@ -184,7 +190,7 @@ class _PackageController {
 
   async buyPackage(req: Request, res: Response) {
     try {
-      const { packageId, orderId } = req.body;
+      const { packageId, orderID } = req.body;
       if (!packageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
@@ -197,23 +203,56 @@ class _PackageController {
       if (tierUserPackage) return res.status(400).send({ message: errorMessage.NOT_ALLOWED });
       const foundAlreadyPurchase = await PatronCreatorService.getFirst({
         patronId: user.id,
-        creatorId: creatorId,
+        creatorId,
         packageId: foundPackage.id,
       });
       if (foundAlreadyPurchase)
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
 
-      const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderId });
-      if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
+      if (foundPackage.price !== 0) {
+        const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+        if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
+        if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
+          return res.status(400).send({ message: errorMessage.DATA_MISMATCH });
+      }
 
-      if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
-        return res.status(400).send({ message: errorMessage.DATA_MISMATCH });
-
-      await AssignTierAndLink(foundPackage, user);
+      tier &&
+        tier.length > 0 &&
+        tier.map(async (ele) => {
+          if (ele.tierType === "ONE_TIME_MESSAGE") {
+            const foundChat = await ChatService.getOneChat({
+              OR: [
+                { participantOneId: user.id, participantTwoId: creatorId },
+                { participantOneId: creatorId, participantTwoId: user.id },
+              ],
+            });
+            if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "LIMITED");
+            else
+              await ChatService.updateOneChat(
+                { id: foundChat.id },
+                { pendingAllowed: foundChat.pendingAllowed + 1 },
+              );
+          }
+          if (ele.tierType === "UNLIMITED_MESSAGE") {
+            const foundChat = await ChatService.getOneChat({
+              OR: [
+                { participantOneId: user.id, participantTwoId: creatorId },
+                { participantOneId: creatorId, participantTwoId: user.id },
+              ],
+            });
+            if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "UNLIMITED");
+            else
+              await ChatService.updateOneChat(
+                { id: foundChat.id },
+                { pendingAllowed: foundChat.pendingAllowed + 1000 },
+              );
+          }
+        });
+      await PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", packageId);
 
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

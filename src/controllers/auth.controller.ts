@@ -104,10 +104,10 @@ class _AuthController {
           const fiveMinutesAgo = new Date();
           fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
           const dateVC = new Date(verificationCodeTimestamp);
-          if (dateVC < fiveMinutesAgo)
-            return res
-              .status(errorCode.GENERIC)
-              .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+          // if (dateVC < fiveMinutesAgo)
+          //   return res
+          //     .status(errorCode.GENERIC)
+          //     .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
         }
         await UserService.updateOneUser(
           { phoneNumber: number },
