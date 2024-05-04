@@ -11,7 +11,8 @@ class _CommonController {
   async clickStream(req: Request, res: Response) {
     try {
       const { userId, type, info } = req.body;
-      const payload: any = { type, info };
+      const ipAddress = req.ip;
+      const payload: any = { type, info: { ...info, ipAddress } };
       if (userId) {
         const foundUser = await UserService.getOneUser({ id: userId });
         if (!foundUser)

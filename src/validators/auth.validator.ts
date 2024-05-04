@@ -29,6 +29,7 @@ export const verifyForgetPasswordSchema = Joi.object({
   password: Joi.string().min(4),
 });
 export const loginViaNumberSchema = Joi.object({
+  number: Joi.string(),
   phoneNumber: Joi.string(),
   otp: Joi.string().min(4),
 });
