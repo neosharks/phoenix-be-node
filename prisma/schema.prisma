@@ -221,11 +221,15 @@ model Payment {
 }
 
 model ClickStream {
-  id     String  @id @default(cuid())
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String?
-  info   Json
-  type   String
+  id        String  @id @default(cuid())
+  user      User?   @relation(fields: [userId], references: [id])
+  userId    String?
+  info      Json?
+  type      String?
+  url       String?
+  response  Int?
+  ipAddress String?
+  method    String?
 }
 
 enum CURRENCY {

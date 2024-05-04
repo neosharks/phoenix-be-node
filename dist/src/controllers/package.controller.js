@@ -51,7 +51,7 @@ const AssignTierAndLink = (foundPackage, user) => __awaiter(void 0, void 0, void
                     yield chat_service_1.ChatService.updateOneChat({ id: foundChat.id }, { pendingAllowed: foundChat.pendingAllowed + 1000 });
             }
         }));
-    yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", foundPackage.id);
+    yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", foundPackage.id);
 });
 exports.AssignTierAndLink = AssignTierAndLink;
 class _PackageController {
@@ -67,7 +67,6 @@ class _PackageController {
                 const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                     creatorId: foundUser.id,
                 });
-                console.log(found);
                 if (!found)
                     return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, packages: found });

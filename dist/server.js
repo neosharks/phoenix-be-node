@@ -21,16 +21,40 @@ const corsUrl = config_1.default.main.corsUrl;
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use((0, cors_1.default)({ origin: corsUrl, optionsSuccessStatus: 200 }));
+// app.use(async (req, res: any, next) => {
+//   const method = req.method;
+//   const url = req.originalUrl;
+//   const response = res.statusCode;
+//   const originalSend = res.send;
+//   res.send = async function (data: any) {
+//     const result = originalSend.call(this, data);
+//     if (res.statusCode && url !== "/user/get") {
+//       await CommonService.createClickStream({
+//         userId: res?.locals?.user ? res.locals.user.id : null,
+//         url: url,
+//         info: { body: req.body || {} },
+//         ipAddress: req.ip,
+//         method: method,
+//         response,
+//       });
+//     }
+//     return result;
+//   };
+//   next();
+// });
 app.use((0, morgan_1.default)((tokens, req, res) => {
-    const msg = [
-        tokens.status(req, res),
-        tokens.method(req, res),
-        tokens.url(req, res),
-        tokens.res(req, res, "content-length"),
-        "-",
-        tokens["response-time"](req, res),
-        "ms",
-    ].join(" ");
+    const user = res.locals.user;
+    const userId = user ? user.id : "N/A";
+    const ipAddress = req.ip;
+    const msg = {
+        status: tokens.status(req, res),
+        method: tokens.method(req, res),
+        url: tokens.url(req, res),
+        contentLength: tokens.res(req, res, "content-length"),
+        responseTime: tokens["response-time"](req, res) + "ms",
+        userId: userId, // Separate key for user ID
+        ipAddress: ipAddress, // Separate key for IP address
+    };
     logger_core_1.default.http(msg);
     return null;
 }));

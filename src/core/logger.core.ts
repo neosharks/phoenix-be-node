@@ -11,7 +11,7 @@ const logger = winston.createLogger({
       ),
     }),
     new winston.transports.File({
-      level: "info",
+      level: "debug",
       filename: "./logs/all-logs.json",
       handleExceptions: true,
       format: winston.format.combine(
@@ -19,7 +19,7 @@ const logger = winston.createLogger({
         winston.format.errors({ stack: true }),
         winston.format.json(),
       ),
-      maxsize: 5242880, //5MB
+      maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
   ],

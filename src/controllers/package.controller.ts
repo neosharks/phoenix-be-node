@@ -43,7 +43,7 @@ export const AssignTierAndLink = async (foundPackage: any, user: any) => {
           );
       }
     });
-  await PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", foundPackage.id);
+  await PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", foundPackage.id);
 };
 
 class _PackageController {
@@ -57,7 +57,6 @@ class _PackageController {
       const found = await PackageService.getAllPackagesOfCreator({
         creatorId: foundUser.id,
       });
-      console.log(found);
       if (!found) return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {

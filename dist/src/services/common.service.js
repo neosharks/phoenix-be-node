@@ -21,7 +21,7 @@ class _CommonService {
                 return yield prisma_1.default.clickStream.create({ data: data });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });

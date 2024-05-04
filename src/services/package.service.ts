@@ -5,7 +5,7 @@ class _PackageService {
     try {
       return await prisma.package.findMany({ where: query, include: { tier: true } });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -14,7 +14,7 @@ class _PackageService {
     try {
       return await prisma.package.findUnique({ where: query, include: { tier: true } });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -36,7 +36,7 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -45,7 +45,7 @@ class _PackageService {
     try {
       return await prisma.package.update({ where: props, data: dataValues });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -56,7 +56,7 @@ class _PackageService {
     try {
       return await prisma.tier.findMany({});
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -65,7 +65,7 @@ class _PackageService {
     try {
       return await prisma.tier.create({ data: data });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -87,7 +87,7 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -103,7 +103,7 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
