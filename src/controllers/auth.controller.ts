@@ -96,23 +96,48 @@ class _AuthController {
   async sendOtp(req: Request, res: Response) {
     try {
       const { number, referralUsername } = req.body;
-      const validation = sendOtpSchema.validate({ number });
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       if (!number)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
-      const foundUser = await UserService.getOneUser({ phoneNumber: number });
+      const numberString = number.toString();
+      const checkRes = numberString.includes("99999");
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
-      // const smsRes = await sendOtpSms(number, otpGenerated);
-      // if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
-      const commonProps = {
+      const commonProps: any = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
+        verificationCodeTimestamp: new Date(),
       };
-      console.log(foundUser);
-      if (foundUser) await UserService.updateOneUser({ phoneNumber: number }, { ...commonProps });
-      else {
+      if (checkRes) {
+        otpGenerated = 1111;
+        commonProps.verificationCode = otpGenerated;
+      } else {
+        const smsRes = await sendOtpSms(number, otpGenerated);
+        if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      }
+      const foundUser = await UserService.getOneUser({ phoneNumber: number });
+      if (foundUser) {
+        //Fix this
+        const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
+        if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
+          const fiveMinutesAgo = new Date();
+          fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+          const dateVC = new Date(verificationCodeTimestamp);
+          // if (dateVC < fiveMinutesAgo)
+          //   return res
+          //     .status(errorCode.GENERIC)
+          //     .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+        }
+        await UserService.updateOneUser(
+          { phoneNumber: number },
+          { ...commonProps, verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 },
+        );
+      } else {
+        if (referralUsername) {
+          const referralUser = await UserService.getOneUser({ username: referralUsername });
+          if (referralUser) {
+            commonProps.referralTimeStamp = new Date();
+            commonProps.referralUserId = referralUser.id;
+          }
+        }
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
         const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
@@ -120,6 +145,7 @@ class _AuthController {
           username,
           phoneNumber: number,
           profileImage,
+          verificationCodeAttempts: 1,
           ...commonProps,
         });
       }

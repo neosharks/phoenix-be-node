@@ -124,10 +124,10 @@ class _AuthController {
                         const fiveMinutesAgo = new Date();
                         fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
                         const dateVC = new Date(verificationCodeTimestamp);
-                        if (dateVC < fiveMinutesAgo)
-                            return res
-                                .status(api_constant_1.errorCode.GENERIC)
-                                .json({ message: api_constant_1.errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
+                        // if (dateVC < fiveMinutesAgo)
+                        //   return res
+                        //     .status(errorCode.GENERIC)
+                        //     .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
                     }
                     yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign(Object.assign({}, commonProps), { verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 }));
                 }
