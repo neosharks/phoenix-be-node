@@ -321,6 +321,10 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { tiers } = req.body;
+                if (!tiers || tiers.length < 1)
+                    res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide tiers" });
                 tiers.map((ele) => __awaiter(this, void 0, void 0, function* () {
                     yield package_service_1.PackageService.createOneTier(ele);
                 }));

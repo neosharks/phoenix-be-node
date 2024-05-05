@@ -70,7 +70,7 @@ class _PackageService {
     }
   }
 
-  async linkPatronCreator(patronId: string, creatorId: string, type: any, packageId?: string) {
+  async linkPatronCreator(patronId: any, creatorId: any, type: any, packageId?: any) {
     try {
       const currentDate = new Date();
       const expiryDate = new Date(currentDate);
@@ -92,7 +92,7 @@ class _PackageService {
     }
   }
 
-  async getAllPurchasedByPatron(patronId: string, creatorId: string) {
+  async getAllPurchasedByPatron(patronId: any, creatorId: any) {
     try {
       return await prisma.patronCreator.findMany({
         where: { patronId, creatorId },

@@ -2,10 +2,15 @@ import express from "express";
 import { UserController } from "../controllers/user.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 import { uploadFileMiddleware } from "../core/s3upload.core";
+import { userRole } from "../constant/role.constant";
 
 const userRoutes = express.Router();
 
 userRoutes.get("/get", checkRoleAuth(), UserController.getUser);
+
+userRoutes.get("/getAllLinks/:username", UserController.getAllLinks);
+
+userRoutes.post("/createLink", checkRoleAuth([userRole.CREATOR]), UserController.createLink);
 
 userRoutes.get("/getByUsername/:username", UserController.getUserByUsername);
 

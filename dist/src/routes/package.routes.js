@@ -18,6 +18,6 @@ packageRoutes.get("/getAllPatronsByCreator/:username", package_controller_1.Pack
 packageRoutes.post("/buyPackage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.buyPackage);
 //-------------------
 packageRoutes.post("/createOneTier", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.ADMIN]), package_controller_1.PackageController.createOneTier);
-packageRoutes.post("/createManyTier", package_controller_1.PackageController.createManyTier);
+packageRoutes.post("/createManyTier", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.ADMIN]), package_controller_1.PackageController.createManyTier);
 packageRoutes.get("/getAllTiers", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), package_controller_1.PackageController.getAllTiers);
 exports.default = packageRoutes;

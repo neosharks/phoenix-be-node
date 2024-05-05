@@ -17,162 +17,207 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _UserPostService {
     getAllUserPostByUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.userPost.findMany({
-                where: query,
-                include: {
-                    poll: true,
-                    packages: true,
-                    comments: {
-                        select: {
-                            description: true,
-                            createdAt: true,
-                            updatedAt: true,
-                            author: {
-                                select: {
-                                    id: true,
-                                    firstName: true,
-                                    lastName: true,
-                                    profileImage: true,
-                                    email: true,
-                                    username: true,
-                                    role: true,
+            try {
+                return yield prisma_1.default.userPost.findMany({
+                    where: query,
+                    include: {
+                        poll: true,
+                        packages: true,
+                        comments: {
+                            select: {
+                                description: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                author: {
+                                    select: {
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        profileImage: true,
+                                        email: true,
+                                        username: true,
+                                        role: true,
+                                    },
                                 },
                             },
                         },
-                    },
-                    likedBy: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            role: true,
+                        likedBy: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
+                        },
+                        author: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
                         },
                     },
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            role: true,
-                        },
-                    },
-                },
-            });
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getOneUserPost(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.userPost.findUnique({
-                where: query,
-                include: {
-                    comments: {
-                        include: {
-                            author: true,
+            try {
+                return yield prisma_1.default.userPost.findUnique({
+                    where: query,
+                    include: {
+                        comments: {
+                            include: {
+                                author: true,
+                            },
+                        },
+                        author: true,
+                        likedBy: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                            },
                         },
                     },
-                    author: true,
-                    likedBy: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                        },
-                    },
-                },
-            });
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     updateOneUserPost(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.userPost.update({ where: query, data: data });
+            try {
+                return yield prisma_1.default.userPost.update({ where: query, data: data });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     createOneUserPost(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { description, authorId, title, type, image, visibility, allowComments, videoUrl, pollId, packages, } = dataValues;
-            const packagesToConnect = Array.isArray(packages) ? packages.map((id) => ({ id })) : [];
-            return yield prisma_1.default.userPost.create({
-                data: {
-                    description,
-                    authorId,
-                    title,
-                    type,
-                    image,
-                    visibility,
-                    allowComments,
-                    videoUrl,
-                    pollId,
-                    packages: { connect: packagesToConnect },
-                },
-                include: {
-                    likedBy: true,
-                    comments: true,
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            role: true,
+            try {
+                const { description, authorId, title, type, image, visibility, allowComments, videoUrl, pollId, packages, } = dataValues;
+                const packagesToConnect = Array.isArray(packages) ? packages.map((id) => ({ id })) : [];
+                return yield prisma_1.default.userPost.create({
+                    data: {
+                        description,
+                        authorId,
+                        title,
+                        type,
+                        image,
+                        visibility,
+                        allowComments,
+                        videoUrl,
+                        pollId,
+                        packages: { connect: packagesToConnect },
+                    },
+                    include: {
+                        likedBy: true,
+                        comments: true,
+                        author: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
                         },
                     },
-                },
-            });
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     createOneComment(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             const { description, authorId, userPostId } = dataValues;
-            return yield prisma_1.default.postComment.create({
-                data: { description, authorId, userPostId },
-                include: {
-                    author: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            role: true,
+            try {
+                return yield prisma_1.default.postComment.create({
+                    data: { description, authorId, userPostId },
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
                         },
                     },
-                },
-            });
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     createPoll(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.poll.create({ data });
+            try {
+                return yield prisma_1.default.poll.create({ data });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getOnePoll(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.poll.findUnique({
-                where: query,
-            });
+            try {
+                return yield prisma_1.default.poll.findUnique({
+                    where: query,
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     updateOnePoll(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.poll.update({ where: query, data: data });
+            try {
+                return yield prisma_1.default.poll.update({ where: query, data: data });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     delete(postId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield prisma_1.default.postComment.deleteMany({ where: { userPostId: postId } });
-            return yield prisma_1.default.userPost.delete({ where: { id: postId } });
+            try {
+                yield prisma_1.default.postComment.deleteMany({ where: { userPostId: postId } });
+                return yield prisma_1.default.userPost.delete({ where: { id: postId } });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
 }

@@ -25,6 +25,38 @@ class _UserController {
     }
   }
 
+  async getAllLinks(req: Request, res: Response) {
+    try {
+      const { username } = req.params;
+      if (!username || typeof username !== "string")
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      const found = await UserService.getOneUser({ username });
+      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      const allLinks = await UserService.getAllLinks({ id: found.id });
+      return res.status(200).send({ message: successMessages.SUCCESS, allLinks });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async createLink(req: Request, res: Response) {
+    try {
+      const { url, platform, highlight } = req.body;
+      const { id } = res.locals.user;
+      if (!url) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      await UserService.createLink({ userId: id, url, platform, highlight });
+      return res.status(200).json({ message: successMessages.CREATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async getUserByUsername(req: Request, res: Response) {
     try {
       const { username } = req.params;
@@ -142,8 +174,7 @@ class _UserController {
 
   async creatorOnboard(req: Request, res: Response) {
     try {
-      const id = res.locals.user.id;
-      const { username } = req.body;
+      const { id, username } = res.locals.user;
       const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });

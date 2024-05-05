@@ -2,7 +2,11 @@ import prisma from "../../prisma";
 
 class _PaymentService {
   async getAllPaymentByProps(query: any) {
-    return await prisma.payment.findMany({ where: query });
+    try {
+      return await prisma.payment.findMany({ where: query });
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getOnePaymentByProps(query: any) {

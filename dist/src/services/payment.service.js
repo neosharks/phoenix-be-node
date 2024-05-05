@@ -17,7 +17,12 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _PaymentService {
     getAllPaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.payment.findMany({ where: query });
+            try {
+                return yield prisma_1.default.payment.findMany({ where: query });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getOnePaymentByProps(query) {

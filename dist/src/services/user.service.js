@@ -17,56 +17,110 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _UserService {
     getOneUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.findUnique({ where: query });
+            try {
+                return yield prisma_1.default.user.findUnique({ where: query });
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    getAllLinks(query) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.allLinks.findMany({
+                    where: query,
+                });
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    createLink(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.allLinks.create({
+                    data,
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getAllUserByParams(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.findMany({
-                where: query,
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    profileImage: true,
-                    email: true,
-                    username: true,
-                    role: true,
-                    industry: true,
-                    coverImage: true,
-                },
-            });
+            try {
+                return yield prisma_1.default.user.findMany({
+                    where: query,
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profileImage: true,
+                        email: true,
+                        username: true,
+                        role: true,
+                        industry: true,
+                        coverImage: true,
+                    },
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getAllUser() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.findMany({
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    profileImage: true,
-                    email: true,
-                    username: true,
-                    phoneNumber: true,
-                    role: true,
-                },
-            });
+            try {
+                return yield prisma_1.default.user.findMany({
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profileImage: true,
+                        email: true,
+                        username: true,
+                        phoneNumber: true,
+                        role: true,
+                    },
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     createOneUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.create({ data: data });
+            try {
+                return yield prisma_1.default.user.create({ data: data });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     updateOneUser(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.update({ where: query, data: data });
+            try {
+                return yield prisma_1.default.user.update({ where: query, data: data });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     deleteOneUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.user.delete({ where: { id } });
+            try {
+                return yield prisma_1.default.user.delete({ where: { id } });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
 }

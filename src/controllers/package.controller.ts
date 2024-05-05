@@ -296,6 +296,10 @@ class _PackageController {
   async createManyTier(req: Request, res: Response) {
     try {
       const { tiers } = req.body;
+      if (!tiers || tiers.length < 1)
+        res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.MISSING_PARAMS, info: "Provide tiers" });
       tiers.map(async (ele: any) => {
         await PackageService.createOneTier(ele);
       });

@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "WALLET_SOURCE" AS ENUM ('REFERRAL', 'PURCHASE');
+
+-- CreateEnum
 CREATE TYPE "CURRENCY" AS ENUM ('INR');
 
 -- CreateEnum
@@ -23,7 +26,7 @@ CREATE TYPE "PATRON_CREATOR_STATUS" AS ENUM ('ACTIVE', 'EXPIRED', 'PENDING');
 CREATE TYPE "GENDER" AS ENUM ('MALE', 'FEMALE', 'OTHER');
 
 -- CreateEnum
-CREATE TYPE "NOTIFICATION" AS ENUM ('NEW_POST', 'MESSAGE', 'POLL', 'MENTIONED', 'NEW_COMMENT');
+CREATE TYPE "NOTIFICATION" AS ENUM ('NEW_POST', 'MESSAGE', 'POLL', 'MENTIONED', 'NEW_COMMENT', 'NEW_LIKE');
 
 -- CreateEnum
 CREATE TYPE "MESSAGE_TYPE" AS ENUM ('TEXT', 'IMAGE', 'AUDIO');
@@ -54,12 +57,13 @@ CREATE TYPE "PAYMENT_STATUS" AS ENUM ('CREATED', 'PAID', 'FAILED', 'PENDING');
 
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
     "email" TEXT,
     "username" TEXT NOT NULL,
     "phoneNumber" TEXT,
+    "whatsappNumber" TEXT,
     "countryCode" TEXT NOT NULL DEFAULT '+91',
     "profileImage" TEXT,
     "coverImage" TEXT,
@@ -79,7 +83,7 @@ CREATE TABLE "User" (
     "instagramHandle" TEXT,
     "status" "USER_STATUS" NOT NULL DEFAULT 'ACTIVE',
     "password" TEXT,
-    "referralUserId" TEXT,
+    "referralUserId" INTEGER,
     "referralTimeStamp" TIMESTAMP(3),
     "referralDevice" TEXT,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
@@ -88,6 +92,7 @@ CREATE TABLE "User" (
     "facebookAuthId" TEXT,
     "verificationCode" INTEGER,
     "verificationCodeTimestamp" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "verificationCodeAttempts" INTEGER NOT NULL DEFAULT 0,
     "verificationCodeSource" "VERIFICATION_CODE_SOURCE",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -96,8 +101,21 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Referral" (
+    "id" SERIAL NOT NULL,
+    "creatorId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "amount" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "paymentId" INTEGER,
+
+    CONSTRAINT "Referral_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Tier" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
     "tierType" "TIER_TYPE" NOT NULL DEFAULT 'GENERAL_SUPPORT',
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -109,25 +127,25 @@ CREATE TABLE "Tier" (
 
 -- CreateTable
 CREATE TABLE "Package" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" "PACKAGE_NAMES" NOT NULL DEFAULT 'SUPPORT',
     "price" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "creatorId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userPostId" TEXT,
+    "userPostId" INTEGER,
 
     CONSTRAINT "Package_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Message" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
     "message" TEXT NOT NULL,
-    "senderId" TEXT NOT NULL,
+    "senderId" INTEGER NOT NULL,
     "contentType" "MESSAGE_TYPE" NOT NULL DEFAULT 'TEXT',
-    "chatId" TEXT NOT NULL,
+    "chatId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -136,9 +154,9 @@ CREATE TABLE "Message" (
 
 -- CreateTable
 CREATE TABLE "Chat" (
-    "id" TEXT NOT NULL,
-    "participantOneId" TEXT NOT NULL,
-    "participantTwoId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "participantOneId" INTEGER NOT NULL,
+    "participantTwoId" INTEGER NOT NULL,
     "type" "CONVERSATION_TYPE" NOT NULL DEFAULT 'ONE_TO_ONE',
     "unreadCount" INTEGER NOT NULL DEFAULT 0,
     "pendingAllowed" INTEGER NOT NULL DEFAULT 1,
@@ -150,9 +168,9 @@ CREATE TABLE "Chat" (
 
 -- CreateTable
 CREATE TABLE "Notification" (
-    "id" TEXT NOT NULL,
-    "aboutUserId" TEXT NOT NULL,
-    "notifiedUserId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "aboutUserId" INTEGER NOT NULL,
+    "notifiedUserId" INTEGER NOT NULL,
     "message" TEXT NOT NULL,
     "read" BOOLEAN NOT NULL,
     "link" TEXT,
@@ -165,10 +183,10 @@ CREATE TABLE "Notification" (
 
 -- CreateTable
 CREATE TABLE "PatronCreator" (
-    "id" TEXT NOT NULL,
-    "patronId" TEXT NOT NULL,
-    "creatorId" TEXT NOT NULL,
-    "packageId" TEXT,
+    "id" SERIAL NOT NULL,
+    "patronId" INTEGER NOT NULL,
+    "creatorId" INTEGER NOT NULL,
+    "packageId" INTEGER,
     "type" "SUBSCRIPTION_TYPE" NOT NULL DEFAULT 'FREE',
     "expiry" TIMESTAMP(3),
     "status" "PATRON_CREATOR_STATUS" NOT NULL DEFAULT 'PENDING',
@@ -180,8 +198,8 @@ CREATE TABLE "PatronCreator" (
 
 -- CreateTable
 CREATE TABLE "UserPost" (
-    "id" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "authorId" INTEGER NOT NULL,
     "type" "USER_POST_TYPE" NOT NULL DEFAULT 'TEXT',
     "image" TEXT,
     "title" TEXT,
@@ -189,7 +207,7 @@ CREATE TABLE "UserPost" (
     "videoUrl" TEXT,
     "visibility" "VISIBILITY" NOT NULL DEFAULT 'EVERYONE',
     "allowComments" BOOLEAN NOT NULL DEFAULT true,
-    "pollId" TEXT,
+    "pollId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -198,10 +216,10 @@ CREATE TABLE "UserPost" (
 
 -- CreateTable
 CREATE TABLE "PostComment" (
-    "id" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "authorId" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
-    "userPostId" TEXT NOT NULL,
+    "userPostId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -210,8 +228,8 @@ CREATE TABLE "PostComment" (
 
 -- CreateTable
 CREATE TABLE "Poll" (
-    "id" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "authorId" INTEGER NOT NULL,
     "options" JSONB[],
     "selectedOptions" JSONB[],
     "image" TEXT,
@@ -225,27 +243,69 @@ CREATE TABLE "Poll" (
 
 -- CreateTable
 CREATE TABLE "Payment" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
     "orderId" TEXT NOT NULL,
     "amount" INTEGER NOT NULL DEFAULT 0,
     "currency" "CURRENCY" NOT NULL DEFAULT 'INR',
     "status" "PAYMENT_STATUS" NOT NULL DEFAULT 'CREATED',
-    "packageId" TEXT NOT NULL,
+    "packageId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "ClickStream" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER,
+    "info" JSONB,
+    "type" TEXT,
+    "url" TEXT,
+    "ipAddress" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ClickStream_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WalletTransactions" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "source" "WALLET_SOURCE" NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "paymentId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WalletTransactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AllLinks" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "url" TEXT NOT NULL,
+    "platform" TEXT,
+    "highlight" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AllLinks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_likedByUser" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "_PackageToTier" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
 );
 
 -- CreateIndex
@@ -294,7 +354,16 @@ CREATE UNIQUE INDEX "_PackageToTier_AB_unique" ON "_PackageToTier"("A", "B");
 CREATE INDEX "_PackageToTier_B_index" ON "_PackageToTier"("B");
 
 -- AddForeignKey
-ALTER TABLE "Package" ADD CONSTRAINT "Package_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Referral" ADD CONSTRAINT "Referral_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Referral" ADD CONSTRAINT "Referral_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Referral" ADD CONSTRAINT "Referral_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Package" ADD CONSTRAINT "Package_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Package" ADD CONSTRAINT "Package_userPostId_fkey" FOREIGN KEY ("userPostId") REFERENCES "UserPost"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -346,6 +415,18 @@ ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClickStream" ADD CONSTRAINT "ClickStream_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WalletTransactions" ADD CONSTRAINT "WalletTransactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WalletTransactions" ADD CONSTRAINT "WalletTransactions_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AllLinks" ADD CONSTRAINT "AllLinks_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_likedByUser" ADD CONSTRAINT "_likedByUser_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -71,8 +71,6 @@ class _AuthController {
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (!foundUser)
                     return res.status(403).json({ message: api_constant_1.errorMessage.NOT_FOUND });
-                // if (foundUser.status !== "ACTIVE")
-                //   return res.status(403).json({ message: errorMessage.USER_BLOCKED });
                 let isMatch = false;
                 if (foundUser.password)
                     isMatch = yield bcrypt_1.default.compareSync(body.password, foundUser.password);
@@ -124,10 +122,6 @@ class _AuthController {
                         const fiveMinutesAgo = new Date();
                         fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
                         const dateVC = new Date(verificationCodeTimestamp);
-                        // if (dateVC < fiveMinutesAgo)
-                        //   return res
-                        //     .status(errorCode.GENERIC)
-                        //     .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
                     }
                     yield user_service_1.UserService.updateOneUser({ phoneNumber: number }, Object.assign(Object.assign({}, commonProps), { verificationCodeAttempts: foundUser.verificationCodeAttempts + 1 }));
                 }
