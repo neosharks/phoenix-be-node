@@ -69,8 +69,9 @@ class _PackageController {
 
   async getOnePackage(req: Request, res: Response) {
     try {
-      const { id } = req.query;
-      const found = await PackageService.getOnePackage({ id });
+      const id: any = req.query.id;
+      const parsedId: number = parseInt(id);
+      const found = await PackageService.getOnePackage({ id: parsedId });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
