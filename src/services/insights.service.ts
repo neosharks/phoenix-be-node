@@ -15,7 +15,7 @@ class _InsightService {
         take: 10,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 }

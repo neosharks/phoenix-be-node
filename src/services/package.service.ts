@@ -14,7 +14,7 @@ class _PackageService {
         take: 10,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -23,7 +23,7 @@ class _PackageService {
     try {
       return await prisma.package.findUnique({ where: query, include: { tier: true } });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -44,7 +44,7 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -53,7 +53,7 @@ class _PackageService {
     try {
       return await prisma.package.update({ where: props, data: dataValues });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -67,7 +67,7 @@ class _PackageService {
         take,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -76,12 +76,12 @@ class _PackageService {
     try {
       return await prisma.tier.create({ data: data });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
 
-  async linkPatronCreator(patronId: string, creatorId: string, type: any, packageId?: string) {
+  async linkPatronCreator(patronId: any, creatorId: any, type: any, packageId?: any) {
     try {
       const currentDate = new Date();
       const expiryDate = new Date(currentDate);
@@ -98,12 +98,12 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
 
-  async getAllPurchasedByPatron(patronId: string, creatorId: string) {
+  async getAllPurchasedByPatron(patronId: any, creatorId: any) {
     try {
       return await prisma.patronCreator.findMany({
         where: { patronId, creatorId },
@@ -114,7 +114,7 @@ class _PackageService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

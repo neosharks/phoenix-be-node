@@ -62,7 +62,7 @@ class _PaymentController {
         response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
         console.log(response);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
       }
       await PaymentService.createOnePayment({
@@ -74,7 +74,7 @@ class _PaymentController {
       });
       return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
       return res.status(errorCode.INTERNAL_SERVER).json({ message: errorMessage.INTERNAL_SERVER });
     }
   }
@@ -102,7 +102,7 @@ class _PaymentController {
       );
       return res.status(200).json({ status: response?.data?.order_status });
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });

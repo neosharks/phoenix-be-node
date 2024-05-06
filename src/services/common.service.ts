@@ -6,7 +6,7 @@ class _CommonService {
     try {
       return await prisma.clickStream.create({ data: data });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

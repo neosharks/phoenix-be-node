@@ -267,7 +267,7 @@ class _UserPostController {
 
       return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       console.log("Error: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)

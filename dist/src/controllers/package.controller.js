@@ -51,7 +51,7 @@ const AssignTierAndLink = (foundPackage, user) => __awaiter(void 0, void 0, void
                     yield chat_service_1.ChatService.updateOneChat({ id: foundChat.id }, { pendingAllowed: foundChat.pendingAllowed + 1000 });
             }
         }));
-    yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", foundPackage.id);
+    yield package_service_1.PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", foundPackage.id);
 });
 exports.AssignTierAndLink = AssignTierAndLink;
 class _PackageController {
@@ -67,7 +67,6 @@ class _PackageController {
                 const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                     creatorId: foundUser.id,
                 });
-                console.log(found);
                 if (!found)
                     return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, packages: found });
@@ -219,33 +218,49 @@ class _PackageController {
     buyPackage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { packageId, orderID } = req.body;
+                const { packageId, orderId } = req.body;
                 if (!packageId)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const user = res.locals.user;
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
                 if (!foundPackage)
-                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res
+                        .status(api_constant_1.errorCode.NOT_FOUND)
+                        .send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Package not found" });
                 const { tier, creatorId } = foundPackage;
                 const tierUserPackage = yield package_service_1.PackageService.getOnePackage({
                     id: packageId,
-                    userId: user.id,
+                    creatorId: user.id,
                 });
                 if (tierUserPackage)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                    return res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Cannot buy own package" });
                 const foundAlreadyPurchase = yield patronCreator_service_1.PatronCreatorService.getFirst({
                     patronId: user.id,
                     creatorId,
                     packageId: foundPackage.id,
                 });
                 if (foundAlreadyPurchase)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                    return res
+                        .status(400)
+                        .send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST, info: "Package already purchased" });
                 if (foundPackage.price !== 0) {
-                    const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
+                    if (!orderId)
+                        return res.status(api_constant_1.errorCode.GENERIC).send({
+                            message: api_constant_1.errorMessage.MISSING_PARAMS,
+                            info: "Missing orderId for paid purchase",
+                        });
+                    const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ status: "PAID", orderId });
                     if (!foundPayment)
-                        return res.status(400).send({ message: api_constant_1.errorMessage.NO_PAYMENT });
+                        return res.status(400).send({
+                            message: api_constant_1.errorMessage.NO_PAYMENT,
+                            info: "Payment not found for this purchase",
+                        });
                     if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
-                        return res.status(400).send({ message: api_constant_1.errorMessage.DATA_MISMATCH });
+                        return res
+                            .status(400)
+                            .send({ message: api_constant_1.errorMessage.DATA_MISMATCH, info: "Data mismatch for the purchase" });
                 }
                 tier &&
                     tier.length > 0 &&
@@ -306,6 +321,10 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { tiers } = req.body;
+                if (!tiers || tiers.length < 1)
+                    res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide tiers" });
                 tiers.map((ele) => __awaiter(this, void 0, void 0, function* () {
                     yield package_service_1.PackageService.createOneTier(ele);
                 }));

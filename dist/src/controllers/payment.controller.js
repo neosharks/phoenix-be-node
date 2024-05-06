@@ -69,7 +69,7 @@ class _PaymentController {
                     console.log(response);
                 }
                 catch (error) {
-                    console.log(error);
+                    console.error(error);
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
                 }
                 yield payment_service_1.PaymentService.createOnePayment({
@@ -82,7 +82,7 @@ class _PaymentController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: response === null || response === void 0 ? void 0 : response.data });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 return res.status(api_constant_1.errorCode.INTERNAL_SERVER).json({ message: api_constant_1.errorMessage.INTERNAL_SERVER });
             }
         });
@@ -106,7 +106,7 @@ class _PaymentController {
                 return res.status(200).json({ status: (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.order_status });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });

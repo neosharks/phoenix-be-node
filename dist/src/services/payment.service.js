@@ -17,7 +17,12 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _PaymentService {
     getAllPaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.payment.findMany({ where: query });
+            try {
+                return yield prisma_1.default.payment.findMany({ where: query });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getOnePaymentByProps(query) {
@@ -26,7 +31,7 @@ class _PaymentService {
                 return yield prisma_1.default.payment.findUnique({ where: query });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -46,7 +51,7 @@ class _PaymentService {
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -57,7 +62,7 @@ class _PaymentService {
                 return yield prisma_1.default.payment.update({ where: query, data: data });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });

@@ -369,6 +369,200 @@ class _UserPostController {
       }
     });
   }
+  likePostToggle(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+      try {
+        const { postId } = req.body;
+        const { id } = res.locals.user;
+        if (!postId)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
+        if (!foundPost)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.NOT_FOUND });
+        const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
+        if (userIndex === -1) {
+          yield prisma_1.default.userPost.update({
+            where: { id: postId },
+            data: { likedBy: { connect: { id: id } } },
+          });
+          yield notification_service_1.NotificationService.createOneNotification({
+            aboutUserId: id,
+            notifiedUserId: foundPost.authorId,
+            message: ` have liked on your post`,
+            link: postId,
+            type: "NEW_LIKE",
+          });
+        } else {
+          yield prisma_1.default.userPost.update({
+            where: { id: postId },
+            data: { likedBy: { disconnect: { id: id } } },
+          });
+        }
+        res.status(201).send({ message: api_constant_1.successMessages.CREATED });
+      } catch (error) {
+        console.log("Error: ", error);
+        return res
+          .status(api_constant_1.errorCode.INTERNAL_SERVER)
+          .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+      }
+    });
+  }
+  voteOnPoll(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+      try {
+        const { pollId, selectedId } = req.body;
+        const { id } = res.locals.user;
+        if (!pollId || !selectedId)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        const foundPoll = yield userPost_service_1.UserPostService.getOnePoll({ id: pollId });
+        if (!foundPoll)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.NOT_FOUND });
+        const userIndex = foundPoll.selectedOptions.findIndex((user) => user.userId === id);
+        if (userIndex === -1) {
+          yield prisma_1.default.poll.update({
+            where: { id: pollId },
+            data: { selectedOptions: [...foundPoll.selectedOptions, { userId: id, selectedId }] },
+          });
+        } else {
+          foundPoll.selectedOptions[userIndex].selectedId = selectedId;
+          yield prisma_1.default.poll.update({
+            where: { id: pollId },
+            data: { selectedOptions: [...foundPoll.selectedOptions] },
+          });
+        }
+        res.status(201).send({ message: api_constant_1.successMessages.CREATED });
+      } catch (error) {
+        console.log("Error: ", error);
+        return res
+          .status(api_constant_1.errorCode.INTERNAL_SERVER)
+          .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+      }
+    });
+  }
+  update(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+      try {
+        const { postId, updates } = req.body;
+        if (!postId)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
+        if (!foundPost)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.NOT_FOUND });
+        yield userPost_service_1.UserPostService.updateOneUserPost({ id: postId }, updates);
+        res.status(201).send({ message: api_constant_1.successMessages.UPDATED });
+      } catch (error) {
+        console.log("Error: ", error);
+        return res
+          .status(api_constant_1.errorCode.INTERNAL_SERVER)
+          .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+      }
+    });
+  }
+  createOneUserPost(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+      try {
+        const body = req.body;
+        const { description, type, visibility, videoUrl, title, packages } = body;
+        const image = req.file;
+        const { id } = res.locals.user;
+        const payload = { authorId: id };
+        if (
+          !description ||
+          !id ||
+          !type ||
+          !visibility ||
+          (type === "IMAGE" && !image) ||
+          (type === "VIDEO" && !videoUrl)
+        )
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        if (type === "POLL") {
+          const { options } = req.body;
+          let redefinedOptions = options.map((ele) => {
+            return { id: (0, helper_lib_1.generateRandomAlpaNumberic)(5), optionText: ele };
+          });
+          const response = yield userPost_service_1.UserPostService.createPoll({
+            options: redefinedOptions,
+            selectedOptions: [],
+            authorId: id,
+            description,
+            title,
+          });
+          payload.pollId = response.id;
+        }
+        if (type === "IMAGE" && image)
+          if (image) payload.image = yield (0, s3upload_core_1.GetUploadedFile)(image);
+        const created = yield userPost_service_1.UserPostService.createOneUserPost(
+          Object.assign(Object.assign({}, payload), {
+            description,
+            type,
+            visibility,
+            videoUrl,
+            title,
+            packages: visibility === "PAID_MEMBER" ? packages : [],
+          }),
+        );
+        if (created.image)
+          created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
+        return res
+          .status(201)
+          .send({ message: api_constant_1.successMessages.CREATED, data: created });
+      } catch (error) {
+        console.error(error);
+        console.log("Error: ", error);
+        return res
+          .status(api_constant_1.errorCode.INTERNAL_SERVER)
+          .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+      }
+    });
+  }
+  commentOnPostByUser(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+      try {
+        const { description, authorId, userPostId } = req.body;
+        const { id } = res.locals.user;
+        if (!description || !authorId || !userPostId)
+          return res
+            .status(api_constant_1.errorCode.GENERIC)
+            .send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+        const created = yield userPost_service_1.UserPostService.createOneComment({
+          description,
+          authorId,
+          userPostId,
+        });
+        yield notification_service_1.NotificationService.createOneNotification({
+          aboutUserId: id,
+          notifiedUserId: authorId,
+          message: `${created.firstName + " " + created.lastName} have commented on your post`,
+          link: userPostId,
+          type: "NEW_COMMENT",
+        });
+        res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
+      } catch (error) {
+        console.log("Error: ", error);
+        return res
+          .status(api_constant_1.errorCode.INTERNAL_SERVER)
+          .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+      }
+    });
+  }
   delete(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
       try {

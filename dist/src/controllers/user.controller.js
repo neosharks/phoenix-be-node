@@ -38,6 +38,44 @@ class _UserController {
             }
         });
     }
+    getAllLinks(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { username } = req.params;
+                if (!username || typeof username !== "string")
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const found = yield user_service_1.UserService.getOneUser({ username });
+                if (!found)
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                const allLinks = yield user_service_1.UserService.getAllLinks({ id: found.id });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, allLinks });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    createLink(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { url, platform, highlight } = req.body;
+                const { id } = res.locals.user;
+                if (!url)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                yield user_service_1.UserService.createLink({ userId: id, url, platform, highlight });
+                return res.status(200).json({ message: api_constant_1.successMessages.CREATED });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
     getUserByUsername(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -174,8 +212,7 @@ class _UserController {
     creatorOnboard(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const id = res.locals.user.id;
-                const { username } = req.body;
+                const { id, username } = res.locals.user;
                 const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });

@@ -2,14 +2,18 @@ import prisma from "../../prisma";
 
 class _PaymentService {
   async getAllPaymentByProps(query: any) {
-    return await prisma.payment.findMany({ where: query });
+    try {
+      return await prisma.payment.findMany({ where: query });
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getOnePaymentByProps(query: any) {
     try {
       return await prisma.payment.findUnique({ where: query });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -27,7 +31,7 @@ class _PaymentService {
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -36,7 +40,7 @@ class _PaymentService {
     try {
       return await prisma.payment.update({ where: query, data: data });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

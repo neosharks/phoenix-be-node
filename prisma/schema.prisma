@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id                           String    @id @default(cuid())
+  id                           Int       @id @default(autoincrement())
   firstName                    String?
   lastName                     String?
   email                        String?   @unique
@@ -37,7 +37,7 @@ model User {
 
   password String?
 
-  referralUserId    String?
+  referralUserId    Int?
   referralTimeStamp DateTime?
   referralDevice    String?
 
@@ -57,25 +57,42 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Message        Message[]
-  participantOne Chat[]          @relation("participantOne")
-  participantTwo Chat[]          @relation("participantTwo")
-  aboutUser      Notification[]  @relation("aboutUser")
-  notifiedUser   Notification[]  @relation("notifiedUser")
-  Poll           Poll[]
-  creatorId      PatronCreator[] @relation("creatorId")
-  patronId       PatronCreator[] @relation("patronId")
-  Comment        PostComment[]
-  UserPostAuthor UserPost[]      @relation("userPostAuthor")
-  likedByUser    UserPost[]      @relation("likedByUser")
-  Payment        Payment[]
-  ClickStream    ClickStream[]
+  Message            Message[]
+  participantOne     Chat[]               @relation("participantOne")
+  participantTwo     Chat[]               @relation("participantTwo")
+  aboutUser          Notification[]       @relation("aboutUser")
+  notifiedUser       Notification[]       @relation("notifiedUser")
+  Poll               Poll[]
+  creatorId          PatronCreator[]      @relation("creatorId")
+  patronId           PatronCreator[]      @relation("patronId")
+  Comment            PostComment[]
+  UserPostAuthor     UserPost[]           @relation("userPostAuthor")
+  likedByUser        UserPost[]           @relation("likedByUser")
+  Payment            Payment[]
+  ClickStream        ClickStream[]
+  WalletTransactions WalletTransactions[]
+  referralUser       Referral[]           @relation("referralUser")
+  referralCreator    Referral[]           @relation("referralCreator")
+  AllLinks           AllLinks[]
 
   @@index([email, username, phoneNumber])
 }
 
+model Referral {
+  id        Int      @id @default(autoincrement())
+  creator   User     @relation("referralCreator", fields: [creatorId], references: [id])
+  creatorId Int
+  user      User     @relation("referralUser", fields: [userId], references: [id])
+  userId    Int
+  amount    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Payment   Payment? @relation(fields: [paymentId], references: [id])
+  paymentId Int?
+}
+
 model Tier {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   tierType    TIER_TYPE @default(GENERAL_SUPPORT)
   name        String
   description String
@@ -85,29 +102,29 @@ model Tier {
 }
 
 model Package {
-  id            String          @id @default(cuid())
+  id            Int             @id @default(autoincrement())
   tier          Tier[]
   name          PACKAGE_NAMES   @default(SUPPORT)
   price         Int
   description   String
   creator       User            @relation(fields: [creatorId], references: [id])
-  creatorId     String
+  creatorId     Int
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   PatronCreator PatronCreator[]
   UserPost      UserPost?       @relation(fields: [userPostId], references: [id])
-  userPostId    String?
+  userPostId    Int?
   Payment       Payment[]
 }
 
 model Message {
-  id          String       @id @default(cuid())
+  id          Int          @id @default(autoincrement())
   chat        Chat         @relation(fields: [chatId], references: [id])
   sender      User         @relation(fields: [senderId], references: [id])
   message     String
-  senderId    String
+  senderId    Int
   contentType MESSAGE_TYPE @default(TEXT)
-  chatId      String
+  chatId      Int
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -115,11 +132,11 @@ model Message {
 }
 
 model Chat {
-  id               String            @id @default(cuid())
+  id               Int               @id @default(autoincrement())
   participantOne   User              @relation("participantOne", fields: [participantOneId], references: [id])
   participantTwo   User              @relation("participantTwo", fields: [participantTwoId], references: [id])
-  participantOneId String
-  participantTwoId String
+  participantOneId Int
+  participantTwoId Int
   type             CONVERSATION_TYPE @default(ONE_TO_ONE)
   Message          Message[]
   unreadCount      Int               @default(0)
@@ -129,11 +146,11 @@ model Chat {
 }
 
 model Notification {
-  id             String       @id @default(cuid())
+  id             Int          @id @default(autoincrement())
   aboutUser      User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
   notifiedUser   User         @relation("notifiedUser", fields: [notifiedUserId], references: [id])
-  aboutUserId    String
-  notifiedUserId String
+  aboutUserId    Int
+  notifiedUserId Int
   message        String
   read           Boolean
   link           String?
@@ -145,13 +162,13 @@ model Notification {
 }
 
 model PatronCreator {
-  id        String                @id @default(cuid())
+  id        Int                   @id @default(autoincrement())
   patron    User                  @relation("patronId", fields: [patronId], references: [id])
-  patronId  String
+  patronId  Int
   creator   User                  @relation("creatorId", fields: [creatorId], references: [id])
-  creatorId String
+  creatorId Int
   package   Package?              @relation(fields: [packageId], references: [id])
-  packageId String?
+  packageId Int?
   type      SUBSCRIPTION_TYPE     @default(FREE)
   expiry    DateTime?
   status    PATRON_CREATOR_STATUS @default(PENDING)
@@ -160,9 +177,9 @@ model PatronCreator {
 }
 
 model UserPost {
-  id            String         @id @default(cuid())
+  id            Int            @id @default(autoincrement())
   author        User           @relation("userPostAuthor", fields: [authorId], references: [id])
-  authorId      String
+  authorId      Int
   type          USER_POST_TYPE @default(TEXT)
   comments      PostComment[]
   likedBy       User[]         @relation("likedByUser")
@@ -174,7 +191,7 @@ model UserPost {
   packages      Package[]
   allowComments Boolean        @default(true)
   poll          Poll?          @relation(fields: [pollId], references: [id])
-  pollId        String?
+  pollId        Int?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -182,20 +199,20 @@ model UserPost {
 }
 
 model PostComment {
-  id          String   @id @default(cuid())
+  id          Int      @id @default(autoincrement())
   author      User     @relation(fields: [authorId], references: [id])
-  authorId    String
+  authorId    Int
   description String
   post        UserPost @relation(fields: [userPostId], references: [id])
-  userPostId  String
+  userPostId  Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Poll {
-  id              String     @id @default(cuid())
+  id              Int        @id @default(autoincrement())
   author          User       @relation(fields: [authorId], references: [id])
-  authorId        String
+  authorId        Int
   options         Json[]
   selectedOptions Json[]
   image           String?
@@ -207,25 +224,61 @@ model Poll {
 }
 
 model Payment {
-  id        String         @id @default(cuid())
-  user      User           @relation(fields: [userId], references: [id])
-  userId    String
-  orderId   String         @unique
-  amount    Int            @default(0)
-  currency  CURRENCY       @default(INR)
-  status    PAYMENT_STATUS @default(CREATED)
-  package   Package        @relation(fields: [packageId], references: [id])
-  packageId String
+  id                 Int                  @id @default(autoincrement())
+  user               User                 @relation(fields: [userId], references: [id])
+  userId             Int
+  orderId            String               @unique
+  amount             Int                  @default(0)
+  currency           CURRENCY             @default(INR)
+  status             PAYMENT_STATUS       @default(CREATED)
+  package            Package              @relation(fields: [packageId], references: [id])
+  packageId          Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  WalletTransactions WalletTransactions[]
+  Referral           Referral[]
 
   @@index([orderId])
 }
 
 model ClickStream {
-  id     String  @id @default(cuid())
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String?
-  info   Json
-  type   String
+  id        Int      @id @default(autoincrement())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  info      Json?
+  type      String?
+  url       String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WalletTransactions {
+  id        Int           @id @default(autoincrement())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  source    WALLET_SOURCE
+  amount    Int
+  Payment   Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId Int?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model AllLinks {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  url       String
+  platform  String?
+  highlight Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WALLET_SOURCE {
+  REFERRAL
+  PURCHASE
 }
 
 enum CURRENCY {

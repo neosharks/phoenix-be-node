@@ -43,7 +43,7 @@ export const AssignTierAndLink = async (foundPackage: any, user: any) => {
           );
       }
     });
-  await PackageService.linkPatronCreator(user.id, foundPackage.userId, "PAID", foundPackage.id);
+  await PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", foundPackage.id);
 };
 
 class _PackageController {
@@ -58,7 +58,6 @@ class _PackageController {
       const found = await PackageService.getAllPackagesOfCreator({
         creatorId: foundUser.id,
       });
-      console.log(found);
       if (!found) return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {
@@ -205,30 +204,50 @@ class _PackageController {
 
   async buyPackage(req: Request, res: Response) {
     try {
-      const { packageId, orderID } = req.body;
-      if (!packageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      const { packageId, orderId } = req.body;
+      if (!packageId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const user = res.locals.user;
       const foundPackage = await PackageService.getOnePackage({ id: packageId });
-      if (!foundPackage) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPackage)
+        return res
+          .status(errorCode.NOT_FOUND)
+          .send({ message: errorMessage.NOT_FOUND, info: "Package not found" });
       const { tier, creatorId } = foundPackage;
       const tierUserPackage = await PackageService.getOnePackage({
         id: packageId,
-        userId: user.id,
+        creatorId: user.id,
       });
-      if (tierUserPackage) return res.status(400).send({ message: errorMessage.NOT_ALLOWED });
+      if (tierUserPackage)
+        return res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.NOT_ALLOWED, info: "Cannot buy own package" });
       const foundAlreadyPurchase = await PatronCreatorService.getFirst({
         patronId: user.id,
         creatorId,
         packageId: foundPackage.id,
       });
       if (foundAlreadyPurchase)
-        return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+        return res
+          .status(400)
+          .send({ message: errorMessage.REDUNDANT_REQUEST, info: "Package already purchased" });
 
       if (foundPackage.price !== 0) {
-        const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderID });
-        if (!foundPayment) return res.status(400).send({ message: errorMessage.NO_PAYMENT });
+        if (!orderId)
+          return res.status(errorCode.GENERIC).send({
+            message: errorMessage.MISSING_PARAMS,
+            info: "Missing orderId for paid purchase",
+          });
+        const foundPayment = await PaymentService.getOnePaymentByProps({ status: "PAID", orderId });
+        if (!foundPayment)
+          return res.status(400).send({
+            message: errorMessage.NO_PAYMENT,
+            info: "Payment not found for this purchase",
+          });
         if (foundPayment.userId !== user.id || foundPayment.packageId !== packageId)
-          return res.status(400).send({ message: errorMessage.DATA_MISMATCH });
+          return res
+            .status(400)
+            .send({ message: errorMessage.DATA_MISMATCH, info: "Data mismatch for the purchase" });
       }
 
       tier &&
@@ -296,10 +315,10 @@ class _PackageController {
   async createManyTier(req: Request, res: Response) {
     try {
       const { tiers } = req.body;
-      const validation = updatePackageSchema.validate(tiers);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
+      if (!tiers || tiers.length < 1)
+        res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.MISSING_PARAMS, info: "Provide tiers" });
       tiers.map(async (ele: any) => {
         await PackageService.createOneTier(ele);
       });

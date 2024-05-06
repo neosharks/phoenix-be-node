@@ -45,7 +45,11 @@ packageRoutes.post(
   PackageController.createOneTier,
 );
 
-packageRoutes.post("/createManyTier", PackageController.createManyTier);
+packageRoutes.post(
+  "/createManyTier",
+  checkRoleAuth([userRole.ADMIN]),
+  PackageController.createManyTier,
+);
 
 packageRoutes.get("/getAllTiers", checkRoleAuth(), PackageController.getAllTiers);
 

@@ -22,8 +22,9 @@ class _CommonController {
     clickStream(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const ip = req.ip;
                 const { userId, type, info } = req.body;
-                const payload = { type, info };
+                const payload = { type, info, ipAddress: ip };
                 if (userId) {
                     const foundUser = yield user_service_1.UserService.getOneUser({ id: userId });
                     if (!foundUser)

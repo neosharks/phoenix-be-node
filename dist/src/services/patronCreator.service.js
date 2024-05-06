@@ -17,44 +17,59 @@ const prisma_1 = __importDefault(require("../../prisma"));
 class _PatronCreatorService {
     getFirst(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findFirst({ where: query });
+            try {
+                return yield prisma_1.default.patronCreator.findFirst({ where: query });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getOne(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findUnique({ where: query });
+            try {
+                return yield prisma_1.default.patronCreator.findUnique({ where: query });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     getAll(query) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findMany({
-                where: query,
-                include: {
-                    package: true,
-                    creator: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            industry: true,
+            try {
+                return yield prisma_1.default.patronCreator.findMany({
+                    where: query,
+                    include: {
+                        package: true,
+                        creator: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                industry: true,
+                            },
+                        },
+                        patron: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                industry: true,
+                            },
                         },
                     },
-                    patron: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            profileImage: true,
-                            email: true,
-                            username: true,
-                            industry: true,
-                        },
-                    },
-                },
-            });
+                });
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
 }

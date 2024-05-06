@@ -21,7 +21,7 @@ class _PackageService {
                 return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -32,7 +32,7 @@ class _PackageService {
                 return yield prisma_1.default.package.findUnique({ where: query, include: { tier: true } });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -56,7 +56,7 @@ class _PackageService {
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -67,7 +67,7 @@ class _PackageService {
                 return yield prisma_1.default.package.update({ where: props, data: dataValues });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -79,7 +79,7 @@ class _PackageService {
                 return yield prisma_1.default.tier.findMany({});
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -90,7 +90,7 @@ class _PackageService {
                 return yield prisma_1.default.tier.create({ data: data });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -113,7 +113,7 @@ class _PackageService {
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });
@@ -131,7 +131,7 @@ class _PackageService {
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 throw error;
             }
         });

@@ -43,7 +43,7 @@ class _AuthController {
       body.password = hash;
       body.username = body.email.split("@")[0];
       const randomNum = (Math.random() * 25) | 1;
-      const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+      const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
       const created = await UserService.createOneUser(
         isCreator
           ? { ...body, profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }
@@ -74,8 +74,6 @@ class _AuthController {
       }
       const foundUser = await UserService.getOneUser({ email: body.email });
       if (!foundUser) return res.status(403).json({ message: errorMessage.NOT_FOUND });
-      // if (foundUser.status !== "ACTIVE")
-      //   return res.status(403).json({ message: errorMessage.USER_BLOCKED });
       let isMatch = false;
       if (foundUser.password) isMatch = await bcrypt.compareSync(body.password, foundUser.password);
       if (!foundUser.password)
@@ -121,10 +119,6 @@ class _AuthController {
           const fiveMinutesAgo = new Date();
           fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
           const dateVC = new Date(verificationCodeTimestamp);
-          // if (dateVC < fiveMinutesAgo)
-          //   return res
-          //     .status(errorCode.GENERIC)
-          //     .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
         }
         await UserService.updateOneUser(
           { phoneNumber: number },
@@ -140,7 +134,7 @@ class _AuthController {
         }
         const username = generateRandomUsername();
         const randomNum = (Math.random() * 25) | 1;
-        const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
+        const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
         await UserService.createOneUser({
           username,
           phoneNumber: number,
@@ -402,8 +396,8 @@ class _AuthController {
       let foundUser = await UserService.getOneUser({ email });
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
-        const profileImage = `https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_${randomNum}.jpg`;
-        const user = {
+        const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
+        const user: any = {
           googleAuthId: sub,
           email: email,
           firstName: given_name,
