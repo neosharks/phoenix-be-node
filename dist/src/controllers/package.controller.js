@@ -82,8 +82,9 @@ class _PackageController {
     getOnePackage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { id } = req.query;
-                const found = yield package_service_1.PackageService.getOnePackage({ id });
+                const id = req.query.id;
+                const parsedId = parseInt(id);
+                const found = yield package_service_1.PackageService.getOnePackage({ id: parsedId });
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
