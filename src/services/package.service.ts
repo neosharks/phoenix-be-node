@@ -1,7 +1,7 @@
 import prisma from "../../prisma";
 
 class _PackageService {
-  async getAllPackagesOfCreator(query: any, skip: any = 0) {
+  async getAllPackagesOfCreator(query: any, skip: number, take: number) {
     try {
       return await prisma.package.findMany({
         where: {
@@ -11,7 +11,7 @@ class _PackageService {
         },
         include: { tier: true },
         skip,
-        take: 10,
+        take,
       });
     } catch (error) {
       console.error(error);

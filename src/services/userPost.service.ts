@@ -2,7 +2,7 @@ import { skip } from "node:test";
 import prisma from "../../prisma";
 
 class _UserPostService {
-  async getAllUserPostByUser(query: any, skip?: any, take?: any) {
+  async getAllUserPostByUser(query: any, skip: any, take: any) {
     try {
       return await prisma.userPost.findMany({
         where: query,

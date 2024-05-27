@@ -2,7 +2,7 @@ import prisma from "../../prisma";
 import logger from "../core/logger.core";
 
 class _InsightService {
-  async getAllPackagesOfCreator(query: any, skip: any = 0) {
+  async getAllPackagesOfCreator(query: any, skip: number, take: number) {
     try {
       return await prisma.patronCreator.findMany({
         where: query,
@@ -12,7 +12,7 @@ class _InsightService {
           },
         ],
         skip,
-        take: 10,
+        take,
       });
     } catch (error) {
       console.error(error);

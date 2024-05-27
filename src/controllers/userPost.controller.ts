@@ -15,14 +15,20 @@ class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
     try {
       const { author } = req.query;
+      const skip = req.query.page || 0;
+      const take = req.query.pageSize || 10;
       if (!author)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      let returnPosts = await UserPostService.getAllUserPostByUser({
-        authorId: foundUser.id,
-      });
+      let returnPosts = await UserPostService.getAllUserPostByUser(
+        {
+          authorId: foundUser.id,
+        },
+        Number(skip),
+        Number(take),
+      );
 
       if (!returnPosts) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (returnPosts.length > 0) {
@@ -50,7 +56,7 @@ class _UserPostController {
       const { id } = res.locals.user;
       let returnPosts: any = [];
       const skip = req.query.page || 0;
-      const take = req.query.setPage || 10;
+      const take = req.query.pageSize || 10;
       const foundPatronCreator = await PatronCreatorService.getAll(
         { patronId: id },
         Number(skip),
@@ -59,9 +65,13 @@ class _UserPostController {
 
       for (let i = 0; i < foundPatronCreator.length; i++) {
         const ele = foundPatronCreator[i];
-        const allPostsByUser = await UserPostService.getAllUserPostByUser({
-          authorId: ele.creatorId,
-        });
+        const allPostsByUser = await UserPostService.getAllUserPostByUser(
+          {
+            authorId: ele.creatorId,
+          },
+          Number(skip),
+          Number(take),
+        );
         returnPosts = [...returnPosts, ...allPostsByUser];
       }
       const allUserPosts = await UserPostService.getAllUserPostByUser(

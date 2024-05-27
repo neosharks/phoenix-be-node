@@ -29,7 +29,7 @@ class _UserService {
     }
   }
 
-  async getAllUserByParams(query: any, skip?: any, take?: any) {
+  async getAllUserByParams(query: any, skip: any, take: any) {
     try {
       return await prisma.user.findMany({
         where: query,

@@ -50,14 +50,19 @@ class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      const skip = Number(req.query.page) || 0;
+      const skip = req.query.page || 0;
+      const take = req.query.pageSize || 10;
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.USER_NOT_FOUND });
-      const found = await PackageService.getAllPackagesOfCreator({
-        creatorId: foundUser.id,
-      });
+      const found = await PackageService.getAllPackagesOfCreator(
+        {
+          creatorId: foundUser.id,
+        },
+        Number(skip),
+        Number(take),
+      );
       if (!found) return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {

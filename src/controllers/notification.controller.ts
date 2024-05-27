@@ -8,11 +8,13 @@ class _NotificationController {
     try {
       const { id } = res.locals.user;
       const skip = req.query.page || 0;
+      const take = req.query.pageSize || 10;
       const allNotifications = await NotificationService.getAllNotificationOfUser(
         {
           notifiedUserId: id,
         },
         Number(skip),
+        Number(take),
       );
       return res.status(200).send({ message: successMessages.FETCHED, data: allNotifications });
     } catch (error) {

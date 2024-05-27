@@ -37,7 +37,7 @@ class _ChatController {
   async getAllChatsByUser(req: Request, res: Response) {
     try {
       const skip = req.query.page || 0;
-      const take = req.query.setPage || 10;
+      const take = req.query.pageSize || 10;
       const { id } = res.locals.user;
       const foundChat = await ChatService.getAllChat(
         {

@@ -18,7 +18,7 @@ class _PatronCreatorService {
     }
   }
 
-  async getAll(query: any, skip?: any, take?: any) {
+  async getAll(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.patronCreator.findMany({
         where: query,
