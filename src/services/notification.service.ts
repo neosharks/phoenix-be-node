@@ -3,7 +3,7 @@ import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
 
 class _NotificationService {
-  async getAllNotificationOfUser(query: any, skip: number, take: number) {
+  async getAllNotificationOfUser(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.notification.findMany({
         where: query,

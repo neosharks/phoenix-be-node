@@ -78,13 +78,9 @@ class _UserController {
   async getAllCreator(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const skip = req.query.page || 0;
-      const take = req.query.pageSize || 10;
-      let found = await UserService.getAllUserByParams(
-        { isCreator: true },
-        Number(skip),
-        Number(take),
-      );
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      let found = await UserService.getAllUserByParams({ isCreator: true }, skip, take);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       found = found.filter((ele) => ele.id !== id);
       if (found.length > 0) {

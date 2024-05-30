@@ -36,15 +36,15 @@ class _ChatController {
 
   async getAllChatsByUser(req: Request, res: Response) {
     try {
-      const skip = req.query.page || 0;
-      const take = req.query.pageSize || 10;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       const { id } = res.locals.user;
       const foundChat = await ChatService.getAllChat(
         {
           OR: [{ participantOneId: id }, { participantTwoId: id }],
         },
-        Number(skip),
-        Number(take),
+        skip,
+        take,
       );
       const finalData: any = [];
       for (let i = 0; i < foundChat.length; i++) {
@@ -72,9 +72,9 @@ class _ChatController {
 
   async getAllSearchableUsers(req: Request, res: Response) {
     try {
-      const skip = req.query.page || 0;
-      const take = req.query.setPage || 10;
-      const allUser = await UserService.getAllUser(Number(skip), Number(take));
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      const allUser = await UserService.getAllUser(skip, take);
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
       console.log("ERROR: ", error);

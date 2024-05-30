@@ -8,7 +8,8 @@ class _InsightController {
   async get(req: Request, res: Response) {
     try {
       const { id, isCreator } = res.locals.user;
-      const skip = req.query.page || 0;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       if (!isCreator)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.NOT_ALLOWED });
 
@@ -18,7 +19,8 @@ class _InsightController {
         {
           creatorId: id,
         },
-        Number(skip),
+        skip,
+        take,
       );
 
       let obj: any = {};

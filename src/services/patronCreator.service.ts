@@ -1,4 +1,3 @@
-import { skip } from "node:test";
 import prisma from "../../prisma";
 
 class _PatronCreatorService {

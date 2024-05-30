@@ -29,7 +29,7 @@ class _UserService {
     }
   }
 
-  async getAllUserByParams(query: any, skip: any, take: any) {
+  async getAllUserByParams(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.user.findMany({
         where: query,
@@ -52,7 +52,7 @@ class _UserService {
     }
   }
 
-  async getAllUser(skip?: any, take?: any) {
+  async getAllUser(skip: number = 0, take: number = 10) {
     try {
       return await prisma.user.findMany({
         select: {
