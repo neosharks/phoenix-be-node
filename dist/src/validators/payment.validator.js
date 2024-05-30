@@ -23,34 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePackageSchema = exports.packageSchema = void 0;
+exports.paymentSchema = void 0;
 const Joi = __importStar(require("joi"));
-var PACKAGE_NAMES;
-(function (PACKAGE_NAMES) {
-    PACKAGE_NAMES["SUPPORT"] = "SUPPORT";
-    PACKAGE_NAMES["BRONZE"] = "BRONZE";
-    PACKAGE_NAMES["SILVER"] = "SILVER";
-    PACKAGE_NAMES["GOLD"] = "GOLD";
-    PACKAGE_NAMES["PLATINUM"] = "PLATINUM";
-    PACKAGE_NAMES["RUBY"] = "RUBY";
-})(PACKAGE_NAMES || (PACKAGE_NAMES = {}));
-exports.packageSchema = Joi.object({
-    patronId: Joi.string(),
-    creatorId: Joi.string(),
-    name: Joi.string().valid(...Object.values(PACKAGE_NAMES)),
-    description: Joi.string(),
-    postId: Joi.string(),
-    userId: Joi.string(),
-    createdAt: Joi.date().iso(),
-    updatedAt: Joi.date().iso(),
-    username: Joi.string(),
-    tiers: Joi.array().items(Joi.string()),
-    role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),
-    tierType: Joi.string(),
-});
-exports.updatePackageSchema = Joi.object({
-    tier: Joi.array().items(Joi.string().required()),
-    name: Joi.string().valid(...Object.values(PACKAGE_NAMES)),
-    price: Joi.number().integer().min(0),
-    description: Joi.string(),
+exports.paymentSchema = Joi.object({
+    orderId: Joi.string(),
+    packageId: Joi.string(),
 });

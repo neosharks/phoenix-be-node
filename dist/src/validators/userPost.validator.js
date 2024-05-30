@@ -23,36 +23,32 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginViaNumberSchema = exports.verifyForgetPasswordSchema = exports.forgetPasswordSchema = exports.resetPasswordSchema = exports.sendOtpSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.userPostSchema = void 0;
 const Joi = __importStar(require("joi"));
-exports.registerSchema = Joi.object({
+exports.userPostSchema = Joi.object({
+    authorId: Joi.string(),
+    type: Joi.string().valid("TEXT", "FREE"),
+    visibility: Joi.string().valid("EVERYONE"),
+    allowComments: Joi.boolean(),
+    createdAt: Joi.date().iso(),
+    updatedAt: Joi.date().iso(),
+    pollId: Joi.string(),
+    email: Joi.string().email().lowercase(),
     firstName: Joi.string().min(1),
     lastName: Joi.string().min(1),
-    email: Joi.string().email().lowercase().required(),
-    password: Joi.string().min(4).required(),
-});
-exports.loginSchema = Joi.object({
-    email: Joi.string().email().lowercase(),
-    password: Joi.string().min(4).required(),
-});
-exports.sendOtpSchema = Joi.object({
-    number: Joi.string(),
-    referralUsername: Joi.string(),
-});
-exports.resetPasswordSchema = Joi.object({
-    oldPassword: Joi.string().min(4),
-    newPassword: Joi.string().min(4),
-});
-exports.forgetPasswordSchema = Joi.object({
-    email: Joi.string().email().lowercase().required(),
-});
-exports.verifyForgetPasswordSchema = Joi.object({
-    email: Joi.string().email().lowercase().required(),
-    code: Joi.number(),
-    password: Joi.string().min(4),
-});
-exports.loginViaNumberSchema = Joi.object({
-    number: Joi.string(),
+    username: Joi.string(),
     phoneNumber: Joi.string(),
-    otp: Joi.string().min(4),
+    countryCode: Joi.string(),
+    profileImage: Joi.string().uri(),
+    coverImage: Joi.string().uri(),
+    isCreator: Joi.boolean(),
+    gender: Joi.string().valid("MALE", "FEMALE", "OTHER"),
+    role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),
+    description: Joi.string(),
+    options: Joi.string(),
+    selectedOptions: Joi.string(),
+    title: Joi.string(),
+    videoUrl: Joi.string(),
+    packages: Joi.array().items(Joi.string()),
+    userPostId: Joi.string(),
 });

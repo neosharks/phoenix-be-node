@@ -59,6 +59,8 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { username } = req.params;
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
                 if (!username)
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username });
@@ -66,7 +68,7 @@ class _PackageController {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
                 const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                     creatorId: foundUser.id,
-                });
+                }, skip, take);
                 if (!found)
                     return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, packages: found });
@@ -132,13 +134,16 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { username } = req.params;
-                if (!username)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                if (!username) {
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS }); // Proper error handling for missing username
+                }
                 const found = yield patronCreator_service_1.PatronCreatorService.getAll({
                     patron: {
                         username: username,
                     },
-                });
+                }, skip, take);
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
@@ -155,13 +160,15 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { username } = req.params;
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
                 if (!username)
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const found = yield patronCreator_service_1.PatronCreatorService.getAll({
                     creator: {
                         username: username,
                     },
-                });
+                }, skip, take);
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
@@ -198,7 +205,7 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const postId = req.body.id;
-                const validation = package_validator_1.updatePackageSchema.validate(req.body, { stripUnknown: true });
+                const validation = package_validator_1.packageSchema.validate(req.body, { stripUnknown: true });
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -307,6 +314,10 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
+                const validation = package_validator_1.updatePackageSchema.validate(body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 yield package_service_1.PackageService.createOneTier(body);
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -342,7 +353,9 @@ class _PackageController {
     getAllTiers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const tiers = yield package_service_1.PackageService.getAllTiers();
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                const tiers = yield package_service_1.PackageService.getAllTiers(skip, take);
                 res.status(201).send({ message: api_constant_1.successMessages.FETCHED, tiers: tiers });
             }
             catch (error) {

@@ -53,7 +53,7 @@ class _ChatService {
             }
         });
     }
-    getAllChat(query) {
+    getAllChat(query, skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.chat.findMany({
@@ -82,6 +82,8 @@ class _ChatService {
                             },
                         },
                     },
+                    skip,
+                    take,
                 });
             }
             catch (error) {

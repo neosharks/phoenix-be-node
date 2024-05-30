@@ -20,6 +20,7 @@ const package_service_1 = require("../services/package.service");
 const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const payment_service_1 = require("../services/payment.service");
+const payment_validator_1 = require("../validators/payment.validator");
 const package_controller_1 = require("./package.controller");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
@@ -36,6 +37,10 @@ class _PaymentController {
     order(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { packageId } = req.body;
+            const validation = payment_validator_1.paymentSchema.validate(packageId);
+            if (validation.error) {
+                return res.status(400).json({ error: validation.error.details[0].message });
+            }
             const user = res.locals.user;
             if (!packageId)
                 return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -92,6 +97,10 @@ class _PaymentController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { orderId } = req.body;
+                const validation = payment_validator_1.paymentSchema.validate(orderId);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!orderId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const url = `${config_1.default.payment.cashfree.url}/orders/${orderId}`;

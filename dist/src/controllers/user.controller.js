@@ -103,7 +103,9 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = res.locals.user;
-                let found = yield user_service_1.UserService.getAllUserByParams({ isCreator: true });
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                let found = yield user_service_1.UserService.getAllUserByParams({ isCreator: true }, skip, take);
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 found = found.filter((ele) => ele.id !== id);

@@ -23,36 +23,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginViaNumberSchema = exports.verifyForgetPasswordSchema = exports.forgetPasswordSchema = exports.resetPasswordSchema = exports.sendOtpSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.chatSchema = void 0;
 const Joi = __importStar(require("joi"));
-exports.registerSchema = Joi.object({
+exports.chatSchema = Joi.object({
+    chatId: Joi.string(),
+    senderId: Joi.string(),
     firstName: Joi.string().min(1),
     lastName: Joi.string().min(1),
-    email: Joi.string().email().lowercase().required(),
-    password: Joi.string().min(4).required(),
-});
-exports.loginSchema = Joi.object({
+    profileImage: Joi.string().uri(),
     email: Joi.string().email().lowercase(),
-    password: Joi.string().min(4).required(),
-});
-exports.sendOtpSchema = Joi.object({
-    number: Joi.string(),
-    referralUsername: Joi.string(),
-});
-exports.resetPasswordSchema = Joi.object({
-    oldPassword: Joi.string().min(4),
-    newPassword: Joi.string().min(4),
-});
-exports.forgetPasswordSchema = Joi.object({
-    email: Joi.string().email().lowercase().required(),
-});
-exports.verifyForgetPasswordSchema = Joi.object({
-    email: Joi.string().email().lowercase().required(),
-    code: Joi.number(),
-    password: Joi.string().min(4),
-});
-exports.loginViaNumberSchema = Joi.object({
-    number: Joi.string(),
-    phoneNumber: Joi.string(),
-    otp: Joi.string().min(4),
+    username: Joi.string(),
+    role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),
+    createdAt: Joi.date().iso(),
+    updatedAt: Joi.date().iso(),
+    unreadCount: Joi.number().integer(),
+    pendingAllowed: Joi.string(),
+    message: Joi.string(),
+    contentType: Joi.string(),
+    type: Joi.string().valid("ONE_TO_ONE"),
+    participants: Joi.array().items(Joi.string()),
+    participantOne: Joi.string(),
+    participantTwo: Joi.string(),
 });

@@ -15,10 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 class _PackageService {
-    getAllPackagesOfCreator(query) {
+    getAllPackagesOfCreator(query, skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.package.findMany({ where: query, include: { tier: true } });
+                return yield prisma_1.default.package.findMany({
+                    where: {
+                        creator: {
+                            username: query.username,
+                        },
+                    },
+                    include: { tier: true },
+                    skip,
+                    take,
+                });
             }
             catch (error) {
                 console.error(error);
@@ -73,10 +82,13 @@ class _PackageService {
         });
     }
     //------------------------
-    getAllTiers() {
+    getAllTiers(skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.tier.findMany({});
+                return yield prisma_1.default.tier.findMany({
+                    skip,
+                    take,
+                });
             }
             catch (error) {
                 console.error(error);

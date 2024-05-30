@@ -16,7 +16,7 @@ exports.NotificationService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
 class _NotificationService {
-    getAllNotificationOfUser(query, skip = 0) {
+    getAllNotificationOfUser(query, skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.notification.findMany({
@@ -31,7 +31,8 @@ class _NotificationService {
                             },
                         },
                     },
-                    skip, take: 10
+                    skip,
+                    take,
                 });
             }
             catch (error) {

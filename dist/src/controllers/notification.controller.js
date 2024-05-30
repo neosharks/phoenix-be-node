@@ -17,10 +17,11 @@ class _NotificationController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = res.locals.user;
-                const skip = req.query.page || 0;
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
                 const allNotifications = yield notification_service_1.NotificationService.getAllNotificationOfUser({
                     notifiedUserId: id,
-                }, Number(skip));
+                }, skip, take);
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allNotifications });
             }
             catch (error) {

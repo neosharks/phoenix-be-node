@@ -49,7 +49,7 @@ class _UserService {
             }
         });
     }
-    getAllUserByParams(query) {
+    getAllUserByParams(query, skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.user.findMany({
@@ -65,6 +65,8 @@ class _UserService {
                         industry: true,
                         coverImage: true,
                     },
+                    skip,
+                    take,
                 });
             }
             catch (error) {
@@ -72,7 +74,7 @@ class _UserService {
             }
         });
     }
-    getAllUser() {
+    getAllUser(skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.user.findMany({
@@ -86,6 +88,8 @@ class _UserService {
                         phoneNumber: true,
                         role: true,
                     },
+                    skip,
+                    take,
                 });
             }
             catch (error) {

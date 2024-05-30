@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 class _UserPostService {
-    getAllUserPostByUser(query) {
+    getAllUserPostByUser(query, skip = 0, take = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.userPost.findMany({
@@ -64,6 +64,8 @@ class _UserPostService {
                             },
                         },
                     },
+                    skip,
+                    take,
                 });
             }
             catch (error) {
