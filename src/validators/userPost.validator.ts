@@ -8,8 +8,6 @@ export const userPostSchema = Joi.object({
   type: Joi.string().valid("TEXT", "FREE"),
   visibility: Joi.string().valid("EVERYONE"),
   allowComments: Joi.boolean(),
-  createdAt: Joi.date().iso(),
-  updatedAt: Joi.date().iso(),
   email: Joi.string().email().lowercase(),
   firstName: Joi.string().min(1),
   lastName: Joi.string().min(1),

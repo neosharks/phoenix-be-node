@@ -2,12 +2,14 @@ import * as Joi from "joi";
 
 export const userUpdateSchema = Joi.object({
   email: Joi.string().email().lowercase(),
+  postId: Joi.number(),
   firstName: Joi.string().min(1),
   lastName: Joi.string().min(1),
   password: Joi.string().min(4),
   phoneNumber: Joi.number().min(10),
   whatsappNumber: Joi.number().min(10),
   countryCode: Joi.string(),
+  username: Joi.string(),
   profileImage: Joi.string().uri(),
   coverImage: Joi.string().uri(),
   isCreator: Joi.boolean(),
@@ -78,6 +80,4 @@ export const userUpdateSchema = Joi.object({
   verificationCode: Joi.number().integer(),
   verificationCodeTimestamp: Joi.date().iso(),
   verificationCodeSource: Joi.string().valid("WHATSAPP", "SMS", "EMAIL"),
-  createdAt: Joi.date().iso(),
-  updatedAt: Joi.date().iso(),
 });
