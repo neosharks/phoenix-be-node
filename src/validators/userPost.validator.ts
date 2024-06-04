@@ -1,13 +1,15 @@
 import * as Joi from "joi";
 
 export const userPostSchema = Joi.object({
-  authorId: Joi.string(),
+  pollId: Joi.number(),
+  postId: Joi.number(),
+  selectedId: Joi.number(),
+  authorId: Joi.number(),
   type: Joi.string().valid("TEXT", "FREE"),
   visibility: Joi.string().valid("EVERYONE"),
   allowComments: Joi.boolean(),
   createdAt: Joi.date().iso(),
   updatedAt: Joi.date().iso(),
-  pollId: Joi.string(),
   email: Joi.string().email().lowercase(),
   firstName: Joi.string().min(1),
   lastName: Joi.string().min(1),
@@ -25,5 +27,5 @@ export const userPostSchema = Joi.object({
   title: Joi.string(),
   videoUrl: Joi.string(),
   packages: Joi.array().items(Joi.string()),
-  userPostId: Joi.string(),
+  userPostId: Joi.number(),
 });

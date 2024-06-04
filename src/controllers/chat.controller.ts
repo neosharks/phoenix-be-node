@@ -12,7 +12,7 @@ class _ChatController {
   async createChat(req: Request, res: Response) {
     try {
       const { participants } = req.body;
-      const validation = chatSchema.validate({ participants });
+      const validation = chatSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -87,7 +87,7 @@ class _ChatController {
   async createMessage(req: Request, res: Response) {
     try {
       const { chatId, senderId, message, contentType } = req.body;
-      const validation = chatSchema.validate({ chatId, senderId, message, contentType });
+      const validation = chatSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }

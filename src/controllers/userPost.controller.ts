@@ -118,7 +118,7 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      const validation = userPostSchema.validate(postId);
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -159,7 +159,7 @@ class _UserPostController {
     try {
       const { pollId, selectedId } = req.body;
       const { id } = res.locals.user;
-      const validation = userPostSchema.validate({ pollId, selectedId });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -193,7 +193,7 @@ class _UserPostController {
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
-      const validation = userPostSchema.validate({ postId, updates });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -280,7 +280,7 @@ class _UserPostController {
   async commentOnPostByUser(req: any, res: Response) {
     try {
       const { description, authorId, userPostId } = req.body;
-      const validation = userPostSchema.validate({ description, authorId, userPostId });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
