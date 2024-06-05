@@ -20,7 +20,7 @@ class _ChatController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { participants } = req.body;
-                const validation = chat_validator_1.chatSchema.validate({ participants });
+                const validation = chat_validator_1.chatSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -96,7 +96,7 @@ class _ChatController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { chatId, senderId, message, contentType } = req.body;
-                const validation = chat_validator_1.chatSchema.validate({ chatId, senderId, message, contentType });
+                const validation = chat_validator_1.chatSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }

@@ -26,6 +26,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.paymentSchema = void 0;
 const Joi = __importStar(require("joi"));
 exports.paymentSchema = Joi.object({
-    orderId: Joi.string(),
-    packageId: Joi.string(),
+    orderId: Joi.number(),
+    packageId: Joi.number(),
 });
