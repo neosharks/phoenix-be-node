@@ -72,6 +72,18 @@ class _UserPostController {
       }
       const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
       returnPosts = [...returnPosts, ...allUserPosts];
+
+      // Remove duplicate posts
+      const seenPostIds = new Set();
+      returnPosts = returnPosts.filter((post: any) => {
+        if (seenPostIds.has(post.id)) {
+          return false;
+        } else {
+          seenPostIds.add(post.id);
+          return true;
+        }
+      });
+
       if (returnPosts.length === 0)
         return res.status(200).send({ message: errorMessage.NOT_FOUND });
       returnPosts = returnPosts.sort(function (a: any, b: any) {
