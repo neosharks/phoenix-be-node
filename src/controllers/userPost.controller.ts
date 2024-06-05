@@ -227,13 +227,8 @@ class _UserPostController {
   async createOneUserPost(req: any, res: Response) {
     try {
       const body = req.body;
-      const validation = userPostSchema.validate(body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
-
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -308,7 +303,7 @@ class _UserPostController {
         aboutUserId: id,
         notifiedUserId: authorId,
         message: `${created.firstName + " " + created.lastName} have commented on your post`,
-        link: userPostId,
+        link: String(userPostId),
         type: "NEW_COMMENT",
       });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });

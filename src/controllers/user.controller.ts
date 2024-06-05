@@ -194,6 +194,10 @@ class _UserController {
         isCreator: true,
         role: ["CREATOR", ...foundUser.role],
       };
+      console.log(foundUser, "helooo");
+      console.log(foundUsername, "helooo");
+      console.log(updatedBody, "helooo");
+
       await UserService.updateOneUser({ id }, updatedBody);
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
