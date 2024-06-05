@@ -135,7 +135,7 @@ class _UserController {
 
   async update(req: Request, res: Response) {
     try {
-      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
+      const validation = userUpdateSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -177,7 +177,7 @@ class _UserController {
   async creatorOnboard(req: Request, res: Response) {
     try {
       const { id, username } = res.locals.user;
-      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
+      const validation = userUpdateSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -194,6 +194,10 @@ class _UserController {
         isCreator: true,
         role: ["CREATOR", ...foundUser.role],
       };
+      console.log(foundUser, "helooo");
+      console.log(foundUsername, "helooo");
+      console.log(updatedBody, "helooo");
+
       await UserService.updateOneUser({ id }, updatedBody);
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {

@@ -9,14 +9,12 @@ enum PACKAGE_NAMES {
   RUBY = "RUBY",
 }
 export const packageSchema = Joi.object({
-  patronId: Joi.string(),
-  creatorId: Joi.string(),
+  patronId: Joi.number(),
+  creatorId: Joi.number(),
   name: Joi.string().valid(...Object.values(PACKAGE_NAMES)),
   description: Joi.string(),
-  postId: Joi.string(),
-  userId: Joi.string(),
-  createdAt: Joi.date().iso(),
-  updatedAt: Joi.date().iso(),
+  postId: Joi.number(),
+  userId: Joi.number(),
   username: Joi.string(),
   tiers: Joi.array().items(Joi.string()),
   role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),

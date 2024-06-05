@@ -72,6 +72,18 @@ class _UserPostController {
       }
       const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
       returnPosts = [...returnPosts, ...allUserPosts];
+
+      // Remove duplicate posts
+      const seenPostIds = new Set();
+      returnPosts = returnPosts.filter((post: any) => {
+        if (seenPostIds.has(post.id)) {
+          return false;
+        } else {
+          seenPostIds.add(post.id);
+          return true;
+        }
+      });
+
       if (returnPosts.length === 0)
         return res.status(200).send({ message: errorMessage.NOT_FOUND });
       returnPosts = returnPosts.sort(function (a: any, b: any) {
@@ -118,7 +130,7 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      const validation = userPostSchema.validate(postId);
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -159,7 +171,7 @@ class _UserPostController {
     try {
       const { pollId, selectedId } = req.body;
       const { id } = res.locals.user;
-      const validation = userPostSchema.validate({ pollId, selectedId });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -193,7 +205,7 @@ class _UserPostController {
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
-      const validation = userPostSchema.validate({ postId, updates });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -215,13 +227,8 @@ class _UserPostController {
   async createOneUserPost(req: any, res: Response) {
     try {
       const body = req.body;
-      const validation = userPostSchema.validate(body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
-
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -280,7 +287,7 @@ class _UserPostController {
   async commentOnPostByUser(req: any, res: Response) {
     try {
       const { description, authorId, userPostId } = req.body;
-      const validation = userPostSchema.validate({ description, authorId, userPostId });
+      const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -296,7 +303,7 @@ class _UserPostController {
         aboutUserId: id,
         notifiedUserId: authorId,
         message: `${created.firstName + " " + created.lastName} have commented on your post`,
-        link: userPostId,
+        link: String(userPostId),
         type: "NEW_COMMENT",
       });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });
