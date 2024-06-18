@@ -181,22 +181,34 @@ class _UserController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
+
       const foundUser = await UserService.getOneUser({ id });
-      if (!foundUser) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      if (foundUser.role.includes("CREATOR"))
+      if (!foundUser) {
+        return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      }
+
+      if (foundUser.role.includes("CREATOR")) {
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+      }
+
       const foundUsername = await UserService.getOneUser({ username });
-      if (foundUsername && foundUsername.id !== id)
+      if (foundUsername && foundUsername.id !== id) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_USERNAME });
+      }
+
+      // Ensure email uniqueness check before update
+      if (req.body.email) {
+        const existingUserWithEmail = await UserService.getOneUser({ email: req.body.email });
+        if (existingUserWithEmail && existingUserWithEmail.id !== id) {
+          return res.status(errorCode.GENERIC).send({ message: "Email already exists" });
+        }
+      }
 
       const updatedBody = {
         ...req.body,
         isCreator: true,
         role: ["CREATOR", ...foundUser.role],
       };
-      console.log(foundUser, "helooo");
-      console.log(foundUsername, "helooo");
-      console.log(updatedBody, "helooo");
 
       await UserService.updateOneUser({ id }, updatedBody);
       return res.status(201).send({ message: successMessages.SUCCESS });

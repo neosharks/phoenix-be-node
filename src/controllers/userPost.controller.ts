@@ -130,26 +130,40 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
+
       const validation = userPostSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      if (!postId)
+
+      if (!postId) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost)
+      }
+
+      const foundPost = await prisma.userPost.findUnique({
+        where: { id: postId },
+        include: {
+          likedBy: true, // Include likedBy for easy manipulation
+          author: true,
+        },
+      });
+
+      if (!foundPost) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      }
+
       const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
       if (userIndex === -1) {
         await prisma.userPost.update({
           where: { id: postId },
           data: { likedBy: { connect: { id: id } } },
         });
+
         await NotificationService.createOneNotification({
           aboutUserId: id,
           notifiedUserId: foundPost.authorId,
           message: ` have liked on your post`,
-          link: postId,
+          link: postId.toString(), // Ensure link is stringified if necessary
           type: "NEW_LIKE",
         });
       } else {
@@ -158,6 +172,7 @@ class _UserPostController {
           data: { likedBy: { disconnect: { id: id } } },
         });
       }
+
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
       console.log("Error: ", error);
