@@ -27,6 +27,7 @@ export default {
       clientSecret: process.env.CASHFREE_CLIENT_SECRET ?? "",
       url: process.env.CASHFREE_URL || "",
       version: process.env.CASHFREE_VERSION || "2023-08-01",
+      environment: process.env.CASHFREE_ENVIRONMENT || "",
     },
   },
   nodemailer: {
