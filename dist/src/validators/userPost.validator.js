@@ -28,7 +28,7 @@ const Joi = __importStar(require("joi"));
 exports.userPostSchema = Joi.object({
     pollId: Joi.number(),
     postId: Joi.number(),
-    selectedId: Joi.number(),
+    selectedId: Joi.string(),
     authorId: Joi.number(),
     type: Joi.string(),
     visibility: Joi.string(),

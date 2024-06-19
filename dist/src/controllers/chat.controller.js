@@ -95,11 +95,7 @@ class _ChatController {
     createMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { chatId, senderId, message, contentType } = req.body;
-                const validation = chat_validator_1.chatSchema.validate(req.body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
+                const { chatId, contentType, message, senderId } = req.body;
                 const { isCreator, firstName, lastName } = res.locals.user;
                 const foundChat = yield chat_service_1.ChatService.getOneChat({ id: chatId });
                 if (!foundChat)
@@ -112,6 +108,7 @@ class _ChatController {
                     message,
                     contentType,
                 });
+                console.log(createdChat, isCreator, foundChat, "apisRun");
                 yield chat_service_1.ChatService.updateOneChat({ id: chatId }, { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 });
                 if (isCreator)
                     yield notification_service_1.NotificationService.createOneNotification({

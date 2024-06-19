@@ -220,17 +220,24 @@ class _UserController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 const foundUser = yield user_service_1.UserService.getOneUser({ id });
-                if (!foundUser)
+                if (!foundUser) {
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                if (foundUser.role.includes("CREATOR"))
+                }
+                if (foundUser.role.includes("CREATOR")) {
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                }
                 const foundUsername = yield user_service_1.UserService.getOneUser({ username });
-                if (foundUsername && foundUsername.id !== id)
+                if (foundUsername && foundUsername.id !== id) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
+                }
+                // Ensure email uniqueness check before update
+                if (req.body.email) {
+                    const existingUserWithEmail = yield user_service_1.UserService.getOneUser({ email: req.body.email });
+                    if (existingUserWithEmail && existingUserWithEmail.id !== id) {
+                        return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Email already exists" });
+                    }
+                }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
-                console.log(foundUser, "helooo");
-                console.log(foundUsername, "helooo");
-                console.log(updatedBody, "helooo");
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }

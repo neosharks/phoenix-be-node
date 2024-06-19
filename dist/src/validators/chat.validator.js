@@ -31,6 +31,4 @@ exports.chatSchema = Joi.object({
     contentType: Joi.string(),
     message: Joi.string(),
     participants: Joi.array().items(Joi.string()),
-    participantOne: Joi.string(),
-    participantTwo: Joi.string(),
 });

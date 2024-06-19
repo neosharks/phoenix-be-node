@@ -205,10 +205,6 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const postId = req.body.id;
-                const validation = package_validator_1.packageSchema.validate(req.body, { stripUnknown: true });
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: postId });
                 if (!foundPackage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });

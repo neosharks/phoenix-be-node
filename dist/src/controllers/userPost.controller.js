@@ -148,11 +148,19 @@ class _UserPostController {
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
-                if (!postId)
+                if (!postId) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
-                if (!foundPost)
+                }
+                const foundPost = yield prisma_1.default.userPost.findUnique({
+                    where: { id: postId },
+                    include: {
+                        likedBy: true, // Include likedBy for easy manipulation
+                        author: true,
+                    },
+                });
+                if (!foundPost) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                }
                 const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
                 if (userIndex === -1) {
                     yield prisma_1.default.userPost.update({
@@ -163,7 +171,7 @@ class _UserPostController {
                         aboutUserId: id,
                         notifiedUserId: foundPost.authorId,
                         message: ` have liked on your post`,
-                        link: postId,
+                        link: postId.toString(), // Ensure link is stringified if necessary
                         type: "NEW_LIKE",
                     });
                 }
