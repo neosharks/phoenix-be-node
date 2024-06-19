@@ -86,11 +86,7 @@ class _ChatController {
 
   async createMessage(req: Request, res: Response) {
     try {
-      const { chatId, senderId, message, contentType } = req.body;
-      const validation = chatSchema.validate(req.body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
+      const { chatId, contentType, message, senderId } = req.body;
       const { isCreator, firstName, lastName } = res.locals.user;
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
@@ -102,6 +98,7 @@ class _ChatController {
         message,
         contentType,
       });
+      console.log(createdChat, isCreator, foundChat, "apisRun");
       await ChatService.updateOneChat(
         { id: chatId },
         { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 },

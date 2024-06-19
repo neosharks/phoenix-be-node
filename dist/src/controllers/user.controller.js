@@ -168,7 +168,7 @@ class _UserController {
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
+                const validation = user_validator_1.userUpdateSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -215,7 +215,7 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id, username } = res.locals.user;
-                const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
+                const validation = user_validator_1.userUpdateSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -228,6 +228,9 @@ class _UserController {
                 if (foundUsername && foundUsername.id !== id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
                 const updatedBody = Object.assign(Object.assign({}, req.body), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
+                console.log(foundUser, "helooo");
+                console.log(foundUsername, "helooo");
+                console.log(updatedBody, "helooo");
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }

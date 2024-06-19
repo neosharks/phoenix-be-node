@@ -191,10 +191,6 @@ class _PackageController {
   async updatePackage(req: Request, res: Response) {
     try {
       const postId = req.body.id;
-      const validation = packageSchema.validate(req.body, { stripUnknown: true });
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const foundPackage = await PackageService.getOnePackage({ id: postId });
       if (!foundPackage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });

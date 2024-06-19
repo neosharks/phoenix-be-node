@@ -26,13 +26,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.userPostSchema = void 0;
 const Joi = __importStar(require("joi"));
 exports.userPostSchema = Joi.object({
-    authorId: Joi.string(),
-    type: Joi.string().valid("TEXT", "FREE"),
-    visibility: Joi.string().valid("EVERYONE"),
+    pollId: Joi.number(),
+    postId: Joi.number(),
+    selectedId: Joi.number(),
+    authorId: Joi.number(),
+    type: Joi.string(),
+    visibility: Joi.string(),
     allowComments: Joi.boolean(),
-    createdAt: Joi.date().iso(),
-    updatedAt: Joi.date().iso(),
-    pollId: Joi.string(),
     email: Joi.string().email().lowercase(),
     firstName: Joi.string().min(1),
     lastName: Joi.string().min(1),
@@ -50,5 +50,5 @@ exports.userPostSchema = Joi.object({
     title: Joi.string(),
     videoUrl: Joi.string(),
     packages: Joi.array().items(Joi.string()),
-    userPostId: Joi.string(),
+    userPostId: Joi.number(),
 });

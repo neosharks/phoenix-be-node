@@ -8,6 +8,7 @@ import commonRoutes from "./common.routes";
 import notificationRoutes from "./notification.route";
 import paymentRoutes from "./payment.route";
 import insightRoutes from "./insight.route";
+import classRoutes from "./class.route";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use("/userpost", userPostRoutes);
 router.use("/notification", notificationRoutes);
 router.use("/payment", paymentRoutes);
 router.use("/insight", insightRoutes);
+router.use("/class", classRoutes);
 
 export default router;

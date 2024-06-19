@@ -79,6 +79,17 @@ class _UserPostController {
                 }
                 const allUserPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
                 returnPosts = [...returnPosts, ...allUserPosts];
+                // Remove duplicate posts
+                const seenPostIds = new Set();
+                returnPosts = returnPosts.filter((post) => {
+                    if (seenPostIds.has(post.id)) {
+                        return false;
+                    }
+                    else {
+                        seenPostIds.add(post.id);
+                        return true;
+                    }
+                });
                 if (returnPosts.length === 0)
                     return res.status(200).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 returnPosts = returnPosts.sort(function (a, b) {
@@ -133,7 +144,7 @@ class _UserPostController {
             try {
                 const { postId } = req.body;
                 const { id } = res.locals.user;
-                const validation = userPost_validator_1.userPostSchema.validate(postId);
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -177,7 +188,7 @@ class _UserPostController {
             try {
                 const { pollId, selectedId } = req.body;
                 const { id } = res.locals.user;
-                const validation = userPost_validator_1.userPostSchema.validate({ pollId, selectedId });
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -214,7 +225,7 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { postId, updates } = req.body;
-                const validation = userPost_validator_1.userPostSchema.validate({ postId, updates });
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -238,10 +249,6 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
-                const validation = userPost_validator_1.userPostSchema.validate(body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 const { description, type, visibility, videoUrl, title, packages } = body;
                 const image = req.file;
                 const { id } = res.locals.user;
@@ -294,7 +301,7 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { description, authorId, userPostId } = req.body;
-                const validation = userPost_validator_1.userPostSchema.validate({ description, authorId, userPostId });
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -310,7 +317,7 @@ class _UserPostController {
                     aboutUserId: id,
                     notifiedUserId: authorId,
                     message: `${created.firstName + " " + created.lastName} have commented on your post`,
-                    link: userPostId,
+                    link: String(userPostId),
                     type: "NEW_COMMENT",
                 });
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });
