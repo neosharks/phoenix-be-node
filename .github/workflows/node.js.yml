@@ -6,12 +6,10 @@ name: Qalakar CI/CD
 on:
   push:
     branches: [ "dev" ]
-
+    
 jobs:
   build:
-
-     runs-on: self-hosted
-
+    runs-on: self-hosted
     strategy:
       matrix:
         node-version: [18.x, 20.x]
