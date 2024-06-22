@@ -26,9 +26,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
 
+    - name: Verify Node.js version
+      run: node -v
+
     - run: yarn install
     - run: |
+        mkdir -p ./dist
         touch .env
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
+        cp .env ./dist/.env
     - run: yarn build
 
