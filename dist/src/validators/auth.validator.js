@@ -1,0 +1,58 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.loginViaNumberSchema = exports.verifyForgetPasswordSchema = exports.forgetPasswordSchema = exports.resetPasswordSchema = exports.sendOtpSchema = exports.loginSchema = exports.registerSchema = void 0;
+const Joi = __importStar(require("joi"));
+exports.registerSchema = Joi.object({
+    firstName: Joi.string().min(1),
+    lastName: Joi.string().min(1),
+    email: Joi.string().email().lowercase().required(),
+    password: Joi.string().min(4).required(),
+});
+exports.loginSchema = Joi.object({
+    email: Joi.string().email().lowercase(),
+    password: Joi.string().min(4).required(),
+});
+exports.sendOtpSchema = Joi.object({
+    number: Joi.string(),
+    referralUsername: Joi.string(),
+});
+exports.resetPasswordSchema = Joi.object({
+    oldPassword: Joi.string().min(4),
+    newPassword: Joi.string().min(4),
+});
+exports.forgetPasswordSchema = Joi.object({
+    email: Joi.string().email().lowercase().required(),
+});
+exports.verifyForgetPasswordSchema = Joi.object({
+    email: Joi.string().email().lowercase().required(),
+    code: Joi.number(),
+    password: Joi.string().min(4),
+});
+exports.loginViaNumberSchema = Joi.object({
+    number: Joi.string(),
+    phoneNumber: Joi.string(),
+    otp: Joi.string().min(4),
+});

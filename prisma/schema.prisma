@@ -8,42 +8,94 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  firstName    String
-  lastName     String
-  email        String    @unique
-  username     String    @unique
-  phone        String?
-  countryCode  String    @default("+91")
-  password     String
-  profileImage String?
-  coverImage   String?
-  gender       GENDER?
-  role         ROLE[]    @default([PATRON])
-  bio          String?
-  country      COUNTRY   @default(INDIA)
-  dob          DateTime?
-  industry     INDUSTRY?
-  packages     Package[]
+  id                           Int       @id @default(autoincrement())
+  firstName                    String?
+  lastName                     String?
+  email                        String?   @unique
+  username                     String    @unique
+  phoneNumber                  String?   @unique
+  whatsappNumber               String?
+  countryCode                  String    @default("+91")
+  profileImage                 String?
+  coverImage                   String?
+  isCreator                    Boolean   @default(false)
+  gender                       GENDER?
+  role                         ROLE[]    @default([PATRON])
+  bio                          String?
+  country                      COUNTRY   @default(INDIA)
+  dob                          DateTime?
+  industry                     INDUSTRY?
+  onBoardingComplete           Boolean   @default(false)
+  onBoardingCompletePercentage Int       @default(0)
+  pageName                     String?
+  youtubeHandle                String?
+  facebookHandle               String?
+  twitterHandle                String?
+  instagramHandle              String?
+
+  status USER_STATUS @default(ACTIVE)
+
+  password String?
+
+  referralUserId    Int?
+  referralTimeStamp DateTime?
+  referralDevice    String?
+
+  emailVerified Boolean @default(false)
+  phoneVerified Boolean @default(false)
+
+  packages Package[]
+
+  googleAuthId   String? @unique
+  facebookAuthId String? @unique
+
+  verificationCode          Int?
+  verificationCodeTimestamp DateTime?                 @default(now())
+  verificationCodeAttempts  Int                       @default(0)
+  verificationCodeSource    VERIFICATION_CODE_SOURCE?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Message          Message[]
-  participantOne   Chat[]          @relation("participantOne")
-  participantTwo   Chat[]          @relation("participantTwo")
-  aboutUser        Notification[]  @relation("aboutUser")
-  notificationUser Notification[]  @relation("notificationUser")
-  Polls            Polls[]
-  Journey          Journey[]
-  creatorId        PatronCreator[] @relation("creatorId")
-  patronId         PatronCreator[] @relation("patronId")
+  Message            Message[]
+  participantOne     Chat[]               @relation("participantOne")
+  participantTwo     Chat[]               @relation("participantTwo")
+  aboutUser          Notification[]       @relation("aboutUser")
+  notifiedUser       Notification[]       @relation("notifiedUser")
+  Poll               Poll[]
+  creatorId          PatronCreator[]      @relation("creatorId")
+  patronId           PatronCreator[]      @relation("patronId")
+  Comment            PostComment[]
+  UserPostAuthor     UserPost[]           @relation("userPostAuthor")
+  likedByUser        UserPost[]           @relation("likedByUser")
+  Payment            Payment[]
+  ClickStream        ClickStream[]
+  WalletTransactions WalletTransactions[]
+  referralUser       Referral[]           @relation("referralUser")
+  referralCreator    Referral[]           @relation("referralCreator")
+  AllLinks           AllLinks[]
+  ClassParticipants  ClassParticipants[]
+  ClassMessages      ClassMessage[]
+  Class              Class[]
 
-  @@index([email, username])
+  @@index([email, username, phoneNumber])
+}
+
+model Referral {
+  id        Int      @id @default(autoincrement())
+  creator   User     @relation("referralCreator", fields: [creatorId], references: [id])
+  creatorId Int
+  user      User     @relation("referralUser", fields: [userId], references: [id])
+  userId    Int
+  amount    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Payment   Payment? @relation(fields: [paymentId], references: [id])
+  paymentId Int?
 }
 
 model Tier {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   tierType    TIER_TYPE @default(GENERAL_SUPPORT)
   name        String
   description String
@@ -53,27 +105,29 @@ model Tier {
 }
 
 model Package {
-  id            String          @id @default(cuid())
+  id            Int             @id @default(autoincrement())
   tier          Tier[]
-  name          String
-  image         String
+  name          PACKAGE_NAMES   @default(SUPPORT)
   price         Int
   description   String
-  User          User            @relation(fields: [userId], references: [id])
-  userId        String
+  creator       User            @relation(fields: [creatorId], references: [id])
+  creatorId     Int
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   PatronCreator PatronCreator[]
+  UserPost      UserPost?       @relation(fields: [userPostId], references: [id])
+  userPostId    Int?
+  Payment       Payment[]
 }
 
 model Message {
-  id          String       @id @default(cuid())
+  id          Int          @id @default(autoincrement())
   chat        Chat         @relation(fields: [chatId], references: [id])
   sender      User         @relation(fields: [senderId], references: [id])
   message     String
-  senderId    String
+  senderId    Int
   contentType MESSAGE_TYPE @default(TEXT)
-  chatId      String
+  chatId      Int
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -81,74 +135,194 @@ model Message {
 }
 
 model Chat {
-  id               String    @id @default(cuid())
-  participantOne   User      @relation("participantOne", fields: [participantOneId], references: [id])
-  participantTwo   User      @relation("participantTwo", fields: [participantTwoId], references: [id])
-  participantOneId String
-  participantTwoId String
-  type             CHAT_TYPE @default(ONE_TO_ONE)
+  id               Int               @id @default(autoincrement())
+  participantOne   User              @relation("participantOne", fields: [participantOneId], references: [id])
+  participantTwo   User              @relation("participantTwo", fields: [participantTwoId], references: [id])
+  participantOneId Int
+  participantTwoId Int
+  type             CONVERSATION_TYPE @default(ONE_TO_ONE)
   Message          Message[]
-  unreadCount      Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  unreadCount      Int               @default(0)
+  pendingAllowed   Int               @default(1)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Notification {
-  id                 String       @id @default(cuid())
-  aboutUser          User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
-  notificationUser   User         @relation("notificationUser", fields: [notificationUserId], references: [id])
-  aboutUserId        String
-  notificationUserId String
-  message            String
-  read               Boolean
-  link               String?
-  type               NOTIFICATION
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  userId             String
+  id             Int          @id @default(autoincrement())
+  aboutUser      User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
+  notifiedUser   User         @relation("notifiedUser", fields: [notifiedUserId], references: [id])
+  aboutUserId    Int
+  notifiedUserId Int
+  message        String
+  read           Boolean
+  link           String?
+  type           NOTIFICATION
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@index([userId])
-}
-
-model Polls {
-  id              String   @id @default(cuid())
-  creatorId       User     @relation(fields: [userId], references: [id])
-  options         String[]
-  selectedOptions Json
-  userId          String
-  image           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model Journey {
-  id        String         @id @default(cuid())
-  user      User           @relation(fields: [userId], references: [id])
-  userId    String
-  path      String
-  method    REQUEST_METHOD @default(GET)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  @@index([aboutUserId, notifiedUserId])
 }
 
 model PatronCreator {
-  id        String   @id @default(cuid())
-  patron    User     @relation("patronId", fields: [patronId], references: [id])
-  patronId  String
-  creator   User     @relation("creatorId", fields: [creatorId], references: [id])
-  creatorId String
-  package   Package  @relation(fields: [packageId], references: [id])
-  packageId String
-  expiry    DateTime
+  id        Int                   @id @default(autoincrement())
+  patron    User                  @relation("patronId", fields: [patronId], references: [id])
+  patronId  Int
+  creator   User                  @relation("creatorId", fields: [creatorId], references: [id])
+  creatorId Int
+  package   Package?              @relation(fields: [packageId], references: [id])
+  packageId Int?
+  type      SUBSCRIPTION_TYPE     @default(FREE)
+  expiry    DateTime?
+  status    PATRON_CREATOR_STATUS @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+}
+
+model UserPost {
+  id            Int            @id @default(autoincrement())
+  author        User           @relation("userPostAuthor", fields: [authorId], references: [id])
+  authorId      Int
+  type          USER_POST_TYPE @default(TEXT)
+  comments      PostComment[]
+  likedBy       User[]         @relation("likedByUser")
+  image         String?
+  title         String?
+  description   String?
+  videoUrl      String?
+  visibility    VISIBILITY     @default(EVERYONE)
+  packages      Package[]
+  allowComments Boolean        @default(true)
+  poll          Poll?          @relation(fields: [pollId], references: [id])
+  pollId        Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([visibility, authorId])
+}
+
+model PostComment {
+  id          Int      @id @default(autoincrement())
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    Int
+  description String
+  post        UserPost @relation(fields: [userPostId], references: [id])
+  userPostId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Poll {
+  id              Int        @id @default(autoincrement())
+  author          User       @relation(fields: [authorId], references: [id])
+  authorId        Int
+  options         Json[]
+  selectedOptions Json[]
+  image           String?
+  title           String?
+  description     String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  UserPost        UserPost[]
+}
+
+model Payment {
+  id                 Int                  @id @default(autoincrement())
+  user               User                 @relation(fields: [userId], references: [id])
+  userId             Int
+  orderId            String               @unique
+  amount             Int                  @default(0)
+  currency           CURRENCY             @default(INR)
+  status             PAYMENT_STATUS       @default(CREATED)
+  package            Package              @relation(fields: [packageId], references: [id])
+  packageId          Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  WalletTransactions WalletTransactions[]
+  Referral           Referral[]
+
+  @@index([orderId])
+}
+
+model ClickStream {
+  id        Int      @id @default(autoincrement())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  info      Json?
+  type      String?
+  url       String?
+  ipAddress String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-enum TIER_TYPE {
-  GENERAL_SUPPORT
-  AD_FREE_CONTENT
-  BEHIND_THE_SCENES
-  DIGITAL_DOWNLOADS
+model WalletTransactions {
+  id        Int           @id @default(autoincrement())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  source    WALLET_SOURCE
+  amount    Int
+  Payment   Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId Int?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model AllLinks {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  url       String
+  platform  String?
+  highlight Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Class {
+  id                Int                 @id @default(autoincrement())
+  creator           User                @relation(fields: [creatorId], references: [id])
+  creatorId         Int
+  name              String
+  isPaid            Boolean             @default(false)
+  type              String?
+  ClassParticipants ClassParticipants[]
+  ClassMessage      ClassMessage[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model ClassMessage {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  message   String
+  isPinned  Boolean  @default(false)
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClassParticipants {
+  id        Int      @id @default(autoincrement())
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([classId, userId])
+}
+
+enum WALLET_SOURCE {
+  REFERRAL
+  PURCHASE
+}
+
+enum CURRENCY {
+  INR
 }
 
 enum ROLE {
@@ -157,13 +331,89 @@ enum ROLE {
   ADMIN
 }
 
+enum PACKAGE_NAMES {
+  SUPPORT
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  RUBY
+}
+
+enum TIER_TYPE {
+  GENERAL_SUPPORT
+  EXCLUSIVE_POSTS
+  BEHIND_THE_SCENES
+  UNLIMITED_MESSAGE
+  ONE_TIME_MESSAGE
+  NAME_POST_DESCRIPTION
+  NAME_POST_END
+  EXCLUSIVE_POLLS
+  MENTORSHIP
+  COMMUNITY
+}
+
 enum COUNTRY {
   INDIA
+  NEPAL
+  SRI_LANKA
+  BHUTAN
+  PAKISTAN
 }
 
 enum INDUSTRY {
+  BEAUTY_AND_MAKEUP
   MUSIC
+  COMEDY
+  PHOTOGRAPHY
+  POETRY
+  JOURNALISM
+  STREAMING
+  ESPORTS
+  MODELING
+  TECHNOLOGY_REVIEWS
+  SOFTWARE_DEVELOPMENT
+  FITNESS_TRAINING
+  NUTRITION
+  DIY_CRAFTS
+  HOME_RENOVATION
+  TRAVEL_BLOGGING
+  ADVENTURE
+  SCIENCE_COMMUNICATION
+  ONLINE_EDUCATION
+  LIFE_COACHING
+  SOCIAL_ACTIVISM
+  ANIMAL_WELFARE
+  CULTURAL_INFLUENCE
+  HANDMADE_CRAFTS
+  CAR_ENTHUSIASTS
+  COLLECTING
+  HOBBYISTS
+  ENTERTAINMENT_INDUSTRY
+  VISUAL_ARTS
+  WRITING_AND_PUBLISHING
   GAMING
+  FASHION_AND_BEAUTY
+  COOKING_AND_FOOD
+  TECHNOLOGY_AND_GADGETS
+  HEALTH_AND_FITNESS
+  DIY_AND_HOME_IMPROVEMENT
+  TRAVEL_AND_ADVENTURE
+  SCIENCE_AND_EDUCATION
+  PERSONAL_DEVELOPMENT_AND_MOTIVATION
+  PARENTING_AND_FAMILY
+  FINANCE_AND_INVESTMENT
+  PETS_AND_ANIMALS
+  LIFESTYLE_AND_CULTURE
+  ARTISANS_AND_CRAFTSMEN
+  AUTOMOTIVE_AND_DIY_MECHANICS
+  NICHE_HOBBIES
+}
+
+enum PATRON_CREATOR_STATUS {
+  ACTIVE
+  EXPIRED
+  PENDING
 }
 
 enum GENDER {
@@ -176,6 +426,9 @@ enum NOTIFICATION {
   NEW_POST
   MESSAGE
   POLL
+  MENTIONED
+  NEW_COMMENT
+  NEW_LIKE
 }
 
 enum MESSAGE_TYPE {
@@ -184,14 +437,50 @@ enum MESSAGE_TYPE {
   AUDIO
 }
 
-enum CHAT_TYPE {
+enum CONVERSATION_TYPE {
   ONE_TO_ONE
 }
 
-enum REQUEST_METHOD {
-  GET
-  POST
-  PUT
-  PATCH
-  DELETE
+enum VERIFICATION_CODE_SOURCE {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+enum USER_STATUS {
+  ACTIVE
+  INACTIVE
+  DELETED
+  BLOCKED
+}
+
+enum VERIFICATION_CODE_TYPE {
+  LOGIN
+  FORGET_PASSWORD
+}
+
+enum USER_POST_TYPE {
+  TEXT
+  IMAGE
+  POLL
+  LINK
+  VIDEO
+}
+
+enum VISIBILITY {
+  EVERYONE
+  FREE_MEMBER
+  PAID_MEMBER
+}
+
+enum SUBSCRIPTION_TYPE {
+  FREE
+  PAID
+}
+
+enum PAYMENT_STATUS {
+  CREATED
+  PAID
+  FAILED
+  PENDING
 }

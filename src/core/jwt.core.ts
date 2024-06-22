@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
 import config from "../../config";
-import logger from "./logger.core";
 
 // TODO: IMPLEMENT REFRESH TOKEN AND ASYMETRIC KEY GENERATION
 
-export const signJwt = async (user: Object, options?: jwt.SignOptions | undefined) => {
-  return jwt.sign(user, config.jwt.accessTokenKey, {
-    expiresIn: 86400, // expires in 24 hours
+export const signJwt = async (user: any, options?: jwt.SignOptions | undefined) => {
+  return jwt.sign({ id: user.id }, config.jwt.accessTokenKey, {
+    expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
   });
 };
 
@@ -19,7 +18,7 @@ export const verifyJwt = (token: string) => {
       decoded,
     };
   } catch (e: any) {
-    logger.error(e);
+    console.log(e);
     return {
       valid: false,
       expired: e.message === "jwt expired",

@@ -1,18 +1,21 @@
 import express from "express";
 import { ChatController } from "../controllers/chat.controller";
-import fetchUser from "../middlewares/fetchUser.middleware";
+import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 
 const chatRoutes = express.Router();
 
 //------------ Chat ----------------
 
-chatRoutes.get("/getAllChatsByUser", fetchUser, ChatController.getAllChatsByUser);
-chatRoutes.get("/getAllChatUsers", fetchUser, ChatController.getAllChatUsers);
-chatRoutes.post("/createChat", fetchUser, ChatController.createChat);
+chatRoutes.get("/getAllChatsByUser", checkRoleAuth(), ChatController.getAllChatsByUser);
+
+chatRoutes.get("/getAllSearchableUsers", checkRoleAuth(), ChatController.getAllSearchableUsers);
+
+chatRoutes.post("/createChat", checkRoleAuth(), ChatController.createChat);
 
 //------------ Message ----------------
 
-chatRoutes.post("/createMessage", fetchUser, ChatController.createMessage);
-chatRoutes.get("/getAllMessageByChat", fetchUser, ChatController.getAllMessageByChat);
+chatRoutes.post("/createMessage", checkRoleAuth(), ChatController.createMessage);
+
+chatRoutes.get("/getAllMessageByChat", checkRoleAuth(), ChatController.getAllMessageByChat);
 
 export default chatRoutes;

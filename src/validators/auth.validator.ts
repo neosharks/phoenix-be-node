@@ -1,15 +1,35 @@
 import * as Joi from "joi";
 
-const registerSchema = Joi.object({
+export const registerSchema = Joi.object({
+  firstName: Joi.string().min(1),
+  lastName: Joi.string().min(1),
   email: Joi.string().email().lowercase().required(),
-  firstName: Joi.string().min(1).required(),
   password: Joi.string().min(4).required(),
-  lastName: Joi.string().min(1).required(),
 });
 
-const loginSchema = Joi.object({
+export const loginSchema = Joi.object({
+  email: Joi.string().email().lowercase(),
+  password: Joi.string().min(4).required(),
+});
+
+export const sendOtpSchema = Joi.object({
+  number: Joi.string(),
+  referralUsername: Joi.string(),
+});
+export const resetPasswordSchema = Joi.object({
+  oldPassword: Joi.string().min(4),
+  newPassword: Joi.string().min(4),
+});
+export const forgetPasswordSchema = Joi.object({
   email: Joi.string().email().lowercase().required(),
-  password: Joi.string().min(5).required(),
 });
-
-export default { registerSchema, loginSchema };
+export const verifyForgetPasswordSchema = Joi.object({
+  email: Joi.string().email().lowercase().required(),
+  code: Joi.number(),
+  password: Joi.string().min(4),
+});
+export const loginViaNumberSchema = Joi.object({
+  number: Joi.string(),
+  phoneNumber: Joi.string(),
+  otp: Joi.string().min(4),
+});

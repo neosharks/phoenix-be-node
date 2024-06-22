@@ -1,4 +1,12 @@
+
+# dependencies
 node_modules
-# Keep environment variables out of version control
+.pnp
+.pnp.js
+
+# environment variables
 .env
-/logs
+.env.local
+
+
+npm-debug.log*

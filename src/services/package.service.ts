@@ -1,40 +1,122 @@
 import prisma from "../../prisma";
 
 class _PackageService {
-  async getAllUserPackages(query: any) {
-    return await prisma.package.findMany({ where: query, include: { tier: true } });
-  }
-
-  async getPackage(query: any) {
-    return await prisma.package.findFirst({ where: query, include: { tier: true } });
-  }
-
-  async createOnePackage(dataValues: any) {
-    const { tier, name, image, price, description, userId } = dataValues;
-    return await prisma.package.create({
-      data: {
-        name,
-        image,
-        price,
-        description,
-        userId,
-        tier: {
-          connect: tier.map((ele: any) => {
-            return { id: ele };
-          }),
+  async getAllPackagesOfCreator(query: any, skip: number = 0, take: number = 10) {
+    try {
+      return await prisma.package.findMany({
+        where: {
+          creator: {
+            username: query.username,
+          },
         },
-      },
-    });
+        include: { tier: true },
+        skip,
+        take,
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getOnePackage(query: any) {
+    try {
+      return await prisma.package.findUnique({ where: query, include: { tier: true } });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+  async createOnePackage(dataValues: any) {
+    try {
+      const { tier, name, price, description, creatorId } = dataValues;
+      return await prisma.package.create({
+        data: {
+          name,
+          price,
+          description,
+          creatorId,
+          tier: {
+            connect: tier.map((ele: any) => {
+              return { id: ele };
+            }),
+          },
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updatePackage(props: any, dataValues: any) {
+    try {
+      return await prisma.package.update({ where: props, data: dataValues });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   //------------------------
 
-  async getAllTiers() {
-    return await prisma.tier.findMany({});
+  async getAllTiers(skip: number = 0, take: number = 10) {
+    try {
+      return await prisma.tier.findMany({
+        skip,
+        take,
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async createOneTier(data: any) {
-    return await prisma.tier.create({ data: data });
+    try {
+      return await prisma.tier.create({ data: data });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async linkPatronCreator(patronId: any, creatorId: any, type: any, packageId?: any) {
+    try {
+      const currentDate = new Date();
+      const expiryDate = new Date(currentDate);
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+
+      return await prisma.patronCreator.create({
+        data: {
+          patronId,
+          creatorId,
+          packageId,
+          status: "ACTIVE",
+          type,
+          expiry: type !== "FREE" ? expiryDate : null,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getAllPurchasedByPatron(patronId: any, creatorId: any) {
+    try {
+      return await prisma.patronCreator.findMany({
+        where: { patronId, creatorId },
+        include: {
+          package: {
+            include: { tier: true },
+          },
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }
 
