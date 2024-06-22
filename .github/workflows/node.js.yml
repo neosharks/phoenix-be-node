@@ -36,4 +36,4 @@ jobs:
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
         cp .env ./dist/.env
     - run: yarn build
-
+    - run: pm2 restart server.ts
