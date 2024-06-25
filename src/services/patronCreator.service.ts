@@ -1,5 +1,4 @@
 import prisma from "../../prisma";
-
 class _PatronCreatorService {
   async getFirst(query: any) {
     try {
