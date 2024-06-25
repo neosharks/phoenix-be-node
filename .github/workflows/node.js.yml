@@ -5,7 +5,7 @@ name: Qalakar CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   build:
