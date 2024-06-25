@@ -5,7 +5,10 @@ name: Qalakar CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
+      - dev
+      - feature/* 
 
 jobs:
   build:
@@ -31,9 +34,7 @@ jobs:
 
     - run: yarn install
     - run: |
-        mkdir -p ./dist
         touch .env
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
-        cp .env ./dist/.env
     - run: yarn build
     - run: pm2 restart server.ts
