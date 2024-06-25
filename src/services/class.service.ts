@@ -51,6 +51,18 @@ class _ClassService {
     }
   }
 
+  async addMultipleParticipants(participantsData: any[]) {
+    try {
+      return await prisma.classParticipants.createMany({
+        data: participantsData,
+        skipDuplicates: true,
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async updateClassByProps(props: any, data: any) {
     try {
       return await prisma.class.update({

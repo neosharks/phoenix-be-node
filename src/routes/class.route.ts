@@ -18,6 +18,12 @@ classRoutes.post(
   ClassController.addOneParticipant,
 );
 
+classRoutes.post(
+  "/addMultipleParticipants",
+  checkRoleAuth([userRole.CREATOR]),
+  ClassController.addMultipleParticipants,
+);
+
 classRoutes.get(
   "/getAllParticipantOfClass",
   checkRoleAuth(),
