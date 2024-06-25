@@ -38,4 +38,4 @@ jobs:
         mkdir -p ./dist
         cp .env ./dist/.env
     - run: yarn build
-    - run: pm2 restart dist/index.js
+    - run: pm2 restart server.ts
