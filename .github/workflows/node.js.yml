@@ -34,7 +34,10 @@ jobs:
 
     - run: yarn install
     - run: |
+        mkdir -p ./dist
         touch .env
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
+        cp .env ./dist/.env
     - run: yarn build
     - run: pm2 restart dist/index.js
+    - run: pm2 restart server.js
