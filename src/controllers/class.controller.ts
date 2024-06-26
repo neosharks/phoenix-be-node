@@ -69,11 +69,10 @@ class _ClassController {
       if (!classId || !participants || !Array.isArray(participants)) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
-      const participantData = participants.map((participant) => ({
-        userId: participant.participantId,
+      const participantData = participants.map((participantId) => ({
+        userId: participantId,
         classId: classId,
       }));
-      console.log(participantData, "participantData76");
       await ClassService.addMultipleParticipants(participantData);
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
