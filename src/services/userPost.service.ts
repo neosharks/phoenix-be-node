@@ -8,6 +8,7 @@ class _UserPostService {
         include: {
           poll: true,
           packages: true,
+          class: true,
           comments: {
             select: {
               description: true,
