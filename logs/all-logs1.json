@@ -9993,3 +9993,4 @@
 {"level":"http","message":{"contentLength":"175","ipAddress":"::1","method":"POST","responseTime":"205.060ms","status":"500","url":"/userpost/createUserPost","userId":1},"timestamp":"2024-06-26 15:14:08"}
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-06-26 17:18:05"}
 {"level":"http","message":{"ipAddress":"::1","method":"GET","responseTime":"883.058ms","status":"304","url":"/package/getAllPackagesOfCreator/creative-river7118","userId":"N/A"},"timestamp":"2024-06-26 17:19:01"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-06-27 11:52:59"}
