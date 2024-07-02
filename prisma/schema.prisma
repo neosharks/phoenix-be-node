@@ -195,6 +195,8 @@ model UserPost {
   allowComments Boolean        @default(true)
   poll          Poll?          @relation(fields: [pollId], references: [id])
   pollId        Int?
+  class         Class?         @relation(fields: [classId], references: [id])
+  classId       Int?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -290,6 +292,7 @@ model Class {
   ClassMessage      ClassMessage[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  UserPost          UserPost[]
 }
 
 model ClassMessage {
@@ -465,6 +468,7 @@ enum USER_POST_TYPE {
   POLL
   LINK
   VIDEO
+  CLASS
 }
 
 enum VISIBILITY {

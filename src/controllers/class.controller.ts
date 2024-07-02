@@ -63,6 +63,26 @@ class _ClassController {
     }
   }
 
+  async addMultipleParticipants(req: Request, res: Response) {
+    try {
+      const { classId, participants } = req.body;
+      if (!classId || !participants || !Array.isArray(participants)) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      }
+      const participantData = participants.map((participantId) => ({
+        userId: participantId,
+        classId: classId,
+      }));
+      await ClassService.addMultipleParticipants(participantData);
+      return res.status(200).send({ message: successMessages.CREATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
+    }
+  }
+
   async getAllParticipantOfClass(req: Request, res: Response) {
     try {
       let { classId }: any = req.query;
