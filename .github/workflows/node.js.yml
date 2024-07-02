@@ -28,7 +28,7 @@ jobs:
     - name: Verify Node.js version
       run: node -v
 
-    - run: yarn install
+    - run: yarn
     - run: |
         mkdir -p ./dist
         touch .env
