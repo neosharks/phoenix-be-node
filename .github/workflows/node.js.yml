@@ -20,14 +20,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Node.js ${{ matrix.node-version }}
+    - name: Install Node.js ${{ matrix.node-version }}
       run: |
         curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
         sudo apt-get install -y nodejs
         node -v
-        npm -v
+
+    - name: Install Yarn
+      run: |
+        npm install -g yarn
         yarn -v
-    
+
     - name: Cache Yarn Dependencies
       uses: actions/cache@v3
       with:
@@ -36,15 +39,18 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-yarn-
 
-    - run: yarn install --cache-folder ~/.yarn_cache
+    - name: Install Dependencies
+      run: yarn install --cache-folder ~/.yarn_cache
     
-    - run: |
+    - name: Prepare Environment
+      run: |
         mkdir -p ./dist
         touch .env
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
         cp .env ./dist/.env
-        
-    - run: yarn build
-    
-    - run: pm2 restart Backend
 
+    - name: Build
+      run: yarn build
+    
+    - name: Restart Backend
+      run: pm2 restart Backend
