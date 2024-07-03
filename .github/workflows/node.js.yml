@@ -9,42 +9,38 @@ on:
 
 jobs:
   build:
-
     runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [20.x]
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install Node.js 20.x
-      run: |
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-        sudo apt-get install -y nodejs
-        node -v
-
-    - name: Install Yarn
-      run: npm install -g yarn
-
-    - name: Cache Yarn Dependencies
-      uses: actions/cache@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
-        path: ~/.yarn_cache
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
 
-    - name: Install Dependencies
-      run: yarn install --cache-folder ~/.yarn_cache
+    - name: Verify Node.js version
+      run: node -v
 
-    - name: Prepare Environment
+    - name: Check EC2 Instance Status
       run: |
+        instance_id="YOUR_INSTANCE_ID"
+        instance_status=$(aws ec2 describe-instance-status --instance-ids $instance_id --query 'InstanceStatuses[0].InstanceState.Name' --output text)
+        if [ "$instance_status" != "running" ]; then
+          echo "Instance is not running. Exiting..."
+          exit 1
+        fi
+
+    - run: yarn
+    - run: |
         mkdir -p ./dist
         touch .env
         echo "${{ secrets.PROD_ENV_FILE }}" > .env
         cp .env ./dist/.env
-
-    - name: Build
-      run: yarn build
-
-    - name: Restart Backend
-      run: pm2 restart Backend
+    - run: yarn build
+    - run: pm2 restart Backend
 
