@@ -28,14 +28,6 @@ jobs:
     - name: Verify Node.js version
       run: node -v
 
-    - name: Check EC2 Instance Status
-      run: |
-        instance_id="YOUR_INSTANCE_ID"
-        instance_status=$(aws ec2 describe-instance-status --instance-ids $instance_id --query 'InstanceStatuses[0].InstanceState.Name' --output text)
-        if [ "$instance_status" != "running" ]; then
-          echo "Instance is not running. Exiting..."
-          exit 1
-
     - run: yarn
 
     - run: |
