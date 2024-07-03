@@ -35,9 +35,9 @@ jobs:
         if [ "$instance_status" != "running" ]; then
           echo "Instance is not running. Exiting..."
           exit 1
-        fi
 
     - run: yarn
+
     - run: |
         mkdir -p ./dist
         touch .env
