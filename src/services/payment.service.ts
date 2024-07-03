@@ -1,5 +1,4 @@
 import prisma from "../../prisma";
-
 class _PaymentService {
   async getAllPaymentByProps(query: any) {
     try {
