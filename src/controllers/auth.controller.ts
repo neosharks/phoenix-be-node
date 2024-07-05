@@ -50,10 +50,7 @@ class _AuthController {
           : { ...body, profileImage },
       );
       if (body.email && body.email.length > 0) {
-        await sendEmail(body.email, "Welcome to Quiber!", "SIGNUP", {
-          firstName: body.firstName,
-          lastName: body.lastName,
-        });
+        await sendEmail(body.email, "Welcome to Qalakar!", "SIGNUP");
       }
       const accessToken = await signJwt(created);
       return res.status(201).json({ messge: successMessages.CREATED, accessToken, user: created });
@@ -410,7 +407,7 @@ class _AuthController {
 
         if (email && email.length > 0) {
           logger.info("sending email to: ", email);
-          await sendEmail(email, "Welcome to Quiber!", "SIGNUP", {
+          await sendEmail(email, "Welcome to Qalakar!", "SIGNUP", {
             firstName: given_name,
             lastName: family_name,
           });

@@ -18,6 +18,8 @@ userRoutes.get("/getAllCreators", checkRoleAuth(), UserController.getAllCreator)
 
 userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboard);
 
+userRoutes.post("/approveCreatorOnboard", UserController.approveCreatorOnboard);
+
 userRoutes.post(
   "/update",
   checkRoleAuth(),
