@@ -10,46 +10,114 @@
         background-color: #f8f8f8;
         margin: 0;
         padding: 0;
+        text-align: center;
       }
 
       .container {
-        margin: 0 auto;
+        max-width: 600px;
+        margin: 20px auto;
         padding: 20px;
         background-color: #fff;
+        border: 1px solid #ddd;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
+        border-radius: 10px;
+      }
+
+      .header,
+      .footer {
+        background: rgb(174, 107, 237);
+        color: white;
+        padding: 15px 0;
+        text-align: center;
+        border-radius: 10px 10px 0 0;
+      }
+
+      .footer {
+        border-radius: 0 0 10px 10px;
         margin-top: 20px;
+      }
+
+      .footer p {
+        color: black;
       }
 
       img {
-        max-width: 250px;
-        margin-bottom: 20px;
+        max-width: 150px;
+        margin: 20px 0;
+        border-radius: 8px;
       }
 
       h2 {
-        margin-top: 20px;
-        font-size: 28px;
+        font-size: 1.5rem;
         color: #333;
+        margin: 20px 0;
       }
 
       p {
-        margin: 15px 0;
-        font-size: 18px;
-        line-height: 1.6;
+        font-size: 1rem;
+        font-family: __Public_Sans_d7c01c, __Public_Sans_Fallback_d7c01c, Helvetica, Arial,
+          sans-serif;
+        font-weight: 400;
+        line-height: 1.8;
         color: #555;
+        margin: 15px 0;
+      }
+
+      .divider {
+        height: 1px;
+        background-color: #ddd;
+        margin: 20px 0;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 10px;
+        }
+
+        img {
+          max-width: 150px;
+        }
+
+        h2 {
+          font-size: 1.5rem;
+        }
+
+        p {
+          font-size: 0.875rem;
+          font-family: __Public_Sans_d7c01c, __Public_Sans_Fallback_d7c01c, Helvetica, Arial,
+            sans-serif;
+          font-weight: 400;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div style="text-align: center">
-        <img
-          src="https://qalakar-public.s3.ap-south-1.amazonaws.com/email-assets/logo.png"
-          alt="Qalakar Logo"
-          width="200"
-        />
+      <div class="header">
+        <h1>Welcome to Qalakar!</h1>
       </div>
-      <h3>Fallback Mail</h3>
+
+      <img src="./logo.png" alt="Qalakar Logo" />
+
+      <h2>Hi,</h2>
+      <p>
+        We're thrilled to have you on board. Whether you're here to connect, create, or explore,
+        we're here to support you every step of the way.
+      </p>
+      <p>
+        If you have any questions, ideas, or just want to say hello, don't hesitate to reach out to
+        us. We're always here to help.
+      </p>
+      <p>Thank you for joining Qalakar. Let's make something amazing together!</p>
+
+      <div class="divider"></div>
+
+      <p>Best Regards,</p>
+      <p>The Qalakar Team</p>
+
+      <div class="footer">
+        <p>© 2024 Qalakar. All rights reserved.</p>
+      </div>
     </div>
   </body>
 </html>
