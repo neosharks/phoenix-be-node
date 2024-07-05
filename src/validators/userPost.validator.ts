@@ -1,5 +1,8 @@
 import * as Joi from "joi";
 
+const updatesSchema = Joi.object({
+  description: Joi.string(),
+});
 export const userPostSchema = Joi.object({
   pollId: Joi.number(),
   postId: Joi.number(),
@@ -26,4 +29,5 @@ export const userPostSchema = Joi.object({
   videoUrl: Joi.string(),
   packages: Joi.array().items(Joi.string()),
   userPostId: Joi.number(),
+  updates: updatesSchema,
 });
