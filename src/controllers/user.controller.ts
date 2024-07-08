@@ -203,7 +203,14 @@ class _UserController {
         creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
-      await sendEmail(req.body.email, "Creator Application Under Review", "APPLY_CREATOR");
+      const emailSent = await sendEmail(
+        req.body.email,
+        "Creator Application Under Review",
+        "APPLY_CREATOR",
+      );
+      if (!emailSent) {
+        return res.status(500).send({ message: "Failed to send email" });
+      }
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
