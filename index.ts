@@ -10,3 +10,5 @@ if (res.length < 1) {
     .listen(port, () => logger.info(`SERVER UP AT PORT ${port}`))
     .on("error", (e) => console.log("Error in starting server", e));
 } else logger.info(`SERVER STOPPED DUE TO UNSET ENV VARS: ${res}`);
+
+// temp commit
