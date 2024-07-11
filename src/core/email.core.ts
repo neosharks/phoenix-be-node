@@ -29,7 +29,7 @@ const sendEmail = async (
     const mailTransport: nodemailer.Transporter = nodemailer.createTransport({
       host: config.nodemailer.host,
       port: config.nodemailer.port,
-      secure: true, // Ensure secure configuration matches your provider's recommendation
+      secure: true,
       connectionTimeout: 5000,
       auth: {
         user: config.nodemailer.email,
@@ -54,7 +54,8 @@ const sendEmail = async (
       html: foundTemplate,
     };
     console.info(`Sending email to ${receiverEmail} with subject ${subject}`);
-    await mailTransport.sendMail(mailOptions);
+    const res = await mailTransport.sendMail(mailOptions);
+    console.log(res);
     logger.info(`Email sent to ${receiverEmail}`);
     return true;
   } catch (err) {
