@@ -54,8 +54,7 @@ const sendEmail = async (
       html: foundTemplate,
     };
     console.info(`Sending email to ${receiverEmail} with subject ${subject}`);
-    const res = await mailTransport.sendMail(mailOptions);
-    console.log(res);
+    await mailTransport.sendMail(mailOptions);
     logger.info(`Email sent to ${receiverEmail}`);
     return true;
   } catch (err) {
