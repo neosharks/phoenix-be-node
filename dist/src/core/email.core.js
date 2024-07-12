@@ -13,21 +13,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const nodemailer_1 = __importDefault(require("nodemailer"));
-const ejs_1 = __importDefault(require("ejs"));
+const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
 const logger_core_1 = __importDefault(require("./logger.core"));
 const config_1 = __importDefault(require("../../config"));
 const extractTemplate = (template) => {
     switch (template) {
         case "SIGNUP":
-            return "signup.mail.ejs";
+            return "signup.mail.html";
         case "FORGET_PASSWORD":
-            return "forgetPassword.mail.ejs";
+            return "forgetPassword.mail.html";
+        case "APPLY_CREATOR":
+            return "applyForCreator.mail.html";
+        case "APPROVE_CREATOR":
+            return "approvalForCreator.mail.html";
         default:
-            return "default.mail.ejs";
+            return "default.mail.html";
     }
 };
-const sendEmail = (receiverEmail, subject, template, variables) => __awaiter(void 0, void 0, void 0, function* () {
+const sendEmail = (receiverEmail_1, subject_1, template_1, ...args_1) => __awaiter(void 0, [receiverEmail_1, subject_1, template_1, ...args_1], void 0, function* (receiverEmail, subject, template, variables = {}) {
     try {
         const mailTransport = nodemailer_1.default.createTransport({
             host: config_1.default.nodemailer.host,
@@ -40,20 +44,25 @@ const sendEmail = (receiverEmail, subject, template, variables) => __awaiter(voi
             },
         });
         const templatePath = path_1.default.join(__dirname, `../mailTemplates/${extractTemplate(template)}`);
-        const foundTemplate = yield ejs_1.default.renderFile(templatePath, variables);
+        logger_core_1.default.info(`Reading email template from ${templatePath}`);
+        let foundTemplate = yield promises_1.default.readFile(templatePath, "utf8");
+        for (const [key, value] of Object.entries(variables)) {
+            const regex = new RegExp(`{{${key}}}`, "g");
+            foundTemplate = foundTemplate.replace(regex, value);
+        }
         const mailOptions = {
             from: `admin@qalakar.com`,
             to: receiverEmail,
             subject: subject,
             html: foundTemplate,
         };
-        logger_core_1.default.info(`Sending email to ${receiverEmail}`);
+        console.info(`Sending email to ${receiverEmail} with subject ${subject}`);
         yield mailTransport.sendMail(mailOptions);
         logger_core_1.default.info(`Email sent to ${receiverEmail}`);
         return true;
     }
     catch (err) {
-        console.log("Failed to send email", err);
+        console.error("Failed to send email", err);
         return false;
     }
 });

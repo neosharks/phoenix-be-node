@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
@@ -16,6 +19,7 @@ const s3upload_core_1 = require("../core/s3upload.core");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
+const email_core_1 = __importDefault(require("../core/email.core"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -216,29 +220,54 @@ class _UserController {
             try {
                 const { id, username } = res.locals.user;
                 const validation = user_validator_1.userUpdateSchema.validate(req.body);
-                if (validation.error) {
+                if (validation.error)
                     return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 const foundUser = yield user_service_1.UserService.getOneUser({ id });
-                if (!foundUser) {
+                if (!foundUser)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                }
-                if (foundUser.role.includes("CREATOR")) {
+                if (foundUser.role.includes("CREATOR"))
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
-                }
                 const foundUsername = yield user_service_1.UserService.getOneUser({ username });
-                if (foundUsername && foundUsername.id !== id) {
+                if (foundUsername && foundUsername.id !== id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
-                }
                 // Ensure email uniqueness check before update
                 if (req.body.email) {
                     const existingUserWithEmail = yield user_service_1.UserService.getOneUser({ email: req.body.email });
-                    if (existingUserWithEmail && existingUserWithEmail.id !== id) {
+                    if (existingUserWithEmail && existingUserWithEmail.id !== id)
                         return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Email already exists" });
+                }
+                const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
+                yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
+                yield (0, email_core_1.default)(req.body.email, "Creator Application Under Review", "APPLY_CREATOR");
+                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    approveCreatorOnboard(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { users } = req.body;
+                for (let i = 0; i < users.length; i++) {
+                    const ele = users[i];
+                    const foundUser = yield user_service_1.UserService.getOneUser({ id: ele });
+                    if (foundUser && !foundUser.isCreator) {
+                        const updatedBody = {
+                            isCreator: true,
+                            role: ["CREATOR", ...foundUser.role],
+                            creatorApprovalStatus: "APPROVED",
+                            creatorChangeTimeStamp: new Date(),
+                        };
+                        yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
+                        if (foundUser.email)
+                            yield (0, email_core_1.default)(foundUser.email, "Application Approval", "APPROVE_CREATOR");
                     }
                 }
-                const updatedBody = Object.assign(Object.assign({}, req.body), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
-                yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {

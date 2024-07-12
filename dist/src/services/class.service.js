@@ -75,6 +75,20 @@ class _ClassService {
             }
         });
     }
+    addMultipleParticipants(participantsData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.classParticipants.createMany({
+                    data: participantsData,
+                    skipDuplicates: true,
+                });
+            }
+            catch (error) {
+                console.error(error);
+                throw error;
+            }
+        });
+    }
     updateClassByProps(props, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

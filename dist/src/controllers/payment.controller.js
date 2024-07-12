@@ -92,8 +92,8 @@ class _PaymentController {
         });
     }
     verify(req, res) {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             try {
                 const { orderId } = req.body;
                 if (!orderId)
