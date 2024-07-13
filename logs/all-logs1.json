@@ -10622,3 +10622,15 @@
 {"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"762.445ms","status":"200","url":"/class/updateSendMessage","userId":23},"timestamp":"2024-07-13 16:25:15"}
 {"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"151.451ms","status":"200","url":"/class/updateSendMessage","userId":23},"timestamp":"2024-07-13 16:25:18"}
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 16:25:35"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:00:55"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:01:34"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:01:53"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:01:59"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:02:10"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 17:02:19"}
+{"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"789.065ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:09:12"}
+{"level":"http","message":{"contentLength":"95","ipAddress":"::1","method":"POST","responseTime":"266.844ms","status":"500","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:10:22"}
+{"level":"http","message":{"contentLength":"95","ipAddress":"::1","method":"POST","responseTime":"290.130ms","status":"500","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:12:24"}
+{"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"327.817ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:13:20"}
+{"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"290.418ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:14:04"}
+{"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"338.648ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:14:34"}
