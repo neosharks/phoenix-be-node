@@ -10634,3 +10634,5 @@
 {"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"327.817ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:13:20"}
 {"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"290.418ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:14:04"}
 {"level":"http","message":{"contentLength":"110","ipAddress":"::1","method":"POST","responseTime":"338.648ms","status":"200","url":"/notification/sendNotification","userId":"N/A"},"timestamp":"2024-07-13 17:14:34"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 20:02:00"}
+{"level":"http","message":{"contentLength":"1274","ipAddress":"::1","method":"POST","responseTime":"640.643ms","status":"200","url":"/auth/login","userId":"N/A"},"timestamp":"2024-07-13 20:02:03"}

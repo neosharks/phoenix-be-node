@@ -2,10 +2,10 @@ import { Request, Response } from "express";
 const admin = require("firebase-admin");
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-const serviceAccount = require("../firebseNotification/serviceAccountKey.json");
+import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccountKey),
 });
 
 class _NotificationController {
