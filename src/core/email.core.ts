@@ -39,7 +39,7 @@ const sendEmail = async (
 
     const templatePath = path.join(__dirname, `../mailTemplates/${extractTemplate(template)}`);
     logger.info(`Reading email template from ${templatePath}`);
-
+    console.log(templatePath, "emailSent42");
     let foundTemplate = await fs.readFile(templatePath, "utf8");
 
     for (const [key, value] of Object.entries(variables)) {
