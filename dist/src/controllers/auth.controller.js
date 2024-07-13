@@ -53,10 +53,7 @@ class _AuthController {
                 const created = yield user_service_1.UserService.createOneUser(isCreator
                     ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {
-                    yield (0, email_core_1.default)(body.email, "Welcome to Quiber!", "SIGNUP", {
-                        firstName: body.firstName,
-                        lastName: body.lastName,
-                    });
+                    yield (0, email_core_1.default)(body.email, "Welcome to Qalakar!", "SIGNUP");
                 }
                 const accessToken = yield (0, jwt_core_1.signJwt)(created);
                 return res.status(201).json({ messge: api_constant_1.successMessages.CREATED, accessToken, user: created });
@@ -405,7 +402,7 @@ class _AuthController {
                     foundUser = yield user_service_1.UserService.createOneUser(user);
                     if (email && email.length > 0) {
                         logger_core_1.default.info("sending email to: ", email);
-                        yield (0, email_core_1.default)(email, "Welcome to Quiber!", "SIGNUP", {
+                        yield (0, email_core_1.default)(email, "Welcome to Qalakar!", "SIGNUP", {
                             firstName: given_name,
                             lastName: family_name,
                         });

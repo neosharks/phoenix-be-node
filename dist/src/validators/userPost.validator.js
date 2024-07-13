@@ -25,6 +25,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userPostSchema = void 0;
 const Joi = __importStar(require("joi"));
+const updatesSchema = Joi.object({
+    description: Joi.string(),
+});
 exports.userPostSchema = Joi.object({
     pollId: Joi.number(),
     postId: Joi.number(),
@@ -51,4 +54,5 @@ exports.userPostSchema = Joi.object({
     videoUrl: Joi.string(),
     packages: Joi.array().items(Joi.string()),
     userPostId: Joi.number(),
+    updates: updatesSchema,
 });

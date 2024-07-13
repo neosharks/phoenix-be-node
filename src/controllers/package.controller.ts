@@ -300,10 +300,6 @@ class _PackageController {
   async createOneTier(req: Request, res: Response) {
     try {
       const body = req.body;
-      const validation = updatePackageSchema.validate(body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       await PackageService.createOneTier(body);
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {

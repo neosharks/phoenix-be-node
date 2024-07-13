@@ -6,7 +6,7 @@
   "scripts": {
     "build": "cp .env ./dist/.env && cp -r ./src/mailTemplates ./dist/src/mailTemplates && tsc --build",
     "clean": "tsc --build --clean",
-    "start": "npm run build && pm2 start dist/index.js",
+    "start": "npm run build && pm2 restart dist/index.js",
     "dev": "nodemon --exec ts-node index.ts",
     "pretty": "prettier --write \"src/**/*.ts\""
   },
@@ -25,8 +25,8 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
-    "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "firebase-admin": "^12.2.0",
     "http-errors": "^2.0.0",
     "jimp": "^0.22.12",
     "joi": "^17.9.2",

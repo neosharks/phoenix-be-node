@@ -82,6 +82,28 @@ class _ClassController {
             }
         });
     }
+    addMultipleParticipants(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { classId, participants } = req.body;
+                if (!classId || !participants || !Array.isArray(participants)) {
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                }
+                const participantData = participants.map((participantId) => ({
+                    userId: participantId,
+                    classId: classId,
+                }));
+                yield class_service_1.ClassService.addMultipleParticipants(participantData);
+                return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
+            }
+        });
+    }
     getAllParticipantOfClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

@@ -33,6 +33,9 @@ model User {
   twitterHandle                String?
   instagramHandle              String?
 
+  creatorApprovalStatus  CREATOR_APPROVAL_STATUS @default(UNINITIATED)
+  creatorChangeTimeStamp DateTime?
+
   status USER_STATUS @default(ACTIVE)
 
   password String?
@@ -432,6 +435,7 @@ enum NOTIFICATION {
   MENTIONED
   NEW_COMMENT
   NEW_LIKE
+  CLASS
 }
 
 enum MESSAGE_TYPE {
@@ -455,6 +459,13 @@ enum USER_STATUS {
   INACTIVE
   DELETED
   BLOCKED
+}
+
+enum CREATOR_APPROVAL_STATUS {
+  PENDING
+  APPROVED
+  DENIED
+  UNINITIATED
 }
 
 enum VERIFICATION_CODE_TYPE {

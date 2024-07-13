@@ -1,9 +1,34 @@
 import { Request, Response } from "express";
+const admin = require("firebase-admin");
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import logger from "../core/logger.core";
+import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccountKey),
+});
 
 class _NotificationController {
+  async sendNotification(req: Request, res: Response) {
+    const { token, title, body, data } = req.body;
+
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+      token,
+      data: data || {},
+    };
+
+    try {
+      const response = await admin.messaging().send(message);
+      res.status(200).send(`Notification sent successfully: ${response}`);
+    } catch (error) {
+      res.status(500).send(`Error sending notification: ${error}`);
+    }
+  }
+
   async getAllNotificationByUser(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;

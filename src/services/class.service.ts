@@ -5,6 +5,18 @@ class _ClassService {
     try {
       return await prisma.class.findUnique({
         where: query,
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error(error);
@@ -25,6 +37,18 @@ class _ClassService {
     try {
       return await prisma.class.findMany({
         where: { creatorId: parseInt(id) },
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error(error);
@@ -102,6 +126,14 @@ class _ClassService {
       });
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async updateSendMessage(query: any, data: any) {
+    try {
+      return await prisma.classMessage.update({ where: query, data: data });
+    } catch (error) {
+      throw error;
     }
   }
 

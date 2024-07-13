@@ -53,6 +53,8 @@ exports.userUpdateSchema = Joi.object({
     referralTimeStamp: Joi.date().iso(),
     referralDevice: Joi.string(),
     emailVerified: Joi.boolean(),
+    platform: Joi.string(),
+    url: Joi.string(),
     phoneVerified: Joi.boolean(),
     youtubeHandle: Joi.string(),
     instagramHandle: Joi.string().allow(""),

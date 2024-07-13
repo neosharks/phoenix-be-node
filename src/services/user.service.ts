@@ -73,6 +73,14 @@ class _UserService {
     }
   }
 
+  async getAllTotalUser() {
+    try {
+      return await prisma.user.findMany();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async createOneUser(data: any) {
     try {
       return await prisma.user.create({ data: data });

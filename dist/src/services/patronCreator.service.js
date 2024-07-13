@@ -35,8 +35,8 @@ class _PatronCreatorService {
             }
         });
     }
-    getAll(query, skip = 0, take = 10) {
-        return __awaiter(this, void 0, void 0, function* () {
+    getAll(query_1) {
+        return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
                 return yield prisma_1.default.patronCreator.findMany({
                     where: query,

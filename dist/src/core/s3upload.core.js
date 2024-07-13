@@ -12,7 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetUploadedFile = exports.getObjectSignedUrl = exports.deleteFile = exports.uploadFile = exports.generateFileName = exports.uploadFileMiddleware = void 0;
+exports.generateFileName = exports.uploadFileMiddleware = void 0;
+exports.uploadFile = uploadFile;
+exports.deleteFile = deleteFile;
+exports.getObjectSignedUrl = getObjectSignedUrl;
+exports.GetUploadedFile = GetUploadedFile;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const jimp_1 = __importDefault(require("jimp"));
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
@@ -43,7 +47,6 @@ function uploadFile(fileBuffer, fileName, mimetype) {
     };
     return s3Client.send(new client_s3_1.PutObjectCommand(uploadParams));
 }
-exports.uploadFile = uploadFile;
 function deleteFile(fileName) {
     const deleteParams = {
         Bucket: bucketName,
@@ -51,7 +54,6 @@ function deleteFile(fileName) {
     };
     return s3Client.send(new client_s3_1.DeleteObjectCommand(deleteParams));
 }
-exports.deleteFile = deleteFile;
 function getObjectSignedUrl(key) {
     return __awaiter(this, void 0, void 0, function* () {
         if (key.includes("phoenix-test-bucket"))
@@ -66,7 +68,6 @@ function getObjectSignedUrl(key) {
         return url;
     });
 }
-exports.getObjectSignedUrl = getObjectSignedUrl;
 function GetUploadedFile(image) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -85,4 +86,3 @@ function GetUploadedFile(image) {
         }
     });
 }
-exports.GetUploadedFile = GetUploadedFile;
