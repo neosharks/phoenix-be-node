@@ -259,6 +259,19 @@ class _UserController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+
+  async getAllTotalUser(req: Request, res: Response) {
+    try {
+      const found = await UserService.getAllTotalUser();
+      if (!found) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      return res.status(201).send({ message: successMessages.SUCCESS, user: found });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
 }
 
 export const UserController = new _UserController();

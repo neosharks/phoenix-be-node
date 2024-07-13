@@ -15,8 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InsightService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 class _InsightService {
-    getAllPackagesOfCreator(query, skip = 0, take = 10) {
-        return __awaiter(this, void 0, void 0, function* () {
+    getAllPackagesOfCreator(query_1) {
+        return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
                 return yield prisma_1.default.patronCreator.findMany({
                     where: query,

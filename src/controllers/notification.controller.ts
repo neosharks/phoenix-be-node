@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
+const admin = require("firebase-admin");
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import logger from "../core/logger.core";
-
-const admin = require("firebase-admin");
-const serviceAccount = require("../firebseNotification/serviceAccountKey.json");
+import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccountKey),
 });
 
 class _NotificationController {
@@ -16,11 +14,11 @@ class _NotificationController {
 
     const message = {
       notification: {
-        title: title,
-        body: body,
+        title,
+        body,
       },
-      token: token,
-      data: data,
+      token,
+      data: data || {},
     };
 
     try {

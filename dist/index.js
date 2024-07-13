@@ -16,3 +16,4 @@ if (res.length < 1) {
 }
 else
     logger_core_1.default.info(`SERVER STOPPED DUE TO UNSET ENV VARS: ${res}`);
+// temp commit

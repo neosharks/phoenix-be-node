@@ -29,7 +29,7 @@ const sendEmail = async (
     const mailTransport: nodemailer.Transporter = nodemailer.createTransport({
       host: config.nodemailer.host,
       port: config.nodemailer.port,
-      secure: true, // Ensure secure configuration matches your provider's recommendation
+      secure: true,
       connectionTimeout: 5000,
       auth: {
         user: config.nodemailer.email,
