@@ -2,49 +2,6 @@ import { Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
-// const admin = require("firebase-admin");
-
-// const serviceAccount = require("./modular-seeker-425605-b7-firebase-adminsdk-gatu2-0bc4810f8f.json");
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
-// const sendNotification = async (registrationToken: Request) => {
-//   const messageSend = {
-//     token: registrationToken,
-//     notification: {
-//       title: "hellow",
-//       body: "world",
-//     },
-//     data: {
-//       key1: "value1",
-//       key2: "value2",
-//     },
-//     android: {
-//       priority: "high",
-//     },
-//     apns: {
-//       payload: {
-//         aps: {
-//           badge: 42,
-//         },
-//       },
-//     },
-//   };
-//   admin
-//     .message()
-//     .send(messageSend)
-//     .then((response: any) => {
-//       console.log("succesFully send message", response);
-//     })
-//     .catch((error: any) => {
-//       console.log("error send message", error);
-//     });
-// };
-
-// const registrationToken = "c9DGqMRZRo2G8tt5dlD2g5:APA91bHxUKQ8D-MNLqoxuKDVvm7u3QOwNMZh9BS92E7Cj2pDp-y5AELLscAVjlMwYJdCxfGKDn-1DrEcvGdmmHL-mjyBNzcCfP9TRvcvDl2-vHdljr8B7rUJKdYrRqdF6MfZKXvh42UK";
-// sendNotification(registrationToken);
 
 const admin = require("firebase-admin");
 const serviceAccount = require("../firebseNotification/serviceAccountKey.json");
@@ -59,23 +16,21 @@ class _NotificationController {
 
     const message = {
       notification: {
-        title,
-        body: body.message,
+        title: title,
+        body: body,
       },
-      token,
-      data: data || {},
+      token: token,
+      data: data,
     };
 
-    await admin
-      .messaging()
-      .send(message)
-      .then((response: any) => {
-        res.status(200).send(`Notification sent successfully: ${response}`);
-      })
-      .catch((error: any) => {
-        res.status(500).send(`Error sending notification: ${error}`);
-      });
+    try {
+      const response = await admin.messaging().send(message);
+      res.status(200).send(`Notification sent successfully: ${response}`);
+    } catch (error) {
+      res.status(500).send(`Error sending notification: ${error}`);
+    }
   }
+
   async getAllNotificationByUser(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;

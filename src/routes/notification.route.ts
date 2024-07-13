@@ -10,7 +10,7 @@ notificationRoutes.get(
   NotificationController.getAllNotificationByUser,
 );
 
-notificationRoutes.get("/sendNotification", NotificationController.sendNotification);
+notificationRoutes.post("/sendNotification", NotificationController.sendNotification);
 
 notificationRoutes.post("/markAllAsRead", checkRoleAuth(), NotificationController.markAllAsRead);
 

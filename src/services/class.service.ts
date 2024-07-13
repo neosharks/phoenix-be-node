@@ -25,6 +25,9 @@ class _ClassService {
     try {
       return await prisma.class.findMany({
         where: { creatorId: parseInt(id) },
+        include: {
+          ClassParticipants: true,
+        },
       });
     } catch (error) {
       console.error(error);
