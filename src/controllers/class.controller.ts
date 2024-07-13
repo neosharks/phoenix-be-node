@@ -113,6 +113,25 @@ class _ClassController {
     }
   }
 
+  async updateSendMessage(req: Request, res: Response) {
+    try {
+      const { classId, messageId, isPinned = false } = req.body;
+      if (!classId || !messageId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundClass = await ClassService.getAllMessagesOfClass(parseInt(classId));
+      const findMessage = foundClass?.find((res: any) => res.id === messageId);
+      if (!findMessage)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      await ClassService.updateSendMessage({ id: messageId }, { isPinned });
+      return res.status(200).send({ message: successMessages.UPDATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async getAllMessagesOfClass(req: Request, res: Response) {
     try {
       let { id }: any = req.query;

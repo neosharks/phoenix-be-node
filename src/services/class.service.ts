@@ -105,6 +105,14 @@ class _ClassService {
     }
   }
 
+  async updateSendMessage(query: any, data: any) {
+    try {
+      return await prisma.classMessage.update({ where: query, data: data });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllMessagesOfClass(id: number) {
     try {
       return await prisma.classMessage.findMany({
