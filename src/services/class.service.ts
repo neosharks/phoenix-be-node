@@ -5,6 +5,18 @@ class _ClassService {
     try {
       return await prisma.class.findUnique({
         where: query,
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error(error);

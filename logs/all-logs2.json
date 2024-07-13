@@ -18,3 +18,8 @@
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 22:15:25"}
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 22:16:25"}
 {"level":"http","message":{"contentLength":"14840","ipAddress":"::1","method":"GET","responseTime":"1201.560ms","status":"201","url":"/user/allUser","userId":"N/A"},"timestamp":"2024-07-13 22:16:51"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-13 22:54:13"}
+{"level":"http","message":{"contentLength":"29","ipAddress":"::1","method":"GET","responseTime":"4.942ms","status":"404","url":"/class/getOneClassByProps?id=2","userId":"N/A"},"timestamp":"2024-07-13 22:54:20"}
+{"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"584.526ms","status":"200","url":"/class/create","userId":2},"timestamp":"2024-07-13 22:54:48"}
+{"level":"http","message":{"contentLength":"29","ipAddress":"::1","method":"GET","responseTime":"2.013ms","status":"404","url":"/class/getOneClassByProps?id=2","userId":"N/A"},"timestamp":"2024-07-13 22:55:01"}
+{"level":"http","message":{"contentLength":"514","ipAddress":"::1","method":"GET","responseTime":"372.385ms","status":"200","url":"/class/getOneClass?id=2","userId":2},"timestamp":"2024-07-13 22:55:57"}
