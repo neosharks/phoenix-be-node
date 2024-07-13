@@ -60,10 +60,10 @@ class _NotificationController {
     const message = {
       notification: {
         title,
-        body: body.message, // Ensure the body is a string
+        body: body.message,
       },
       token,
-      data: data || {}, // Optional: additional key-value pairs
+      data: data || {},
     };
 
     await admin
