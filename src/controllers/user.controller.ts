@@ -203,14 +203,14 @@ class _UserController {
         creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
-      const emailSent = await sendEmail(
-        req.body.email,
-        "Creator Application Under Review",
-        "APPLY_CREATOR",
-      );
-      if (!emailSent) {
-        return res.status(500).send({ message: "Failed to send email" });
-      }
+      // const emailSent = await sendEmail(
+      //   req.body.email,
+      //   "Creator Application Under Review",
+      //   "APPLY_CREATOR",
+      // );
+      // if (!emailSent) {
+      //   return res.status(500).send({ message: "Failed to send email" });
+      // }
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -234,8 +234,8 @@ class _UserController {
             creatorChangeTimeStamp: new Date(),
           };
           await UserService.updateOneUser({ id: ele }, updatedBody);
-          if (foundUser.email)
-            await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+          // if (foundUser.email)
+          //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
         }
       }
       return res.status(201).send({ message: successMessages.SUCCESS });
