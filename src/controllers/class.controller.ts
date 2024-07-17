@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
+import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -48,12 +49,37 @@ class _ClassController {
     }
   }
 
+  async updateClass(req: Request, res: Response) {
+    try {
+      const { id, ...data } = req.body;
+
+      if (!id) {
+        console.error("Missing id in request body");
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      }
+      const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
+
+      if (!foundClass) {
+        console.error("Class not found with id:", id);
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      }
+      await ClassService.updateClassByProps({ id: parseInt(id) }, data);
+
+      return res.status(200).send({ message: successMessages.UPDATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async addOneParticipant(req: Request, res: Response) {
     try {
       const { classId, participantId } = req.body;
       if (!classId || !participantId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      await ClassService.addClassParticipant({ userId: participantId, classId });
+      const classAdd = await ClassService.addClassParticipant({ userId: participantId, classId });
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -98,18 +124,68 @@ class _ClassController {
     }
   }
 
+  // async sendMessage(req: Request, res: Response) {
+  //   try {
+  //     const { classId, participantId, message, isPinned = false } = req.body;
+  //     if (!classId || !participantId || !message)
+  //       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+  //     await ClassService.addMessage({ userId: participantId, classId, message, isPinned });
+  //     return res.status(200).send({ message: successMessages.CREATED });
+  //   } catch (error) {
+  //     console.log("ERROR: ", error);
+  //     return res
+  //       .status(errorCode.INTERNAL_SERVER)
+  //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+  //   }
+  // }
+
   async sendMessage(req: Request, res: Response) {
     try {
-      const { classId, participantId, message, isPinned = false } = req.body;
-      if (!classId || !participantId || !message)
+      const {
+        classId,
+        participantId,
+        message,
+        media = {},
+        emojis = [],
+        isPinned = false,
+      } = req.body;
+
+      if (!classId || !participantId || !message) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      await ClassService.addMessage({ userId: participantId, classId, message, isPinned });
-      return res.status(200).send({ message: successMessages.CREATED });
+      }
+
+      const handleMediaUpload = async (mediaType: string, urls: string[]) => {
+        const uploadedUrls = await Promise.all(urls.map((url) => getObjectSignedUrl(url)));
+        return { [`${mediaType}`]: uploadedUrls };
+      };
+
+      const uploadedMedia = {
+        image: await handleMediaUpload("image", media.image || []),
+        pdf: await handleMediaUpload("pdf", media.pdf || []),
+        docx: await handleMediaUpload("docx", media.docx || []),
+        txt: await handleMediaUpload("txt", media.txt || []),
+        audio: await handleMediaUpload("audio", media.audio || []),
+      };
+
+      const combinedMediaUrls = {
+        ...uploadedMedia.image,
+        ...uploadedMedia.pdf,
+        ...uploadedMedia.docx,
+        ...uploadedMedia.txt,
+        ...uploadedMedia.audio,
+      };
+      const uploadAllData = await ClassService.addMessage({
+        userId: participantId,
+        classId,
+        message,
+        media: combinedMediaUrls,
+        emojis,
+        isPinned,
+      });
+      return res.status(200).send({ message: uploadAllData });
     } catch (error) {
-      console.log("ERROR: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      console.error("Error sending message:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   }
 

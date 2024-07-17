@@ -77,3 +77,21 @@ export async function GetUploadedFile(image: any) {
     throw err;
   }
 }
+
+export async function GetAllMediaUploadedFile(file: any, fileType: string) {
+  try {
+    if (!file || !file.buffer || !file.mimetype) {
+      throw new Error("Invalid file data provided.");
+    }
+
+    const fileName = generateFileName();
+    const buffer = await Jimp.read(file.buffer);
+    const resizedBuffer = await buffer.getBufferAsync(file.mimetype);
+    await uploadFile(resizedBuffer, fileName, file.mimetype); // Upload to S3 or other storage
+
+    return { url: fileName, type: fileType }; // Return the filename or S3 URL based on your storage solution
+  } catch (err) {
+    console.error("Error in file upload:", err);
+    throw err;
+  }
+}
