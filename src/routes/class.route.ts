@@ -35,7 +35,7 @@ classRoutes.get(
 classRoutes.post(
   "/sendMessage",
   checkRoleAuth(),
-  uploadFileMiddleware.single("media"),
+  uploadFileMiddleware.single("file"),
   ClassController.sendMessage,
 );
 classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSendMessage);

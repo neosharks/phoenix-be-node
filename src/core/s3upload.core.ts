@@ -18,7 +18,17 @@ const secretAccessKey = config.aws.accessSecret;
 
 const storage = multer.memoryStorage();
 
-export const uploadFileMiddleware = multer({ storage: storage });
+export const uploadFileMiddleware = multer({
+  storage: storage,
+  fileFilter: (req, file, cb: any) => {
+    const allowedTypes = ["image/jpeg", "image/png", "video/mp4", "application/pdf"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"), false);
+    }
+  },
+});
 
 export const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
@@ -78,20 +88,24 @@ export async function GetUploadedFile(image: any) {
   }
 }
 
-export async function GetAllMediaUploadedFile(file: any, fileType: string) {
+export async function GetUploadedFiles(file: any) {
   try {
     if (!file || !file.buffer || !file.mimetype) {
       throw new Error("Invalid file data provided.");
     }
-
     const fileName = generateFileName();
-    const buffer = await Jimp.read(file.buffer);
-    const resizedBuffer = await buffer.getBufferAsync(file.mimetype);
-    await uploadFile(resizedBuffer, fileName, file.mimetype); // Upload to S3 or other storage
 
-    return { url: fileName, type: fileType }; // Return the filename or S3 URL based on your storage solution
+    if (file.mimetype.startsWith("image/")) {
+      const jimpImage = await Jimp.read(file.buffer);
+      const buffer = await jimpImage.getBufferAsync(file.mimetype);
+      await uploadFile(buffer, fileName, file.mimetype);
+    } else {
+      await uploadFile(file.buffer, fileName, file.mimetype);
+    }
+
+    return fileName;
   } catch (err) {
-    console.error("Error in file upload:", err);
+    console.log("Error in file upload", err);
     throw err;
   }
 }
