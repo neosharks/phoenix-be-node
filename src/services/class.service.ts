@@ -87,10 +87,10 @@ class _ClassService {
     }
   }
 
-  async updateClassByProps(props: any, data: any) {
+  async updateClassByProps(query: any, data: any) {
     try {
       return await prisma.class.update({
-        where: props,
+        where: query,
         data: data,
       });
     } catch (error) {
