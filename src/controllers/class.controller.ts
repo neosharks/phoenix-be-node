@@ -54,13 +54,11 @@ class _ClassController {
       const { id, ...data } = req.body;
 
       if (!id) {
-        console.error("Missing id in request body");
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
       const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
 
       if (!foundClass) {
-        console.error("Class not found with id:", id);
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       }
       await ClassService.updateClassByProps({ id: parseInt(id) }, data);
@@ -162,12 +160,10 @@ class _ClassController {
       let { id }: any = req.query;
       if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.getAllMessagesOfClass(parseInt(id));
-      // Iterating over each message to generate signed URL for file if it exists
       if (!allClasses) {
         return res.status(200).send({ message: successMessages.FETCHED, data: [] });
       }
 
-      // Iterating over each message to generate signed URL for file if it exists
       const allClassesWithSignedUrls = await Promise.all(
         allClasses.map(async (message) => {
           if (message.file) {
@@ -176,7 +172,6 @@ class _ClassController {
           return message;
         }),
       );
-      console.log(allClassesWithSignedUrls, "dfsdf");
       return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
     } catch (error) {
       console.log("ERROR: ", error);
