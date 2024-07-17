@@ -1,5 +1,4 @@
 import prisma from "../../prisma";
-
 class _ClassService {
   async getOneClassByProps(query: any) {
     try {
@@ -121,19 +120,18 @@ class _ClassService {
 
   async addMessage(data: any) {
     try {
+      const { userId, classId, message, isPinned, file } = data;
       return await prisma.classMessage.create({
-        data: data,
+        data: {
+          userId,
+          classId,
+          message,
+          isPinned,
+          file,
+        },
       });
     } catch (error) {
       console.error(error);
-    }
-  }
-
-  async updateSendMessage(query: any, data: any) {
-    try {
-      return await prisma.classMessage.update({ where: query, data: data });
-    } catch (error) {
-      throw error;
     }
   }
 
@@ -155,6 +153,14 @@ class _ClassService {
       });
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async updateSendMessage(query: any, data: any) {
+    try {
+      return await prisma.classMessage.update({ where: query, data: data });
+    } catch (error) {
+      throw error;
     }
   }
 }

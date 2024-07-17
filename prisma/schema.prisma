@@ -303,8 +303,7 @@ model ClassMessage {
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   message   String
-  media     Json?
-  emojis    String[]
+  file      String?
   isPinned  Boolean  @default(false)
   class     Class    @relation(fields: [classId], references: [id])
   classId   Int
