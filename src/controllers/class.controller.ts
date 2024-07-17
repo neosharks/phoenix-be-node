@@ -125,21 +125,6 @@ class _ClassController {
     }
   }
 
-  // async sendMessage(req: Request, res: Response) {
-  //   try {
-  //     const { classId, participantId, message, isPinned = false } = req.body;
-  //     if (!classId || !participantId || !message)
-  //       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-  //     await ClassService.addMessage({ userId: participantId, classId, message, isPinned });
-  //     return res.status(200).send({ message: successMessages.CREATED });
-  //   } catch (error) {
-  //     console.log("ERROR: ", error);
-  //     return res
-  //       .status(errorCode.INTERNAL_SERVER)
-  //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
-  //   }
-  // }
-
   async sendMessage(req: Request, res: Response) {
     try {
       const {
