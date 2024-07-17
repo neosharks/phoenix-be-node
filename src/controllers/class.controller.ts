@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
 import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
+import { messaging } from "firebase-admin";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -174,7 +175,7 @@ class _ClassController {
         ...uploadedMedia.txt,
         ...uploadedMedia.audio,
       };
-      const uploadAllData = await ClassService.addMessage({
+      await ClassService.addMessage({
         userId: participantId,
         classId,
         message,
@@ -182,7 +183,7 @@ class _ClassController {
         emojis,
         isPinned,
       });
-      return res.status(200).send({ message: uploadAllData });
+      return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
       console.error("Error sending message:", error);
       return res.status(500).json({ error: "Internal server error" });

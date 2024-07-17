@@ -201,3 +201,6 @@
 {"level":"http","message":{"contentLength":"2","ipAddress":"::1","method":"POST","responseTime":"1517.981ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-17 14:15:38"}
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-17 14:22:59"}
 {"level":"http","message":{"contentLength":"2784","ipAddress":"::1","method":"POST","responseTime":"936.822ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-17 14:23:21"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-17 16:08:35"}
+{"level":"http","message":{"contentLength":"28","ipAddress":"::1","method":"POST","responseTime":"511.444ms","status":"400","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-17 16:08:57"}
+{"level":"http","message":{"contentLength":"273","ipAddress":"::1","method":"POST","responseTime":"202.907ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-17 16:09:43"}
