@@ -141,7 +141,7 @@ class _ClassController {
         ...payload,
         userId: Number(participantId),
         classId: Number(classId),
-        message,
+        message: message || "",
         isPinned: Boolean(isPinned),
       });
 

@@ -302,7 +302,7 @@ model ClassMessage {
   id        Int      @id @default(autoincrement())
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
-  message   String
+  message   String?
   file      String?
   isPinned  Boolean  @default(false)
   class     Class    @relation(fields: [classId], references: [id])
