@@ -286,9 +286,7 @@ class _UserPostController {
         title,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
-
       if (created.image) created.image = await getObjectSignedUrl(created.image);
-
       return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       console.error(error);

@@ -117,3 +117,12 @@
 {"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"2428.450ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-18 17:19:25"}
 {"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 17:24:32"}
 {"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"1940.439ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-18 17:25:15"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 18:19:21"}
+{"level":"http","message":{"contentLength":"21","ipAddress":"::1","method":"POST","responseTime":"5111.852ms","status":"200","url":"/class/sendMessage","userId":2},"timestamp":"2024-07-18 18:19:32"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 18:20:24"}
+{"level":"http","message":{"contentLength":"9","ipAddress":"::1","method":"POST","responseTime":"54.598ms","status":"403","url":"/userpost/createUserPost","userId":"N/A"},"timestamp":"2024-07-18 18:25:22"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 18:27:20"}
+{"level":"http","message":{"contentLength":"999","ipAddress":"::1","method":"POST","responseTime":"4169.752ms","status":"201","url":"/userpost/createUserPost","userId":2},"timestamp":"2024-07-18 18:27:32"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 18:28:52"}
+{"level":"http","message":{"contentLength":"999","ipAddress":"::1","method":"POST","responseTime":"2967.256ms","status":"201","url":"/userpost/createUserPost","userId":2},"timestamp":"2024-07-18 18:28:58"}
+{"level":"info","message":"SERVER UP AT PORT 3000","timestamp":"2024-07-18 18:30:53"}
