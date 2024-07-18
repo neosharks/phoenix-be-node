@@ -34,6 +34,19 @@ var PACKAGE_NAMES;
     PACKAGE_NAMES["PLATINUM"] = "PLATINUM";
     PACKAGE_NAMES["RUBY"] = "RUBY";
 })(PACKAGE_NAMES || (PACKAGE_NAMES = {}));
+var TIER_TYPE;
+(function (TIER_TYPE) {
+    TIER_TYPE["GENERAL_SUPPORT"] = "GENERAL_SUPPORT";
+    TIER_TYPE["EXCLUSIVE_POSTS"] = "EXCLUSIVE_POSTS";
+    TIER_TYPE["BEHIND_THE_SCENES"] = "BEHIND_THE_SCENES";
+    TIER_TYPE["UNLIMITED_MESSAGE"] = "UNLIMITED_MESSAGE";
+    TIER_TYPE["ONE_TIME_MESSAGE"] = "ONE_TIME_MESSAGE";
+    TIER_TYPE["NAME_POST_DESCRIPTION"] = "NAME_POST_DESCRIPTION";
+    TIER_TYPE["NAME_POST_END"] = "NAME_POST_END";
+    TIER_TYPE["EXCLUSIVE_POLLS"] = "EXCLUSIVE_POLLS";
+    TIER_TYPE["MENTORSHIP"] = "MENTORSHIP";
+    TIER_TYPE["COMMUNITY"] = "COMMUNITY";
+})(TIER_TYPE || (TIER_TYPE = {}));
 exports.packageSchema = Joi.object({
     patronId: Joi.number(),
     creatorId: Joi.number(),
@@ -44,10 +57,11 @@ exports.packageSchema = Joi.object({
     username: Joi.string(),
     tiers: Joi.array().items(Joi.string()),
     role: Joi.array().items(Joi.string().valid("PATRON", "CREATOR", "ADMIN")),
-    tierType: Joi.string(),
+    tierType: Joi.string().valid(...Object.values(TIER_TYPE)),
 });
 exports.updatePackageSchema = Joi.object({
     tier: Joi.array().items(Joi.string().required()),
+    tierType: Joi.string().valid(...Object.values(TIER_TYPE)),
     name: Joi.string().valid(...Object.values(PACKAGE_NAMES)),
     price: Joi.number().integer().min(0),
     description: Joi.string(),

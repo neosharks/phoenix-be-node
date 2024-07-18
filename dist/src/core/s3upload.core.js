@@ -17,6 +17,7 @@ exports.uploadFile = uploadFile;
 exports.deleteFile = deleteFile;
 exports.getObjectSignedUrl = getObjectSignedUrl;
 exports.GetUploadedFile = GetUploadedFile;
+exports.GetUploadedFiles = GetUploadedFiles;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const jimp_1 = __importDefault(require("jimp"));
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
@@ -28,7 +29,18 @@ const region = config_1.default.aws.region;
 const accessKeyId = config_1.default.aws.accessId;
 const secretAccessKey = config_1.default.aws.accessSecret;
 const storage = multer_1.default.memoryStorage();
-exports.uploadFileMiddleware = (0, multer_1.default)({ storage: storage });
+exports.uploadFileMiddleware = (0, multer_1.default)({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ["image/jpeg", "image/png", "video/mp4", "application/pdf"];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        }
+        else {
+            cb(new Error("Invalid file type"), false);
+        }
+    },
+});
 const generateFileName = (bytes = 32) => crypto_1.default.randomBytes(bytes).toString("hex");
 exports.generateFileName = generateFileName;
 const s3Client = new client_s3_1.S3Client({
@@ -82,6 +94,29 @@ function GetUploadedFile(image) {
         }
         catch (err) {
             console.log("Error in image upload", err);
+            throw err;
+        }
+    });
+}
+function GetUploadedFiles(file) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (!file || !file.buffer || !file.mimetype) {
+                throw new Error("Invalid file data provided.");
+            }
+            const fileName = (0, exports.generateFileName)();
+            if (file.mimetype.startsWith("image/")) {
+                const jimpImage = yield jimp_1.default.read(file.buffer);
+                const buffer = yield jimpImage.getBufferAsync(file.mimetype);
+                yield uploadFile(buffer, fileName, file.mimetype);
+            }
+            else {
+                yield uploadFile(file.buffer, fileName, file.mimetype);
+            }
+            return fileName;
+        }
+        catch (err) {
+            console.log("Error in file upload", err);
             throw err;
         }
     });

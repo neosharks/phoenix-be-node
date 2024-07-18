@@ -8,9 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
@@ -19,7 +16,6 @@ const s3upload_core_1 = require("../core/s3upload.core");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
-const email_core_1 = __importDefault(require("../core/email.core"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -238,7 +234,14 @@ class _UserController {
                 }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
-                yield (0, email_core_1.default)(req.body.email, "Creator Application Under Review", "APPLY_CREATOR");
+                // const emailSent = await sendEmail(
+                //   req.body.email,
+                //   "Creator Application Under Review",
+                //   "APPLY_CREATOR",
+                // );
+                // if (!emailSent) {
+                //   return res.status(500).send({ message: "Failed to send email" });
+                // }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
@@ -264,8 +267,8 @@ class _UserController {
                             creatorChangeTimeStamp: new Date(),
                         };
                         yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
-                        if (foundUser.email)
-                            yield (0, email_core_1.default)(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+                        // if (foundUser.email)
+                        //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
                     }
                 }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
@@ -284,6 +287,22 @@ class _UserController {
                 const { id } = res.locals.user;
                 yield user_service_1.UserService.deleteOneUser(id);
                 return res.status(200).json({ messge: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAllTotalUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const found = yield user_service_1.UserService.getAllTotalUser();
+                if (!found)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
                 console.log("ERROR: ", error);

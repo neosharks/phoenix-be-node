@@ -19,7 +19,6 @@ const patronCreator_service_1 = require("../services/patronCreator.service");
 const api_constant_1 = require("../constant/api.constant");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const payment_service_1 = require("../services/payment.service");
-const package_validator_1 = require("../validators/package.validator");
 const user_service_1 = require("../services/user.service");
 const AssignTierAndLink = (foundPackage, user) => __awaiter(void 0, void 0, void 0, function* () {
     const { tier, creatorId } = foundPackage;
@@ -310,10 +309,6 @@ class _PackageController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
-                const validation = package_validator_1.updatePackageSchema.validate(body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 yield package_service_1.PackageService.createOneTier(body);
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }

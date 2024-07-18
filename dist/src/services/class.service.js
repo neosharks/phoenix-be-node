@@ -20,6 +20,18 @@ class _ClassService {
             try {
                 return yield prisma_1.default.class.findUnique({
                     where: query,
+                    include: {
+                        ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
                 });
             }
             catch (error) {
@@ -44,6 +56,18 @@ class _ClassService {
             try {
                 return yield prisma_1.default.class.findMany({
                     where: { creatorId: parseInt(id) },
+                    include: {
+                        ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
                 });
             }
             catch (error) {
@@ -89,11 +113,11 @@ class _ClassService {
             }
         });
     }
-    updateClassByProps(props, data) {
+    updateClassByProps(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.class.update({
-                    where: props,
+                    where: query,
                     data: data,
                 });
             }
@@ -128,8 +152,15 @@ class _ClassService {
     addMessage(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const { userId, classId, message, isPinned, file } = data;
                 return yield prisma_1.default.classMessage.create({
-                    data: data,
+                    data: {
+                        userId,
+                        classId,
+                        message,
+                        isPinned,
+                        file,
+                    },
                 });
             }
             catch (error) {
@@ -157,6 +188,16 @@ class _ClassService {
             }
             catch (error) {
                 console.error(error);
+            }
+        });
+    }
+    updateSendMessage(query, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.classMessage.update({ where: query, data: data });
+            }
+            catch (error) {
+                throw error;
             }
         });
     }

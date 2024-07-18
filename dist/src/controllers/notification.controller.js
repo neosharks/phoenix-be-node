@@ -10,9 +10,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationController = void 0;
+const admin = require("firebase-admin");
 const notification_service_1 = require("../services/notification.service");
 const api_constant_1 = require("../constant/api.constant");
+const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountKey_1.serviceAccountKey),
+});
 class _NotificationController {
+    sendNotification(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { token, title, body, data } = req.body;
+            const message = {
+                notification: {
+                    title,
+                    body,
+                },
+                token,
+                data: data || {},
+            };
+            try {
+                const response = yield admin.messaging().send(message);
+                res.status(200).send(`Notification sent successfully: ${response}`);
+            }
+            catch (error) {
+                res.status(500).send(`Error sending notification: ${error}`);
+            }
+        });
+    }
     getAllNotificationByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

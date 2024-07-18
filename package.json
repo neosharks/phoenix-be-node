@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cp .env ./dist/.env && cp -r ./src/mailTemplates ./dist/src/mailTemplates && tsc --build",
+    "build": "cp .env ./dist/.env && cp -r ./src/mailTemplates ./dist/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
-    "start": "npm run build && pm2 restart dist/index.js",
+    "start": "npm run build && pm2 restart ./dist/index.js",
     "dev": "nodemon --exec ts-node index.ts",
     "pretty": "prettier --write \"src/**/*.ts\""
   },
