@@ -1,12 +1,16 @@
 
 # dependencies
 node_modules
+logs
 .pnp
 .pnp.js
 
 # environment variables
 .env
 .env.local
+
+
+
 
 
 npm-debug.log*

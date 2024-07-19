@@ -97,6 +97,16 @@ class _UserService {
             }
         });
     }
+    getAllTotalUser() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.user.findMany();
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
     createOneUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

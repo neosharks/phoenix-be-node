@@ -45,6 +45,7 @@ const sendEmail = (receiverEmail_1, subject_1, template_1, ...args_1) => __await
         });
         const templatePath = path_1.default.join(__dirname, `../mailTemplates/${extractTemplate(template)}`);
         logger_core_1.default.info(`Reading email template from ${templatePath}`);
+        console.log(templatePath, "emailSent42");
         let foundTemplate = yield promises_1.default.readFile(templatePath, "utf8");
         for (const [key, value] of Object.entries(variables)) {
             const regex = new RegExp(`{{${key}}}`, "g");

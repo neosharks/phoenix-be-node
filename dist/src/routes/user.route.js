@@ -21,4 +21,5 @@ userRoutes.post("/updateCoverImage", (0, checkRoleAuth_middleware_1.checkRoleAut
 userRoutes.post("/updateProfileImage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), s3upload_core_1.uploadFileMiddleware.single("image"), user_controller_1.UserController.updateProfileImage);
 userRoutes.post("/joinForFree", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.joinForFree);
 userRoutes.delete("/delete", user_controller_1.UserController.delete);
+userRoutes.get("/allUser", user_controller_1.UserController.getAllTotalUser);
 exports.default = userRoutes;
