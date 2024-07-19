@@ -18,17 +18,13 @@ const secretAccessKey = config.aws.accessSecret;
 
 const storage = multer.memoryStorage();
 
-export const uploadFileMiddleware = multer({
-  storage: storage,
-  fileFilter: (req, file, cb: any) => {
-    const allowedTypes = ["image/jpeg", "image/png", "video/mp4", "application/pdf"];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type"), false);
-    }
-  },
-});
+export const uploadFileMiddleware = multer({ storage: storage });
+
+export const uploadAllFileMiddleware = multer({ storage: storage }).fields([
+  { name: "image", maxCount: 1 },
+  { name: "video", maxCount: 1 },
+  { name: "document", maxCount: 1 },
+]);
 
 export const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
@@ -88,24 +84,30 @@ export async function GetUploadedFile(image: any) {
   }
 }
 
-export async function GetUploadedFiles(file: any) {
+export async function GetUploadedVideo(video: any) {
   try {
-    if (!file || !file.buffer || !file.mimetype) {
-      throw new Error("Invalid file data provided.");
+    if (!video || !video.buffer || !video.mimetype) {
+      throw new Error("Invalid video file provided or unsupported format.");
     }
-    const fileName = generateFileName();
-
-    if (file.mimetype.startsWith("image/")) {
-      const jimpImage = await Jimp.read(file.buffer);
-      const buffer = await jimpImage.getBufferAsync(file.mimetype);
-      await uploadFile(buffer, fileName, file.mimetype);
-    } else {
-      await uploadFile(file.buffer, fileName, file.mimetype);
-    }
-
-    return fileName;
+    const videoName = generateFileName();
+    await uploadFile(video.buffer, videoName, video.mimetype);
+    return videoName;
   } catch (err) {
-    console.log("Error in file upload", err);
+    console.log("Error in video upload", err);
+    throw err;
+  }
+}
+
+export async function GetUploadedDocument(document: any) {
+  try {
+    if (!document || !document.buffer || !document.mimetype) {
+      throw new Error("Invalid document data provided.");
+    }
+    const documentName = generateFileName();
+    await uploadFile(document.buffer, documentName, document.mimetype);
+    return documentName;
+  } catch (err) {
+    console.log("Error in document upload", err);
     throw err;
   }
 }

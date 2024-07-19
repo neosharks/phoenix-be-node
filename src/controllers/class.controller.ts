@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
-import { GetUploadedFiles, getObjectSignedUrl } from "../core/s3upload.core";
+import {
+  GetUploadedFile,
+  GetUploadedVideo,
+  GetUploadedDocument,
+  getObjectSignedUrl,
+} from "../core/s3upload.core";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -125,15 +130,22 @@ class _ClassController {
   async sendMessage(req: Request, res: Response) {
     try {
       const { classId, participantId, message, isPinned = false } = req.body;
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const image = files?.image?.[0];
+      const video = files?.video?.[0];
+      const document = files?.document?.[0];
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      if (req.file) {
-        const uploadedFileName = await GetUploadedFiles(req.file);
-        payload.file = uploadedFileName;
+      if (!classId || !participantId || (!message && !image && !video && !document)) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
 
-      if (!classId || !participantId || !message) {
+      if (image) payload.image = await GetUploadedFile(image);
+      if (video) payload.video = await GetUploadedVideo(video);
+      if (document) payload.document = await GetUploadedDocument(document);
+
+      if (!message && !payload.image && !payload.video && !payload.document) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
 
@@ -141,13 +153,14 @@ class _ClassController {
         ...payload,
         userId: Number(participantId),
         classId: Number(classId),
-        message,
+        message: message || "",
         isPinned: Boolean(isPinned),
       });
 
-      if (created?.file) {
-        created.file = await getObjectSignedUrl(created.file);
-      }
+      if (created?.image) created.image = await getObjectSignedUrl(created.image);
+      if (created?.video) created.video = await getObjectSignedUrl(created.video);
+      if (created?.document) created.document = await getObjectSignedUrl(created.document);
+
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -164,11 +177,18 @@ class _ClassController {
         return res.status(200).send({ message: successMessages.FETCHED, data: [] });
       }
 
-      const allClassesWithSignedUrls = await Promise.all(
-        allClasses.map(async (message) => {
-          if (message.file) {
-            message.file = await getObjectSignedUrl(message.file);
+      await Promise.all(
+        allClasses.map(async (message: any) => {
+          if (message.image) {
+            message.image = await getObjectSignedUrl(message.image);
           }
+          if (message.video) {
+            message.video = await getObjectSignedUrl(message.video);
+          }
+          if (message.document) {
+            message.document = await getObjectSignedUrl(message.document);
+          }
+
           return message;
         }),
       );

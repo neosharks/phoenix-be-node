@@ -109,6 +109,7 @@ class _UserController {
       const image = req.file;
       let update: any = {};
       if (image) update.coverImage = await GetUploadedFile(image);
+      console.log(update, "sdfg");
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {

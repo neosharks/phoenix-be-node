@@ -118,16 +118,19 @@ class _ClassService {
     }
   }
 
-  async addMessage(data: any) {
+  async addMessage(dataValues: any) {
     try {
-      const { userId, classId, message, isPinned, file } = data;
+      const { classId, userId, message, isPinned = false, image, video, document } = dataValues;
+
       return await prisma.classMessage.create({
         data: {
-          userId,
           classId,
+          userId,
           message,
           isPinned,
-          file,
+          image,
+          video,
+          document,
         },
       });
     } catch (error) {
