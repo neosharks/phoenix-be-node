@@ -179,9 +179,16 @@ class _ClassController {
 
       await Promise.all(
         allClasses.map(async (message: any) => {
-          if (message.file) {
-            message.file = await getObjectSignedUrl(message.file);
+          if (message.image) {
+            message.image = await getObjectSignedUrl(message.image);
           }
+          if (message.video) {
+            message.video = await getObjectSignedUrl(message.video);
+          }
+          if (message.document) {
+            message.document = await getObjectSignedUrl(message.document);
+          }
+
           return message;
         }),
       );
