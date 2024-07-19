@@ -3,7 +3,7 @@ import { ChatController } from "../controllers/chat.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 import { userRole } from "../constant/role.constant";
 import { ClassController } from "../controllers/class.controller";
-import { uploadFileMiddleware } from "../core/s3upload.core";
+import { uploadAllFileMiddleware } from "../core/s3upload.core";
 
 const classRoutes = express.Router();
 
@@ -35,7 +35,7 @@ classRoutes.get(
 classRoutes.post(
   "/sendMessage",
   checkRoleAuth(),
-  uploadFileMiddleware.single("image"),
+  uploadAllFileMiddleware,
   ClassController.sendMessage,
 );
 classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSendMessage);

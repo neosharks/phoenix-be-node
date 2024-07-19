@@ -120,7 +120,7 @@ class _ClassService {
 
   async addMessage(dataValues: any) {
     try {
-      const { classId, userId, message, isPinned = false, image } = dataValues;
+      const { classId, userId, message, isPinned = false, image, video, document } = dataValues;
 
       return await prisma.classMessage.create({
         data: {
@@ -129,6 +129,8 @@ class _ClassService {
           message,
           isPinned,
           image,
+          video,
+          document,
         },
       });
     } catch (error) {

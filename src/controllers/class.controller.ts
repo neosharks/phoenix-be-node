@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
-import { GetUploadedFile, GetUploadedVideo, getObjectSignedUrl } from "../core/s3upload.core";
+import {
+  GetUploadedFile,
+  GetUploadedVideo,
+  GetUploadedDocument,
+  getObjectSignedUrl,
+} from "../core/s3upload.core";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -125,14 +130,24 @@ class _ClassController {
   async sendMessage(req: Request, res: Response) {
     try {
       const { classId, participantId, message, isPinned = false } = req.body;
-      const image = req.file;
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const image = files?.image?.[0];
+      const video = files?.video?.[0];
+      const document = files?.document?.[0];
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      if (!classId || !participantId || !message) {
+      if (!classId || !participantId || (!message && !image && !video && !document)) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
+
       if (image) payload.image = await GetUploadedFile(image);
+      if (video) payload.video = await GetUploadedVideo(video);
+      if (document) payload.document = await GetUploadedDocument(document);
+
+      if (!message && !payload.image && !payload.video && !payload.document) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      }
 
       const created = await ClassService.addMessage({
         ...payload,
@@ -141,9 +156,10 @@ class _ClassController {
         message: message || "",
         isPinned: Boolean(isPinned),
       });
-      console.log(created, "oijojkn");
 
       if (created?.image) created.image = await getObjectSignedUrl(created.image);
+      if (created?.video) created.video = await getObjectSignedUrl(created.video);
+      if (created?.document) created.document = await getObjectSignedUrl(created.document);
 
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {

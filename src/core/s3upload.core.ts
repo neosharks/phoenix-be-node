@@ -20,6 +20,12 @@ const storage = multer.memoryStorage();
 
 export const uploadFileMiddleware = multer({ storage: storage });
 
+export const uploadAllFileMiddleware = multer({ storage: storage }).fields([
+  { name: "image", maxCount: 1 },
+  { name: "video", maxCount: 1 },
+  { name: "document", maxCount: 1 },
+]);
+
 export const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
 const s3Client = new S3Client({
@@ -80,7 +86,7 @@ export async function GetUploadedFile(image: any) {
 
 export async function GetUploadedVideo(video: any) {
   try {
-    if (!video || !video.buffer || !video.mimetype || !video.mimetype.startsWith("video/")) {
+    if (!video || !video.buffer || !video.mimetype) {
       throw new Error("Invalid video file provided or unsupported format.");
     }
     const videoName = generateFileName();
