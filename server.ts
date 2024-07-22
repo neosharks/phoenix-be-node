@@ -10,7 +10,8 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 import { CommonService } from "./src/services/common.service";
 import chatSocket from "./src/utils/Socket";
-// import { initializeSocket } from "./src/utils/socket";
+import initializeSocket from "./src/utils/Socket";
+import path from "path";
 
 process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
@@ -20,8 +21,6 @@ process.on("uncaughtException", (e) => {
 const app = express();
 
 const server = http.createServer(app);
-
-// initializeSocket(server);
 // const io = new Server(server);
 // chatSocket(io);
 
@@ -60,6 +59,9 @@ app.use(
 );
 
 // Routes
+app.get("/socket", (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, "public", "html.html"));
+});
 app.use("/", routes);
 app.use((req, res, next) => res.status(404).json({ message: "Route not found" }));
 

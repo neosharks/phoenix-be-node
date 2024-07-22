@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Test</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        margin: 20px;
+      }
+      #messageInput {
+        width: 300px;
+        padding: 10px;
+        margin-right: 10px;
+      }
+      #sendButton {
+        padding: 10px 20px;
+      }
+      #messages {
+        margin-top: 20px;
+      }
+      #messages ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      #messages li {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Socket.IO Test</h1>
+      <div>
+        <input id="messageInput" type="text" placeholder="Enter a message" />
+        <button id="sendButton">Send Message</button>
+      </div>
+      <div id="messages">
+        <h2>Messages:</h2>
+        <ul id="messageList"></ul>
+      </div>
+    </div>
+
+    <script>
+      // Connect to the Socket.IO server
+      const socket = io("http://localhost:3000"); // Change the URL if needed
+
+      // Handle incoming messages
+      socket.on("send_message", (data) => {
+        const messageList = document.getElementById("messageList");
+        const listItem = document.createElement("li");
+        listItem.textContent = `User ${data.userId} says: ${data.text}`;
+        messageList.appendChild(listItem);
+      });
+
+      socket.on("send_class_message", (data) => {
+        const messageList = document.getElementById("messageList");
+        const listItem = document.createElement("li");
+        listItem.textContent = `User ${data.userId} says (Class Message): ${data.text}`;
+        messageList.appendChild(listItem);
+      });
+
+      // Handle chat history reception on frontend
+      socket.on("chat_history", (chatHistory) => {
+        const messageList = document.getElementById("messageList");
+        messageList.innerHTML = ""; // Clear existing messages
+        chatHistory.forEach((message) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = `User ${message.userId} says: ${message.text}`;
+          messageList.appendChild(listItem);
+        });
+      });
+
+      // Send a message on button click
+      document.getElementById("sendButton").addEventListener("click", () => {
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value;
+
+        // Replace these with actual user and chat IDs
+        const chatId = 1;
+        const userId = 1;
+
+        socket.emit("send_message", {
+          chatId,
+          userId,
+          text: message,
+          roomData: {}, // Replace with actual room data if needed
+        });
+
+        messageInput.value = "";
+      });
+
+      // Optionally handle connection and disconnection
+      socket.on("connect", () => {
+        console.log("Connected to server");
+      });
+    </script>
+  </body>
+</html>

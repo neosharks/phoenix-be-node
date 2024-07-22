@@ -13,10 +13,15 @@ if (!firebase.apps.length) {
 }
 
 interface MessageData {
+  message: string;
+  classId: number;
   chatId: number;
   userId: number;
   text: string;
   roomData: any;
+  image: string;
+  video: string;
+  document: string;
 }
 
 const Socket = (io: any) => {
@@ -73,6 +78,26 @@ const Socket = (io: any) => {
       console.log("send_class_message", data.userId);
       io.to(data.classId.toString()).emit("send_class_message", data);
       io.to(data.userId.toString()).emit("new_class_chat", data.roomData);
+    });
+
+    // Handle message event
+    socket.on("message", async (data: MessageData) => {
+      const { classId, userId, message, image, video, document } = data;
+
+      // Store message in the database
+      const createdMessage = await prisma.classMessage.create({
+        data: {
+          classId,
+          userId,
+          message,
+          image,
+          video,
+          document,
+        },
+      });
+
+      // Emit message to the room
+      io.to(classId.toString()).emit("receive_message", createdMessage);
     });
 
     // Handle user online event
