@@ -7,6 +7,7 @@ import {
   GetUploadedDocument,
   getObjectSignedUrl,
 } from "../core/s3upload.core";
+import { boolean } from "joi";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -29,6 +30,19 @@ class _ClassController {
       if (!creatorId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.getAllClassesByCreatorId(creatorId);
+      if (!allClasses) {
+        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
+      }
+
+      await Promise.all(
+        allClasses.map(async (getClass: any) => {
+          if (getClass.creator.profileImage) {
+            getClass.creator.profileImage = await getObjectSignedUrl(getClass.creator.profileImage);
+          }
+
+          return getClass;
+        }),
+      );
       return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -82,7 +96,7 @@ class _ClassController {
       const { classId, participantId } = req.body;
       if (!classId || !participantId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const classAdd = await ClassService.addClassParticipant({ userId: participantId, classId });
+      await ClassService.addClassParticipant({ userId: participantId, classId });
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -148,19 +162,18 @@ class _ClassController {
       if (!message && !payload.image && !payload.video && !payload.document) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
-
+      // if (isPinned) payload.isPinned = isPinned;
       const created = await ClassService.addMessage({
         ...payload,
         userId: Number(participantId),
         classId: Number(classId),
         message: message || "",
-        isPinned: Boolean(isPinned),
+        isPinned: false,
       });
 
       if (created?.image) created.image = await getObjectSignedUrl(created.image);
       if (created?.video) created.video = await getObjectSignedUrl(created.video);
       if (created?.document) created.document = await getObjectSignedUrl(created.document);
-
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -176,7 +189,6 @@ class _ClassController {
       if (!allClasses) {
         return res.status(200).send({ message: successMessages.FETCHED, data: [] });
       }
-
       await Promise.all(
         allClasses.map(async (message: any) => {
           if (message.image) {
@@ -204,6 +216,8 @@ class _ClassController {
   async updateSendMessage(req: Request, res: Response) {
     try {
       const { classId, messageId, isPinned = false } = req.body;
+      console.log(classId, messageId, isPinned, ">>>>>>>");
+
       if (!classId || !messageId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundClass = await ClassService.getAllMessagesOfClass(parseInt(classId));
@@ -211,6 +225,7 @@ class _ClassController {
       if (!findMessage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       await ClassService.updateSendMessage({ id: messageId }, { isPinned });
+
       return res.status(200).send({ message: successMessages.UPDATED });
     } catch (error) {
       console.log("ERROR: ", error);

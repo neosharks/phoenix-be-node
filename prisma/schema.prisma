@@ -80,6 +80,9 @@ model User {
   ClassParticipants  ClassParticipants[]
   ClassMessages      ClassMessage[]
   Class              Class[]
+  online             Boolean              @default(false)
+  fcmToken           String?
+  lastSeen           DateTime?
 
   @@index([email, username, phoneNumber])
 }

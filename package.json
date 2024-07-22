@@ -39,7 +39,9 @@
     "razorpay": "^2.9.2",
     "serialize-error": "^11.0.3",
     "sharp": "^0.33.3",
+    "socket.io": "^4.7.5",
     "twilio": "^4.14.0",
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.4.0",
     "winston": "^3.11.0",
     "yarn": "^1.22.22"
   },

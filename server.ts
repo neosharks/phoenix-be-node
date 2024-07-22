@@ -1,12 +1,16 @@
 import express, { Request, Response, response } from "express";
 import cors from "cors";
 import morgan from "morgan";
+import { Server } from "socket.io";
+import http from "http";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
 import config from "./config";
 import Logger from "./src/core/logger.core";
 import { CommonService } from "./src/services/common.service";
+import chatSocket from "./src/utils/Socket";
+// import { initializeSocket } from "./src/utils/socket";
 
 process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
@@ -15,9 +19,23 @@ process.on("uncaughtException", (e) => {
 
 const app = express();
 
+const server = http.createServer(app);
+
+// initializeSocket(server);
+// const io = new Server(server);
+// chatSocket(io);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+chatSocket(io);
+
 // MIDDLEWARES
 const corsUrl = config.main.corsUrl;
 
+// Initialize socket connection
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));

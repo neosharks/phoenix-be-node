@@ -1,4 +1,4 @@
-export const serviceAccountKey = {
+export const serviceAccountKey: any = {
   type: "service_account",
   project_id: "modular-seeker-425605-b7",
   private_key_id: "0bc4810f8f14f68fb9bd87f5acdc9f05ca65f7c7",
