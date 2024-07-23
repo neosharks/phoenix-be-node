@@ -3,101 +3,246 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Socket.IO Test</title>
+    <title>Socket Chat App</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-      body {
-        font-family: Arial, sans-serif;
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      h2 {
+        font-weight: 100;
+      }
+      nav {
+        text-align: center;
+        background-color: blueviolet;
+        padding: 10px;
+        color: white;
       }
       .container {
-        margin: 20px;
+        max-width: 1000px;
+        margin: 100px auto 50px;
+        padding: 20px;
+        display: flex;
       }
-      #messageInput {
-        width: 300px;
+      .sidebar {
+        width: 200px;
+        margin-right: 20px;
+      }
+      .chat-container {
+        flex: 1;
+      }
+      .chatbox {
+        height: 500px;
+        list-style: none;
+        display: flex;
+        flex-flow: column;
+        background: #eee;
+        border-radius: 6px;
+        box-shadow: 1px 0px 10px #eee;
+      }
+      #messagelist {
+        flex: 1;
+        overflow-y: scroll;
+      }
+      #messagelist .private {
+        background: #015e4b;
+        color: #fff;
+        margin-left: auto;
+      }
+      #messagelist li {
+        list-style: none;
+        background: white;
+        max-width: 400px;
         padding: 10px;
-        margin-right: 10px;
+        margin: 10px;
       }
-      #sendButton {
-        padding: 10px 20px;
+      #messagelist p:first-child {
+        color: #53bdea;
       }
-      #messages {
-        margin-top: 20px;
+      #messagelist .private p:first-child {
+        color: #03c493;
       }
-      #messages ul {
-        list-style-type: none;
+      form.Input {
+        display: flex;
+      }
+      form.Input input {
+        flex: 10;
+        padding: 14px 10px;
+        border: none;
+      }
+      form.Input button {
+        padding: 4px;
+        background: teal;
+        border: none;
+        flex: 1;
+        color: white;
+        cursor: pointer;
+      }
+      #users {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        height: 100px;
+        overflow-y: scroll;
+        flex-flow: row;
+        padding-top: 20px;
+      }
+      #users li {
+        min-width: 100px;
+        max-height: 20px;
+        border-radius: 10px;
+        background: white;
+        text-align: center;
+        box-shadow: 0px 2px 10px #eee;
+      }
+      .sidebar ul {
+        list-style: none;
         padding: 0;
       }
-      #messages li {
-        padding: 8px;
-        border-bottom: 1px solid #ddd;
+      .sidebar li {
+        padding: 10px;
+        background-color: #eee;
+        margin-bottom: 5px;
+        cursor: pointer;
+      }
+      .sidebar li.active {
+        background-color: blueviolet;
+        color: white;
       }
     </style>
   </head>
   <body>
+    <h1>Socket Chat App</h1>
     <div class="container">
-      <h1>Socket.IO Test</h1>
-      <div>
-        <input id="messageInput" type="text" placeholder="Enter a message" />
-        <button id="sendButton">Send Message</button>
+      <div class="sidebar">
+        <h2>Select Class</h2>
+        <ul id="classList">
+          <li data-class="1">Class 1</li>
+          <li data-class="2">Class 2</li>
+        </ul>
       </div>
-      <div id="messages">
-        <h2>Messages:</h2>
-        <ul id="messageList"></ul>
+      <div class="chat-container">
+        <div class="chatbox">
+          <ul id="messagelist"></ul>
+          <form class="Input">
+            <input type="text" placeholder="Type your message ..." />
+            <button>Send</button>
+          </form>
+        </div>
+        <br />
+        <div class="activeusers">
+          <h2>Active Users</h2>
+          <ul id="users"></ul>
+        </div>
       </div>
     </div>
 
     <script>
-      // Connect to the Socket.IO server
-      const socket = io("http://localhost:3000"); // Change the URL if needed
+      const messageForm = document.querySelector(".chatbox form");
+      const messageList = document.querySelector("#messagelist");
+      const userList = document.querySelector("ul#users");
+      const chatboxInput = document.querySelector(".chatbox input");
+      const classList = document.querySelector("#classList");
 
-      // Handle incoming messages
-      socket.on("send_message", (data) => {
-        const messageList = document.getElementById("messageList");
-        const listItem = document.createElement("li");
-        listItem.textContent = `User ${data.userId} says: ${data.text}`;
-        messageList.appendChild(listItem);
+      const socket = io("http://localhost:3000", {
+        reconnectTimeout: 3000, // 3 seconds
+        reconnectAttempts: 5,
       });
 
-      socket.on("send_class_message", (data) => {
-        const messageList = document.getElementById("messageList");
-        const listItem = document.createElement("li");
-        listItem.textContent = `User ${data.userId} says (Class Message): ${data.text}`;
-        messageList.appendChild(listItem);
+      let users = [];
+      let messages = [];
+      let currentUser = "";
+      let currentClassId = ""; // Default class
+
+      socket.on("receive_message", (message) => {
+        messages.push(message);
+        updateMessages();
       });
 
-      // Handle chat history reception on frontend
-      socket.on("chat_history", (chatHistory) => {
-        const messageList = document.getElementById("messageList");
-        messageList.innerHTML = ""; // Clear existing messages
-        chatHistory.forEach((message) => {
-          const listItem = document.createElement("li");
-          listItem.textContent = `User ${message.userId} says: ${message.text}`;
-          messageList.appendChild(listItem);
+      socket.on("private", (data) => {
+        currentUser = data.user.userId;
+      });
+
+      socket.on("users", function (_users) {
+        users = _users;
+        updateUsers();
+      });
+
+      socket.on("news-response", function (data) {
+        console.log(data); //should output 'hello world'
+      });
+
+      socket.on("classMessages", function (classMessages) {
+        messages = classMessages;
+        updateMessages();
+      });
+      socket.on("error", (error) => {
+        console.error("Socket error:", error);
+        // Handle the error or retry the connection
+      });
+
+      classList.addEventListener("click", (e) => {
+        if (e.target.tagName === "LI") {
+          const classId = e.target.getAttribute("data-class");
+          if (classId && classId !== currentClassId) {
+            if (currentClassId) {
+              socket.emit("leave_room", currentClassId);
+            }
+            if (classId) {
+              socket.emit("join_room", parseInt(classId, 10));
+            }
+            currentClassId = classId;
+
+            document.querySelector(".sidebar li.active").classList.remove("active");
+            e.target.classList.add("active");
+          }
+        }
+      });
+
+      messageForm.addEventListener("submit", messageSubmitHandler);
+
+      function updateUsers() {
+        userList.textContent = "";
+        for (let i = 0; i < users.length; i++) {
+          const node = document.createElement("LI");
+          const textnode = document.createTextNode(users[i].userId);
+          node.appendChild(textnode);
+          userList.appendChild(node);
+        }
+      }
+
+      function updateMessages() {
+        messageList.textContent = "";
+        for (let i = 0; i < messages.length; i++) {
+          const show = currentUser === messages[i].userId;
+          messageList.innerHTML += `<li class=${show ? "private" : ""}>
+                <p>${messages[i].userId}</p>
+                <p>${messages[i].message}</p>
+              </li>`;
+        }
+      }
+
+      function messageSubmitHandler(e) {
+        e.preventDefault();
+        const message = chatboxInput.value;
+        socket.emit("send_class_message", {
+          classId: parseInt(currentClassId, 10),
+          userId: currentUser,
+          message,
         });
-      });
+        chatboxInput.value = "";
+      }
 
-      // Send a message on button click
-      document.getElementById("sendButton").addEventListener("click", () => {
-        const messageInput = document.getElementById("messageInput");
-        const message = messageInput.value;
-
-        // Replace these with actual user and chat IDs
-        const chatId = 1;
-        const userId = 1;
-
-        socket.emit("send_message", {
-          chatId,
-          userId,
-          text: message,
-          roomData: {}, // Replace with actual room data if needed
-        });
-
-        messageInput.value = "";
-      });
-
-      // Optionally handle connection and disconnection
+      // Example: Emit add_user event with user data after connection is established
       socket.on("connect", () => {
-        console.log("Connected to server");
+        const userData = {
+          userId: 6, // Provide the actual userId here
+          username: "your_username_here", // Provide the actual username here
+        };
+        socket.emit("add_user", userData);
       });
     </script>
   </body>

@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
-const socketIdToUserId = new Map<string, number>();
 import firebase from "firebase-admin";
 import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
+
+const prisma = new PrismaClient();
+const socketIdToUserId = new Map<string, number>();
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -28,31 +29,26 @@ const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
 
-    // Handle join room event
     socket.on("join_room", (chatId: number) => {
       socket.join(chatId.toString());
       console.log(`User ${socket.id} joined room ${chatId}`);
     });
 
-    // Handle leave room event
     socket.on("leave_room", (chatId: number) => {
       socket.leave(chatId.toString());
       console.log(`User ${socket.id} left room ${chatId}`);
     });
 
-    // Handle join chat event
     socket.on("join_chat", (userId: number) => {
       socket.join(userId.toString());
       console.log(`User ${socket.id} joined chat ${userId}`);
     });
 
-    // Handle leave chat event
     socket.on("leave_chat", (userId: number) => {
       socket.leave(userId.toString());
       console.log(`User ${socket.id} left chat ${userId}`);
     });
 
-    // Handle typing events
     socket.on("is_typing", ({ roomId, userId }: { roomId: number; userId: number }) => {
       io.to(roomId.toString()).emit("user_typing", { userId });
     });
@@ -61,7 +57,6 @@ const Socket = (io: any) => {
       io.to(roomId.toString()).emit("user_stopped", { userId });
     });
 
-    // Handle send message event
     socket.on("send_message", async (data: MessageData) => {
       try {
         console.log("send_message", data.userId);
@@ -73,34 +68,46 @@ const Socket = (io: any) => {
       }
     });
 
-    // Handle class message event
-    socket.on("send_class_message", async (data: any) => {
-      console.log("send_class_message", data.userId);
-      io.to(data.classId.toString()).emit("send_class_message", data);
-      io.to(data.userId.toString()).emit("new_class_chat", data.roomData);
+    socket.on("send_class_message", async (data: MessageData) => {
+      try {
+        // Validate that classId and userId are not null or undefined
+        if (!data.classId || !data.userId) {
+          console.error("Invalid data received:", data);
+          return;
+        }
+
+        console.log("send_class_message", data.userId);
+
+        // Emit class message to the class room
+        io.to(data.classId.toString()).emit("send_class_message", data);
+        // Emit new class chat to the user
+        io.to(data.userId.toString()).emit("new_class_chat", data.roomData);
+      } catch (error) {
+        console.error("Error handling send_class_message event:", error);
+      }
     });
 
-    // Handle message event
     socket.on("message", async (data: MessageData) => {
       const { classId, userId, message, image, video, document } = data;
 
-      // Store message in the database
-      const createdMessage = await prisma.classMessage.create({
-        data: {
-          classId,
-          userId,
-          message,
-          image,
-          video,
-          document,
-        },
-      });
+      try {
+        const createdMessage = await prisma.classMessage.create({
+          data: {
+            classId,
+            userId,
+            message,
+            image,
+            video,
+            document,
+          },
+        });
 
-      // Emit message to the room
-      io.to(classId.toString()).emit("receive_message", createdMessage);
+        io.to(classId.toString()).emit("receive_message", createdMessage);
+      } catch (error) {
+        console.error("Error creating message:", error);
+      }
     });
 
-    // Handle user online event
     socket.on("user_online", async ({ userId }: { userId: number }) => {
       try {
         const user = await prisma.user.update({
@@ -115,7 +122,11 @@ const Socket = (io: any) => {
       }
     });
 
-    // Handle disconnect event
+    socket.on("news", async (data: MessageData) => {
+      var msg = data + "world";
+      socket.emit("news-response", msg);
+    });
+
     socket.on("disconnect", async () => {
       console.log("Socket disconnected:", socket.id);
       const userId = socketIdToUserId.get(socket.id);
@@ -137,7 +148,6 @@ const Socket = (io: any) => {
 
 export default Socket;
 
-// Notification function
 const sendNotification = async (notificationData: any) => {
   console.log("Notification data received:", notificationData);
 
