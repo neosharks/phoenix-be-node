@@ -1,4 +1,4 @@
-import express, { Request, Response, response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
@@ -48,10 +48,8 @@ app.use(
       status: tokens.status(req, res),
       method: tokens.method(req, res),
       url: tokens.url(req, res),
-      contentLength: tokens.res(req, res, "content-length"),
       responseTime: tokens["response-time"](req, res) + "ms",
       userId: userId, // Separate key for user ID
-      ipAddress: ipAddress, // Separate key for IP address
     };
     Logger.http(msg);
     return null;
