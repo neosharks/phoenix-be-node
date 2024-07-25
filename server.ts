@@ -22,30 +22,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));
 
-// app.use(async (req, res: any, next) => {
-//   const method = req.method;
-//   const url = req.originalUrl;
-//   const response = res.statusCode;
-
-//   const originalSend = res.send;
-//   res.send = async function (data: any) {
-//     const result = originalSend.call(this, data);
-//     if (res.statusCode && url !== "/user/get") {
-//       await CommonService.createClickStream({
-//         userId: res?.locals?.user ? res.locals.user.id : null,
-//         url: url,
-//         info: { body: req.body || {} },
-//         ipAddress: req.ip,
-//         method: method,
-//         response,
-//       });
-//     }
-//     return result;
-//   };
-
-//   next();
-// });
-
 app.use(
   morgan((tokens, req, res) => {
     const user = res.locals.user;
