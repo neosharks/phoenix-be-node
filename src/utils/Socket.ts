@@ -29,119 +29,55 @@ const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
 
-    socket.on("join_room", (chatId: number) => {
-      socket.join(chatId.toString());
-      console.log(`User ${socket.id} joined room ${chatId}`);
-    });
-
-    socket.on("leave_room", (chatId: number) => {
-      socket.leave(chatId.toString());
-      console.log(`User ${socket.id} left room ${chatId}`);
-    });
-
-    socket.on("join_chat", (userId: number) => {
-      socket.join(userId.toString());
-      console.log(`User ${socket.id} joined chat ${userId}`);
-    });
-
-    socket.on("leave_chat", (userId: number) => {
-      socket.leave(userId.toString());
-      console.log(`User ${socket.id} left chat ${userId}`);
-    });
-
-    socket.on("is_typing", ({ roomId, userId }: { roomId: number; userId: number }) => {
-      io.to(roomId.toString()).emit("user_typing", { userId });
-    });
-
-    socket.on("stop_typing", ({ roomId, userId }: { roomId: number; userId: number }) => {
-      io.to(roomId.toString()).emit("user_stopped", { userId });
-    });
-
-    socket.on("send_message", async (data: MessageData) => {
-      try {
-        console.log("send_message", data.userId);
-        io.to(data.chatId.toString()).emit("send_message", data);
-        io.to(data.userId.toString()).emit("new_chat", data.roomData);
-        await sendNotification(data);
-      } catch (error) {
-        console.error("Error handling send_message event:", error);
-      }
+    socket.on("join_room", (classId: number) => {
+      socket.join(classId.toString());
+      console.log(`User ${socket.id} joined room ${classId}`);
     });
 
     socket.on("send_class_message", async (data: MessageData) => {
       try {
-        // Validate that classId and userId are not null or undefined
-        if (!data.classId || !data.userId) {
+        if (
+          !data.classId ||
+          !data.userId ||
+          (!data.message && !data.image && !data.video && !data.document)
+        ) {
           console.error("Invalid data received:", data);
           return;
         }
 
-        console.log("send_class_message", data.userId);
-
-        // Emit class message to the class room
-        io.to(data.classId.toString()).emit("send_class_message", data);
-        // Emit new class chat to the user
-        io.to(data.userId.toString()).emit("new_class_chat", data.roomData);
-      } catch (error) {
-        console.error("Error handling send_class_message event:", error);
-      }
-    });
-
-    socket.on("message", async (data: MessageData) => {
-      const { classId, userId, message, image, video, document } = data;
-
-      try {
         const createdMessage = await prisma.classMessage.create({
           data: {
-            classId,
-            userId,
-            message,
-            image,
-            video,
-            document,
+            classId: data.classId,
+            userId: data.userId,
+            message: data.message,
+            image: data.image,
+            video: data.video,
+            document: data.document,
           },
         });
 
-        io.to(classId.toString()).emit("receive_message", createdMessage);
+        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
       } catch (error) {
-        console.error("Error creating message:", error);
+        console.error("Error handling send_class_message event:", error);
       }
-    });
-
-    socket.on("user_online", async ({ userId }: { userId: number }) => {
-      try {
-        const user = await prisma.user.update({
-          where: { id: userId },
-          data: { online: true },
-        });
-        socketIdToUserId.set(socket.id, userId);
-        io.emit("user_online", { userId: user.id, online: true });
-        console.log(userId, "+++user online success+++");
-      } catch (error) {
-        console.error("Error updating user status:", error);
-      }
-    });
-
-    socket.on("news", async (data: MessageData) => {
-      var msg = data + "world";
-      socket.emit("news-response", msg);
     });
 
     socket.on("disconnect", async () => {
       console.log("Socket disconnected:", socket.id);
       const userId = socketIdToUserId.get(socket.id);
       if (userId) {
-        try {
-          const user = await prisma.user.update({
-            where: { id: userId },
-            data: { online: false, lastSeen: new Date() },
-          });
-          io.emit("user_online", { userId: user.id, online: false, lastSeen: user.lastSeen });
-          console.log("User disconnected successfully.");
-        } catch (error) {
-          console.error("Error updating user status:", error);
-        }
+        await prisma.user.update({
+          where: { id: userId },
+          data: { online: false },
+        });
+        socketIdToUserId.delete(socket.id);
+        io.emit("user_status_update", { userId, isOnline: false });
       }
+    });
+
+    socket.on("leave_room", (classId: number) => {
+      socket.leave(classId.toString());
+      console.log(`User ${socket.id} left room ${classId}`);
     });
   });
 };

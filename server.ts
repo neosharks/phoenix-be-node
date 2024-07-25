@@ -3,6 +3,8 @@ import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import http from "http";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
@@ -10,7 +12,6 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 import { CommonService } from "./src/services/common.service";
 import chatSocket from "./src/utils/Socket";
-import initializeSocket from "./src/utils/Socket";
 import path from "path";
 
 process.on("uncaughtException", (e) => {
@@ -21,8 +22,6 @@ process.on("uncaughtException", (e) => {
 const app = express();
 
 const server = http.createServer(app);
-// const io = new Server(server);
-// chatSocket(io);
 
 const io = new Server(server, {
   cors: {

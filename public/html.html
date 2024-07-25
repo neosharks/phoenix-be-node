@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Socket Chat App</title>
-    <script src="/socket.io/socket.io.js"></script>
     <style>
       * {
         padding: 0;
@@ -28,7 +27,7 @@
         display: flex;
       }
       .sidebar {
-        width: 200px;
+        width: 150px;
         margin-right: 20px;
       }
       .chat-container {
@@ -58,12 +57,15 @@
         max-width: 400px;
         padding: 10px;
         margin: 10px;
+        border-radius: 5px;
       }
-      #messagelist p:first-child {
-        color: #53bdea;
+      #messagelist li.right {
+        background: #d1f7c4;
+        align-self: flex-end;
       }
-      #messagelist .private p:first-child {
-        color: #03c493;
+      #messagelist li.left {
+        background: #f1f1f1;
+        align-self: flex-start;
       }
       form.Input {
         display: flex;
@@ -129,7 +131,7 @@
           <ul id="messagelist"></ul>
           <form class="Input">
             <input type="text" placeholder="Type your message ..." />
-            <button>Send</button>
+            <button type="submit">Send</button>
           </form>
         </div>
         <br />
@@ -139,49 +141,23 @@
         </div>
       </div>
     </div>
-
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
       const messageForm = document.querySelector(".chatbox form");
       const messageList = document.querySelector("#messagelist");
-      const userList = document.querySelector("ul#users");
-      const chatboxInput = document.querySelector(".chatbox input");
       const classList = document.querySelector("#classList");
+      const socket = io("http://localhost:3000");
 
-      const socket = io("http://localhost:3000", {
-        reconnectTimeout: 3000, // 3 seconds
-        reconnectAttempts: 5,
+      let currentClassId = "";
+      let userId = localStorage.getItem("userId") || 6; // Replace with actual userId retrieval logic
+
+      socket.on("connect", () => {
+        console.log("connected", socket.id);
       });
 
-      let users = [];
-      let messages = [];
-      let currentUser = "";
-      let currentClassId = ""; // Default class
-
-      socket.on("receive_message", (message) => {
-        messages.push(message);
-        updateMessages();
-      });
-
-      socket.on("private", (data) => {
-        currentUser = data.user.userId;
-      });
-
-      socket.on("users", function (_users) {
-        users = _users;
-        updateUsers();
-      });
-
-      socket.on("news-response", function (data) {
-        console.log(data); //should output 'hello world'
-      });
-
-      socket.on("classMessages", function (classMessages) {
-        messages = classMessages;
-        updateMessages();
-      });
-      socket.on("error", (error) => {
-        console.error("Socket error:", error);
-        // Handle the error or retry the connection
+      socket.on("receive_class_message", (data) => {
+        console.log(data);
+        addMessageToUI(data, data.userId === parseInt(userId));
       });
 
       classList.addEventListener("click", (e) => {
@@ -189,61 +165,37 @@
           const classId = e.target.getAttribute("data-class");
           if (classId && classId !== currentClassId) {
             if (currentClassId) {
-              socket.emit("leave_room", currentClassId);
+              socket.emit("leave_room", parseInt(currentClassId, 10));
             }
-            if (classId) {
-              socket.emit("join_room", parseInt(classId, 10));
-            }
+            socket.emit("join_room", parseInt(classId, 10));
             currentClassId = classId;
 
-            document.querySelector(".sidebar li.active").classList.remove("active");
+            document.querySelector(".sidebar li.active")?.classList.remove("active");
             e.target.classList.add("active");
           }
         }
       });
 
-      messageForm.addEventListener("submit", messageSubmitHandler);
-
-      function updateUsers() {
-        userList.textContent = "";
-        for (let i = 0; i < users.length; i++) {
-          const node = document.createElement("LI");
-          const textnode = document.createTextNode(users[i].userId);
-          node.appendChild(textnode);
-          userList.appendChild(node);
-        }
-      }
-
-      function updateMessages() {
-        messageList.textContent = "";
-        for (let i = 0; i < messages.length; i++) {
-          const show = currentUser === messages[i].userId;
-          messageList.innerHTML += `<li class=${show ? "private" : ""}>
-                <p>${messages[i].userId}</p>
-                <p>${messages[i].message}</p>
-              </li>`;
-        }
-      }
-
-      function messageSubmitHandler(e) {
+      messageForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const message = chatboxInput.value;
-        socket.emit("send_class_message", {
-          classId: parseInt(currentClassId, 10),
-          userId: currentUser,
-          message,
-        });
-        chatboxInput.value = "";
-      }
-
-      // Example: Emit add_user event with user data after connection is established
-      socket.on("connect", () => {
-        const userData = {
-          userId: 6, // Provide the actual userId here
-          username: "your_username_here", // Provide the actual username here
-        };
-        socket.emit("add_user", userData);
+        const message = e.target.querySelector("input").value;
+        if (message && currentClassId) {
+          socket.emit("send_class_message", {
+            classId: parseInt(currentClassId, 10),
+            userId: parseInt(userId),
+            message: message,
+          });
+          e.target.querySelector("input").value = "";
+        }
       });
+
+      function addMessageToUI(data, isCurrentUser) {
+        const li = document.createElement("li");
+        li.textContent = data.message || "Image/Video/Document";
+        li.classList.add(isCurrentUser ? "right" : "left");
+        messageList.appendChild(li);
+        messageList.scrollTop = messageList.scrollHeight;
+      }
     </script>
   </body>
 </html>
