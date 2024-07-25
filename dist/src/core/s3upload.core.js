@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateFileName = exports.uploadFileMiddleware = void 0;
+exports.generateFileName = exports.uploadAllFileMiddleware = exports.uploadFileMiddleware = void 0;
 exports.uploadFile = uploadFile;
 exports.deleteFile = deleteFile;
 exports.getObjectSignedUrl = getObjectSignedUrl;
 exports.GetUploadedFile = GetUploadedFile;
-exports.GetUploadedFiles = GetUploadedFiles;
+exports.GetUploadedVideo = GetUploadedVideo;
+exports.GetUploadedDocument = GetUploadedDocument;
 const client_s3_1 = require("@aws-sdk/client-s3");
 const jimp_1 = __importDefault(require("jimp"));
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
@@ -29,18 +30,12 @@ const region = config_1.default.aws.region;
 const accessKeyId = config_1.default.aws.accessId;
 const secretAccessKey = config_1.default.aws.accessSecret;
 const storage = multer_1.default.memoryStorage();
-exports.uploadFileMiddleware = (0, multer_1.default)({
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = ["image/jpeg", "image/png", "video/mp4", "application/pdf"];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        }
-        else {
-            cb(new Error("Invalid file type"), false);
-        }
-    },
-});
+exports.uploadFileMiddleware = (0, multer_1.default)({ storage: storage });
+exports.uploadAllFileMiddleware = (0, multer_1.default)({ storage: storage }).fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+    { name: "document", maxCount: 1 },
+]);
 const generateFileName = (bytes = 32) => crypto_1.default.randomBytes(bytes).toString("hex");
 exports.generateFileName = generateFileName;
 const s3Client = new client_s3_1.S3Client({
@@ -98,25 +93,34 @@ function GetUploadedFile(image) {
         }
     });
 }
-function GetUploadedFiles(file) {
+function GetUploadedVideo(video) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (!file || !file.buffer || !file.mimetype) {
-                throw new Error("Invalid file data provided.");
+            if (!video || !video.buffer || !video.mimetype) {
+                throw new Error("Invalid video file provided or unsupported format.");
             }
-            const fileName = (0, exports.generateFileName)();
-            if (file.mimetype.startsWith("image/")) {
-                const jimpImage = yield jimp_1.default.read(file.buffer);
-                const buffer = yield jimpImage.getBufferAsync(file.mimetype);
-                yield uploadFile(buffer, fileName, file.mimetype);
-            }
-            else {
-                yield uploadFile(file.buffer, fileName, file.mimetype);
-            }
-            return fileName;
+            const videoName = (0, exports.generateFileName)();
+            yield uploadFile(video.buffer, videoName, video.mimetype);
+            return videoName;
         }
         catch (err) {
-            console.log("Error in file upload", err);
+            console.log("Error in video upload", err);
+            throw err;
+        }
+    });
+}
+function GetUploadedDocument(document) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (!document || !document.buffer || !document.mimetype) {
+                throw new Error("Invalid document data provided.");
+            }
+            const documentName = (0, exports.generateFileName)();
+            yield uploadFile(document.buffer, documentName, document.mimetype);
+            return documentName;
+        }
+        catch (err) {
+            console.log("Error in document upload", err);
             throw err;
         }
     });
