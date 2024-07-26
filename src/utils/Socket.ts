@@ -7,7 +7,6 @@ import {
   GetUploadedDocument,
   getObjectSignedUrl,
 } from "../core/s3upload.core";
-
 const prisma = new PrismaClient();
 const socketIdToUserId = new Map<string, number>();
 
@@ -19,6 +18,18 @@ if (!firebase.apps.length) {
   firebase.app();
 }
 
+interface MessageData {
+  message: string;
+  classId: number;
+  chatId: number;
+  userId: number;
+  text: string;
+  roomData: any;
+  image: string;
+  video: string;
+  document: string;
+}
+
 const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
@@ -28,22 +39,32 @@ const Socket = (io: any) => {
       console.log(`User ${socket.id} joined room ${classId}`);
     });
 
-    socket.on("send_class_message", async (data: any) => {
+    socket.on("send_class_message", async (data: MessageData) => {
       try {
-        const { classId, userId, message, image, video, document } = data;
-
-        if (!classId || !userId || (!message && !image && !video && !document)) {
+        if (
+          !data.classId ||
+          !data.userId ||
+          (!data.message && !data.image && !data.video && !data.document)
+        ) {
           console.error("Invalid data received:", data);
           return;
         }
 
-        const payload = { classId, userId, message, image, video, document };
+        const imageUrl = data.image ? await GetUploadedFile(data.image) : null;
+        const videoUrl = data.video ? await GetUploadedVideo(data.video) : null;
+        const documentUrl = data.document ? await GetUploadedDocument(data.document) : null;
 
-        if (image) payload.image = await GetUploadedFile(image);
-        if (video) payload.video = await GetUploadedVideo(video);
-        if (document) payload.document = await GetUploadedDocument(document);
+        const createdMessage = await prisma.classMessage.create({
+          data: {
+            classId: data.classId,
+            userId: data.userId,
+            message: data.message,
+            image: imageUrl,
+            video: videoUrl,
+            document: documentUrl,
+          },
+        });
 
-        const createdMessage = await prisma.classMessage.create({ data: payload });
         if (createdMessage?.image)
           createdMessage.image = await getObjectSignedUrl(createdMessage.image);
         if (createdMessage?.video)
@@ -51,7 +72,8 @@ const Socket = (io: any) => {
         if (createdMessage?.document)
           createdMessage.document = await getObjectSignedUrl(createdMessage.document);
 
-        io.to(classId.toString()).emit("receive_class_message", createdMessage);
+        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
+        sendNotification(createdMessage);
       } catch (error) {
         console.error("Error handling send_class_message event:", error);
       }
