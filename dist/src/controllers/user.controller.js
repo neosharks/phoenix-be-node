@@ -136,6 +136,7 @@ class _UserController {
                 let update = {};
                 if (image)
                     update.coverImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
+                console.log(update, "sdfg");
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }

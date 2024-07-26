@@ -149,17 +149,19 @@ class _ClassService {
             }
         });
     }
-    addMessage(data) {
+    addMessage(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId, classId, message, isPinned, file } = data;
+                const { classId, userId, message, image, isPinned, video, document } = dataValues;
                 return yield prisma_1.default.classMessage.create({
                     data: {
-                        userId,
                         classId,
+                        userId,
                         message,
                         isPinned,
-                        file,
+                        image,
+                        video,
+                        document,
                     },
                 });
             }
