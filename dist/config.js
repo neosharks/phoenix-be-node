@@ -52,6 +52,7 @@ exports.default = {
             clientSecret: (_k = process.env.CASHFREE_CLIENT_SECRET) !== null && _k !== void 0 ? _k : "",
             url: process.env.CASHFREE_URL || "",
             version: process.env.CASHFREE_VERSION || "2023-08-01",
+            environment: process.env.CASHFREE_ENVIRONMENT || "",
         },
     },
     nodemailer: {

@@ -19,7 +19,7 @@ class _ChatService {
     getOneChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.chat.findFirst({
+                const result = yield prisma_1.default.chat.findFirst({
                     where: query,
                     include: {
                         participantOne: {
@@ -46,15 +46,17 @@ class _ChatService {
                         },
                     },
                 });
+                console.log(result, "result");
+                return result;
             }
             catch (error) {
-                console.log("ERROR: ", error);
-                throw new Error(api_constant_1.errorMessage.DB_ISSUE);
+                console.error("ERROR in getOneChat:", error);
+                throw new Error("DB_ISSUE");
             }
         });
     }
-    getAllChat(query) {
-        return __awaiter(this, void 0, void 0, function* () {
+    getAllChat(query_1) {
+        return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
                 return yield prisma_1.default.chat.findMany({
                     where: query,
@@ -82,6 +84,8 @@ class _ChatService {
                             },
                         },
                     },
+                    skip,
+                    take,
                 });
             }
             catch (error) {

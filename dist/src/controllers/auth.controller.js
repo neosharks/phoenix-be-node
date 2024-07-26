@@ -19,6 +19,7 @@ const user_service_1 = require("../services/user.service");
 const jwt_core_1 = require("../core/jwt.core");
 const helper_lib_1 = require("../lib/helper.lib");
 const api_constant_1 = require("../constant/api.constant");
+const auth_validator_1 = require("../validators/auth.validator");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
 const sms_core_1 = __importDefault(require("../core/sms.core"));
@@ -28,6 +29,10 @@ class _AuthController {
             try {
                 let body = req.body;
                 const { isCreator } = req.body;
+                const validation = auth_validator_1.registerSchema.validate(req.body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (foundUser)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.USER_EXISTS });
@@ -48,10 +53,7 @@ class _AuthController {
                 const created = yield user_service_1.UserService.createOneUser(isCreator
                     ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {
-                    yield (0, email_core_1.default)(body.email, "Welcome to Quiber!", "SIGNUP", {
-                        firstName: body.firstName,
-                        lastName: body.lastName,
-                    });
+                    yield (0, email_core_1.default)(body.email, "Welcome to Qalakar!", "SIGNUP");
                 }
                 const accessToken = yield (0, jwt_core_1.signJwt)(created);
                 return res.status(201).json({ messge: api_constant_1.successMessages.CREATED, accessToken, user: created });
@@ -68,6 +70,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
+                const validation = auth_validator_1.loginSchema.validate(body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (!foundUser)
                     return res.status(403).json({ message: api_constant_1.errorMessage.NOT_FOUND });
@@ -152,6 +158,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { number } = req.body;
+                const validation = auth_validator_1.sendOtpSchema.validate({ number });
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!number)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
@@ -193,6 +203,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email } = req.body;
+                const { error } = auth_validator_1.forgetPasswordSchema.validate({ email });
+                if (error) {
+                    return res.status(400).json({ error: error.details[0].message });
+                }
                 if (!email)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
@@ -221,6 +235,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email } = req.body;
+                const validation = auth_validator_1.forgetPasswordSchema.validate(email);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!email)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
@@ -250,6 +268,10 @@ class _AuthController {
             try {
                 const { email, code, password } = req.body;
                 console.log(email, code, password);
+                const validation = auth_validator_1.verifyForgetPasswordSchema.validate({ email, code, password });
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!email || !code || !password)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
@@ -280,6 +302,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { oldPassword, newPassword } = req.body;
+                const validation = auth_validator_1.resetPasswordSchema.validate({ oldPassword, newPassword });
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const { password, id } = res.locals.user;
                 if (!oldPassword || !newPassword)
                     return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -308,6 +334,10 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { number, otp } = req.body;
+                const validation = auth_validator_1.loginViaNumberSchema.validate({ number, otp });
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!number || !otp)
                     res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
@@ -347,7 +377,7 @@ class _AuthController {
     googleAuth(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { googleAccessToken, referralUsername } = req.body;
+                const { googleAccessToken } = req.body;
                 if (!googleAccessToken)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const FetchResponse = yield axios_1.default.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -369,17 +399,10 @@ class _AuthController {
                         username: email.split("@")[0],
                         emailVerified: true,
                     };
-                    if (referralUsername) {
-                        const referralUser = yield user_service_1.UserService.getOneUser({ username: referralUsername });
-                        if (referralUser) {
-                            user.referralTimeStamp = new Date();
-                            user.referralUserId = referralUser.id;
-                        }
-                    }
                     foundUser = yield user_service_1.UserService.createOneUser(user);
                     if (email && email.length > 0) {
                         logger_core_1.default.info("sending email to: ", email);
-                        yield (0, email_core_1.default)(email, "Welcome to Quiber!", "SIGNUP", {
+                        yield (0, email_core_1.default)(email, "Welcome to Qalakar!", "SIGNUP", {
                             firstName: given_name,
                             lastName: family_name,
                         });

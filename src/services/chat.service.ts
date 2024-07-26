@@ -5,7 +5,7 @@ import logger from "../core/logger.core";
 class _ChatService {
   async getOneChat(query: any) {
     try {
-      return await prisma.chat.findFirst({
+      const result = await prisma.chat.findFirst({
         where: query,
         include: {
           participantOne: {
@@ -32,13 +32,15 @@ class _ChatService {
           },
         },
       });
+      console.log(result, "result");
+      return result;
     } catch (error) {
-      console.log("ERROR: ", error);
-      throw new Error(errorMessage.DB_ISSUE);
+      console.error("ERROR in getOneChat:", error);
+      throw new Error("DB_ISSUE");
     }
   }
 
-  async getAllChat(query: any) {
+  async getAllChat(query: any, skip: any = 0, take: any = 10) {
     try {
       return await prisma.chat.findMany({
         where: query,
@@ -66,6 +68,8 @@ class _ChatService {
             },
           },
         },
+        skip,
+        take,
       });
     } catch (error) {
       console.log("ERROR: ", error);

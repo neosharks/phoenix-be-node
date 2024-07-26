@@ -29,7 +29,7 @@ class _UserService {
     }
   }
 
-  async getAllUserByParams(query: any) {
+  async getAllUserByParams(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.user.findMany({
         where: query,
@@ -44,13 +44,15 @@ class _UserService {
           industry: true,
           coverImage: true,
         },
+        skip,
+        take,
       });
     } catch (error) {
       throw error;
     }
   }
 
-  async getAllUser() {
+  async getAllUser(skip: number = 0, take: number = 10) {
     try {
       return await prisma.user.findMany({
         select: {
@@ -63,7 +65,17 @@ class _UserService {
           phoneNumber: true,
           role: true,
         },
+        skip,
+        take,
       });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllTotalUser() {
+    try {
+      return await prisma.user.findMany();
     } catch (error) {
       throw error;
     }

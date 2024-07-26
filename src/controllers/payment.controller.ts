@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Cashfree } from "cashfree-pg";
 import crypto from "crypto";
-import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { PackageService } from "../services/package.service";
 import config from "../../config";
@@ -11,8 +10,10 @@ import { AssignTierAndLink } from "./package.controller";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
-Cashfree.XEnvironment = Cashfree.Environment.PRODUCTION;
-// Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
+Cashfree.XEnvironment =
+  config.payment.cashfree.environment === "PRODUCTION"
+    ? Cashfree.Environment.PRODUCTION
+    : Cashfree.Environment.SANDBOX;
 
 function generateOrderId() {
   const uniqueId = crypto.randomBytes(16).toString("hex");
@@ -25,6 +26,9 @@ function generateOrderId() {
 class _PaymentController {
   async order(req: Request, res: Response) {
     const { packageId } = req.body;
+
+    if (!packageId)
+      return res.status(errorCode.GENERIC).json({ message: errorMessage.MISSING_PARAMS });
     const user = res.locals.user;
     if (!packageId)
       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
@@ -55,7 +59,7 @@ class _PaymentController {
       let response;
       try {
         response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
-        console.log(response);
+        console.log("response ", response);
       } catch (error) {
         console.error(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });

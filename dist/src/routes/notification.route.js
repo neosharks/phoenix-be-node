@@ -8,5 +8,6 @@ const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middlew
 const notification_controller_1 = require("../controllers/notification.controller");
 const notificationRoutes = express_1.default.Router();
 notificationRoutes.get("/getAllForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), notification_controller_1.NotificationController.getAllNotificationByUser);
+notificationRoutes.post("/sendNotification", notification_controller_1.NotificationController.sendNotification);
 notificationRoutes.post("/markAllAsRead", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), notification_controller_1.NotificationController.markAllAsRead);
 exports.default = notificationRoutes;

@@ -41,10 +41,13 @@ CREATE TYPE "VERIFICATION_CODE_SOURCE" AS ENUM ('WHATSAPP', 'SMS', 'EMAIL');
 CREATE TYPE "USER_STATUS" AS ENUM ('ACTIVE', 'INACTIVE', 'DELETED', 'BLOCKED');
 
 -- CreateEnum
+CREATE TYPE "CREATOR_APPROVAL_STATUS" AS ENUM ('PENDING', 'APPROVED', 'DENIED', 'UNINITIATED');
+
+-- CreateEnum
 CREATE TYPE "VERIFICATION_CODE_TYPE" AS ENUM ('LOGIN', 'FORGET_PASSWORD');
 
 -- CreateEnum
-CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK', 'VIDEO');
+CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK', 'VIDEO', 'CLASS');
 
 -- CreateEnum
 CREATE TYPE "VISIBILITY" AS ENUM ('EVERYONE', 'FREE_MEMBER', 'PAID_MEMBER');
@@ -81,6 +84,8 @@ CREATE TABLE "User" (
     "facebookHandle" TEXT,
     "twitterHandle" TEXT,
     "instagramHandle" TEXT,
+    "creatorApprovalStatus" "CREATOR_APPROVAL_STATUS" NOT NULL DEFAULT 'UNINITIATED',
+    "creatorChangeTimeStamp" TIMESTAMP(3),
     "status" "USER_STATUS" NOT NULL DEFAULT 'ACTIVE',
     "password" TEXT,
     "referralUserId" INTEGER,
@@ -208,6 +213,7 @@ CREATE TABLE "UserPost" (
     "visibility" "VISIBILITY" NOT NULL DEFAULT 'EVERYONE',
     "allowComments" BOOLEAN NOT NULL DEFAULT true,
     "pollId" INTEGER,
+    "classId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -291,9 +297,46 @@ CREATE TABLE "AllLinks" (
     "platform" TEXT,
     "highlight" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AllLinks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Class" (
+    "id" SERIAL NOT NULL,
+    "creatorId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "isPaid" BOOLEAN NOT NULL DEFAULT false,
+    "type" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Class_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ClassMessage" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "message" TEXT NOT NULL,
+    "isPinned" BOOLEAN NOT NULL DEFAULT false,
+    "classId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ClassMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ClassParticipants" (
+    "id" SERIAL NOT NULL,
+    "classId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ClassParticipants_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -340,6 +383,9 @@ CREATE UNIQUE INDEX "Payment_orderId_key" ON "Payment"("orderId");
 
 -- CreateIndex
 CREATE INDEX "Payment_orderId_idx" ON "Payment"("orderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ClassParticipants_classId_userId_key" ON "ClassParticipants"("classId", "userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_likedByUser_AB_unique" ON "_likedByUser"("A", "B");
@@ -402,6 +448,9 @@ ALTER TABLE "UserPost" ADD CONSTRAINT "UserPost_authorId_fkey" FOREIGN KEY ("aut
 ALTER TABLE "UserPost" ADD CONSTRAINT "UserPost_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "UserPost" ADD CONSTRAINT "UserPost_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "PostComment" ADD CONSTRAINT "PostComment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -427,6 +476,21 @@ ALTER TABLE "WalletTransactions" ADD CONSTRAINT "WalletTransactions_paymentId_fk
 
 -- AddForeignKey
 ALTER TABLE "AllLinks" ADD CONSTRAINT "AllLinks_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Class" ADD CONSTRAINT "Class_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClassParticipants" ADD CONSTRAINT "ClassParticipants_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClassParticipants" ADD CONSTRAINT "ClassParticipants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_likedByUser" ADD CONSTRAINT "_likedByUser_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

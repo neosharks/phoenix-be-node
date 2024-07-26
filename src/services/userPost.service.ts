@@ -1,13 +1,14 @@
 import prisma from "../../prisma";
 
 class _UserPostService {
-  async getAllUserPostByUser(query: any) {
+  async getAllUserPostByUser(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.userPost.findMany({
         where: query,
         include: {
           poll: true,
           packages: true,
+          class: true,
           comments: {
             select: {
               description: true,
@@ -49,6 +50,8 @@ class _UserPostService {
             },
           },
         },
+        skip,
+        take,
       });
     } catch (error) {
       throw error;

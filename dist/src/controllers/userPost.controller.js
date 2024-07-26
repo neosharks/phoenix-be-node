@@ -21,12 +21,15 @@ const api_constant_1 = require("../constant/api.constant");
 const s3upload_core_1 = require("../core/s3upload.core");
 const image_lib_1 = require("../lib/image.lib");
 const helper_lib_1 = require("../lib/helper.lib");
+const userPost_validator_1 = require("../validators/userPost.validator");
 const notification_service_1 = require("../services/notification.service");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { author } = req.query;
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
                 if (!author)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
@@ -34,7 +37,7 @@ class _UserPostController {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 let returnPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({
                     authorId: foundUser.id,
-                });
+                }, skip, take);
                 if (!returnPosts)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (returnPosts.length > 0) {
@@ -64,16 +67,29 @@ class _UserPostController {
             try {
                 const { id } = res.locals.user;
                 let returnPosts = [];
-                const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getAll({ patronId: id });
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getAll({ patronId: id }, skip, take);
                 for (let i = 0; i < foundPatronCreator.length; i++) {
                     const ele = foundPatronCreator[i];
                     const allPostsByUser = yield userPost_service_1.UserPostService.getAllUserPostByUser({
                         authorId: ele.creatorId,
-                    });
+                    }, skip, take);
                     returnPosts = [...returnPosts, ...allPostsByUser];
                 }
-                const allUserPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id });
+                const allUserPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
                 returnPosts = [...returnPosts, ...allUserPosts];
+                // Remove duplicate posts
+                const seenPostIds = new Set();
+                returnPosts = returnPosts.filter((post) => {
+                    if (seenPostIds.has(post.id)) {
+                        return false;
+                    }
+                    else {
+                        seenPostIds.add(post.id);
+                        return true;
+                    }
+                });
                 if (returnPosts.length === 0)
                     return res.status(200).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 returnPosts = returnPosts.sort(function (a, b) {
@@ -128,11 +144,23 @@ class _UserPostController {
             try {
                 const { postId } = req.body;
                 const { id } = res.locals.user;
-                if (!postId)
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
+                if (!postId) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
-                if (!foundPost)
+                }
+                const foundPost = yield prisma_1.default.userPost.findUnique({
+                    where: { id: postId },
+                    include: {
+                        likedBy: true, // Include likedBy for easy manipulation
+                        author: true,
+                    },
+                });
+                if (!foundPost) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                }
                 const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
                 if (userIndex === -1) {
                     yield prisma_1.default.userPost.update({
@@ -143,7 +171,7 @@ class _UserPostController {
                         aboutUserId: id,
                         notifiedUserId: foundPost.authorId,
                         message: ` have liked on your post`,
-                        link: postId,
+                        link: postId.toString(), // Ensure link is stringified if necessary
                         type: "NEW_LIKE",
                     });
                 }
@@ -168,6 +196,10 @@ class _UserPostController {
             try {
                 const { pollId, selectedId } = req.body;
                 const { id } = res.locals.user;
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!pollId || !selectedId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPoll = yield userPost_service_1.UserPostService.getOnePoll({ id: pollId });
@@ -201,6 +233,10 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { postId, updates } = req.body;
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 if (!postId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
@@ -273,6 +309,10 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { description, authorId, userPostId } = req.body;
+                const validation = userPost_validator_1.userPostSchema.validate(req.body);
+                if (validation.error) {
+                    return res.status(400).json({ error: validation.error.details[0].message });
+                }
                 const { id } = res.locals.user;
                 if (!description || !authorId || !userPostId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -285,7 +325,7 @@ class _UserPostController {
                     aboutUserId: id,
                     notifiedUserId: authorId,
                     message: `${created.firstName + " " + created.lastName} have commented on your post`,
-                    link: userPostId,
+                    link: String(userPostId),
                     type: "NEW_COMMENT",
                 });
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: created });

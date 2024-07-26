@@ -8,20 +8,27 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
+import { userPostSchema } from "../validators/userPost.validator";
 import { NotificationService } from "../services/notification.service";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
     try {
       const { author } = req.query;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       if (!author)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      let returnPosts = await UserPostService.getAllUserPostByUser({
-        authorId: foundUser.id,
-      });
+      let returnPosts = await UserPostService.getAllUserPostByUser(
+        {
+          authorId: foundUser.id,
+        },
+        skip,
+        take,
+      );
 
       if (!returnPosts) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (returnPosts.length > 0) {
@@ -48,17 +55,35 @@ class _UserPostController {
     try {
       const { id } = res.locals.user;
       let returnPosts: any = [];
-      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id });
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id }, skip, take);
 
       for (let i = 0; i < foundPatronCreator.length; i++) {
         const ele = foundPatronCreator[i];
-        const allPostsByUser = await UserPostService.getAllUserPostByUser({
-          authorId: ele.creatorId,
-        });
+        const allPostsByUser = await UserPostService.getAllUserPostByUser(
+          {
+            authorId: ele.creatorId,
+          },
+          skip,
+          take,
+        );
         returnPosts = [...returnPosts, ...allPostsByUser];
       }
-      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id });
+      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
       returnPosts = [...returnPosts, ...allUserPosts];
+
+      // Remove duplicate posts
+      const seenPostIds = new Set();
+      returnPosts = returnPosts.filter((post: any) => {
+        if (seenPostIds.has(post.id)) {
+          return false;
+        } else {
+          seenPostIds.add(post.id);
+          return true;
+        }
+      });
+
       if (returnPosts.length === 0)
         return res.status(200).send({ message: errorMessage.NOT_FOUND });
       returnPosts = returnPosts.sort(function (a: any, b: any) {
@@ -105,22 +130,40 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      if (!postId)
+
+      const validation = userPostSchema.validate(req.body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
+
+      if (!postId) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost)
+      }
+
+      const foundPost = await prisma.userPost.findUnique({
+        where: { id: postId },
+        include: {
+          likedBy: true, // Include likedBy for easy manipulation
+          author: true,
+        },
+      });
+
+      if (!foundPost) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      }
+
       const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
       if (userIndex === -1) {
         await prisma.userPost.update({
           where: { id: postId },
           data: { likedBy: { connect: { id: id } } },
         });
+
         await NotificationService.createOneNotification({
           aboutUserId: id,
           notifiedUserId: foundPost.authorId,
           message: ` have liked on your post`,
-          link: postId,
+          link: postId.toString(), // Ensure link is stringified if necessary
           type: "NEW_LIKE",
         });
       } else {
@@ -129,6 +172,7 @@ class _UserPostController {
           data: { likedBy: { disconnect: { id: id } } },
         });
       }
+
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
       console.log("Error: ", error);
@@ -142,6 +186,10 @@ class _UserPostController {
     try {
       const { pollId, selectedId } = req.body;
       const { id } = res.locals.user;
+      const validation = userPostSchema.validate(req.body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!pollId || !selectedId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
@@ -172,6 +220,10 @@ class _UserPostController {
   async update(req: any, res: Response) {
     try {
       const { postId, updates } = req.body;
+      const validation = userPostSchema.validate(req.body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       if (!postId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
@@ -192,7 +244,6 @@ class _UserPostController {
       const body = req.body;
       const { description, type, visibility, videoUrl, title, packages } = body;
       const image = req.file;
-
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -235,9 +286,7 @@ class _UserPostController {
         title,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
-
       if (created.image) created.image = await getObjectSignedUrl(created.image);
-
       return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       console.error(error);
@@ -251,6 +300,10 @@ class _UserPostController {
   async commentOnPostByUser(req: any, res: Response) {
     try {
       const { description, authorId, userPostId } = req.body;
+      const validation = userPostSchema.validate(req.body);
+      if (validation.error) {
+        return res.status(400).json({ error: validation.error.details[0].message });
+      }
       const { id } = res.locals.user;
       if (!description || !authorId || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
@@ -263,7 +316,7 @@ class _UserPostController {
         aboutUserId: id,
         notifiedUserId: authorId,
         message: `${created.firstName + " " + created.lastName} have commented on your post`,
-        link: userPostId,
+        link: String(userPostId),
         type: "NEW_COMMENT",
       });
       res.status(201).send({ message: successMessages.SUCCESS, data: created });

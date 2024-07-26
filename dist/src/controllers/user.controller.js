@@ -103,7 +103,9 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = res.locals.user;
-                let found = yield user_service_1.UserService.getAllUserByParams({ isCreator: true });
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                let found = yield user_service_1.UserService.getAllUserByParams({ isCreator: true }, skip, take);
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 found = found.filter((ele) => ele.id !== id);
@@ -166,7 +168,7 @@ class _UserController {
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
+                const validation = user_validator_1.userUpdateSchema.validate(req.body);
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
@@ -213,10 +215,9 @@ class _UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id, username } = res.locals.user;
-                const validation = user_validator_1.userUpdateSchema.validate(req.body, { stripUnknown: true });
-                if (validation.error) {
+                const validation = user_validator_1.userUpdateSchema.validate(req.body);
+                if (validation.error)
                     return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 const foundUser = yield user_service_1.UserService.getOneUser({ id });
                 if (!foundUser)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
@@ -225,8 +226,51 @@ class _UserController {
                 const foundUsername = yield user_service_1.UserService.getOneUser({ username });
                 if (foundUsername && foundUsername.id !== id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
-                const updatedBody = Object.assign(Object.assign({}, req.body), { isCreator: true, role: ["CREATOR", ...foundUser.role] });
+                // Ensure email uniqueness check before update
+                if (req.body.email) {
+                    const existingUserWithEmail = yield user_service_1.UserService.getOneUser({ email: req.body.email });
+                    if (existingUserWithEmail && existingUserWithEmail.id !== id)
+                        return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Email already exists" });
+                }
+                const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
+                // const emailSent = await sendEmail(
+                //   req.body.email,
+                //   "Creator Application Under Review",
+                //   "APPLY_CREATOR",
+                // );
+                // if (!emailSent) {
+                //   return res.status(500).send({ message: "Failed to send email" });
+                // }
+                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    approveCreatorOnboard(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { users } = req.body;
+                for (let i = 0; i < users.length; i++) {
+                    const ele = users[i];
+                    const foundUser = yield user_service_1.UserService.getOneUser({ id: ele });
+                    if (foundUser && !foundUser.isCreator) {
+                        const updatedBody = {
+                            isCreator: true,
+                            role: ["CREATOR", ...foundUser.role],
+                            creatorApprovalStatus: "APPROVED",
+                            creatorChangeTimeStamp: new Date(),
+                        };
+                        yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
+                        // if (foundUser.email)
+                        //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+                    }
+                }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
@@ -243,6 +287,22 @@ class _UserController {
                 const { id } = res.locals.user;
                 yield user_service_1.UserService.deleteOneUser(id);
                 return res.status(200).json({ messge: api_constant_1.successMessages.SUCCESS });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAllTotalUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const found = yield user_service_1.UserService.getAllTotalUser();
+                if (!found)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
                 console.log("ERROR: ", error);

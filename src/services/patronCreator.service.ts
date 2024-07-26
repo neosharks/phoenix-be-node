@@ -1,5 +1,4 @@
 import prisma from "../../prisma";
-
 class _PatronCreatorService {
   async getFirst(query: any) {
     try {
@@ -17,7 +16,7 @@ class _PatronCreatorService {
     }
   }
 
-  async getAll(query: any) {
+  async getAll(query: any, skip: number = 0, take: number = 10) {
     try {
       return await prisma.patronCreator.findMany({
         where: query,
@@ -46,6 +45,8 @@ class _PatronCreatorService {
             },
           },
         },
+        skip,
+        take,
       });
     } catch (error) {
       throw error;

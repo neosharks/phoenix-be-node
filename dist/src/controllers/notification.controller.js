@@ -10,17 +10,43 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationController = void 0;
+const admin = require("firebase-admin");
 const notification_service_1 = require("../services/notification.service");
 const api_constant_1 = require("../constant/api.constant");
+const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountKey_1.serviceAccountKey),
+});
 class _NotificationController {
+    sendNotification(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { token, title, body, data } = req.body;
+            const message = {
+                notification: {
+                    title,
+                    body,
+                },
+                token,
+                data: data || {},
+            };
+            try {
+                const response = yield admin.messaging().send(message);
+                res.status(200).send(`Notification sent successfully: ${response}`);
+            }
+            catch (error) {
+                res.status(500).send(`Error sending notification: ${error}`);
+            }
+        });
+    }
     getAllNotificationByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = res.locals.user;
-                const skip = req.query.page || 0;
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
                 const allNotifications = yield notification_service_1.NotificationService.getAllNotificationOfUser({
                     notifiedUserId: id,
-                }, Number(skip));
+                }, skip, take);
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allNotifications });
             }
             catch (error) {

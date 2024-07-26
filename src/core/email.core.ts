@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import ejs from "ejs";
+import fs from "fs/promises";
 import path from "path";
 import logger from "./logger.core";
 import config from "../../config";
@@ -7,19 +7,23 @@ import config from "../../config";
 const extractTemplate = (template: string) => {
   switch (template) {
     case "SIGNUP":
-      return "signup.mail.ejs";
+      return "signup.mail.html";
     case "FORGET_PASSWORD":
-      return "forgetPassword.mail.ejs";
+      return "forgetPassword.mail.html";
+    case "APPLY_CREATOR":
+      return "applyForCreator.mail.html";
+    case "APPROVE_CREATOR":
+      return "approvalForCreator.mail.html";
     default:
-      return "default.mail.ejs";
+      return "default.mail.html";
   }
 };
 
 const sendEmail = async (
-  receiverEmail: any,
+  receiverEmail: string,
   subject: string,
   template: string,
-  variables: object,
+  variables: object = {},
 ): Promise<boolean> => {
   try {
     const mailTransport: nodemailer.Transporter = nodemailer.createTransport({
@@ -34,8 +38,14 @@ const sendEmail = async (
     } as nodemailer.TransportOptions);
 
     const templatePath = path.join(__dirname, `../mailTemplates/${extractTemplate(template)}`);
+    logger.info(`Reading email template from ${templatePath}`);
+    console.log(templatePath, "emailSent42");
+    let foundTemplate = await fs.readFile(templatePath, "utf8");
 
-    const foundTemplate = await ejs.renderFile(templatePath, variables);
+    for (const [key, value] of Object.entries(variables)) {
+      const regex = new RegExp(`{{${key}}}`, "g");
+      foundTemplate = foundTemplate.replace(regex, value as string);
+    }
 
     const mailOptions = {
       from: `admin@qalakar.com`,
@@ -43,12 +53,12 @@ const sendEmail = async (
       subject: subject,
       html: foundTemplate,
     };
-    logger.info(`Sending email to ${receiverEmail}`);
+    console.info(`Sending email to ${receiverEmail} with subject ${subject}`);
     await mailTransport.sendMail(mailOptions);
     logger.info(`Email sent to ${receiverEmail}`);
     return true;
   } catch (err) {
-    console.log("Failed to send email", err);
+    console.error("Failed to send email", err);
     return false;
   }
 };

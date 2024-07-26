@@ -6,7 +6,7 @@ import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
-import { updatePackageSchema } from "../validators/package.validator";
+import { updatePackageSchema, packageSchema } from "../validators/package.validator";
 import { UserService } from "../services/user.service";
 
 export const AssignTierAndLink = async (foundPackage: any, user: any) => {
@@ -50,13 +50,19 @@ class _PackageController {
   async getAllPackagesOfCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.USER_NOT_FOUND });
-      const found = await PackageService.getAllPackagesOfCreator({
-        creatorId: foundUser.id,
-      });
+      const found = await PackageService.getAllPackagesOfCreator(
+        {
+          creatorId: foundUser.id,
+        },
+        skip,
+        take,
+      );
       if (!found) return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, packages: found });
     } catch (error) {
@@ -114,13 +120,20 @@ class _PackageController {
   async useGetAllSubscriptions(req: Request, res: Response) {
     try {
       const { username } = req.params;
-      if (!username)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PatronCreatorService.getAll({
-        patron: {
-          username: username,
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      if (!username) {
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS }); // Proper error handling for missing username
+      }
+      const found = await PatronCreatorService.getAll(
+        {
+          patron: {
+            username: username,
+          },
         },
-      });
+        skip,
+        take,
+      );
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -134,12 +147,19 @@ class _PackageController {
   async getAllPatronsByCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PatronCreatorService.getAll({
-        creator: {
-          username: username,
+      const found = await PatronCreatorService.getAll(
+        {
+          creator: {
+            username: username,
+          },
         },
-      });
+        skip,
+        take,
+      );
       if (!found) return res.status(404).send({ message: errorMessage.MISSING_PARAMS });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -171,10 +191,6 @@ class _PackageController {
   async updatePackage(req: Request, res: Response) {
     try {
       const postId = req.body.id;
-      const validation = updatePackageSchema.validate(req.body, { stripUnknown: true });
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const foundPackage = await PackageService.getOnePackage({ id: postId });
       if (!foundPackage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
@@ -315,7 +331,9 @@ class _PackageController {
 
   async getAllTiers(req: Request, res: Response) {
     try {
-      const tiers = await PackageService.getAllTiers();
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      const tiers = await PackageService.getAllTiers(skip, take);
       res.status(201).send({ message: successMessages.FETCHED, tiers: tiers });
     } catch (error) {
       console.log("ERROR: ", error);

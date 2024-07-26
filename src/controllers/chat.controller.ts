@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
 import { ChatService } from "../services/chat.service";
-import Logger from "../core/logger.core";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import logger from "../core/logger.core";
-import { PackageService } from "../services/package.service";
 
 class _ChatController {
   async createChat(req: Request, res: Response) {
@@ -31,10 +28,16 @@ class _ChatController {
 
   async getAllChatsByUser(req: Request, res: Response) {
     try {
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       const { id } = res.locals.user;
-      const foundChat = await ChatService.getAllChat({
-        OR: [{ participantOneId: id }, { participantTwoId: id }],
-      });
+      const foundChat = await ChatService.getAllChat(
+        {
+          OR: [{ participantOneId: id }, { participantTwoId: id }],
+        },
+        skip,
+        take,
+      );
       const finalData: any = [];
       for (let i = 0; i < foundChat.length; i++) {
         const ele = foundChat[i];
@@ -61,7 +64,9 @@ class _ChatController {
 
   async getAllSearchableUsers(req: Request, res: Response) {
     try {
-      const allUser = await UserService.getAllUser();
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      const allUser = await UserService.getAllUser(skip, take);
       return res.status(200).json({ message: successMessages.SUCCESS, contacts: allUser });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -73,7 +78,7 @@ class _ChatController {
 
   async createMessage(req: Request, res: Response) {
     try {
-      const { chatId, senderId, message, contentType } = req.body;
+      const { chatId, contentType, message, senderId } = req.body;
       const { isCreator, firstName, lastName } = res.locals.user;
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
@@ -85,6 +90,7 @@ class _ChatController {
         message,
         contentType,
       });
+      console.log(createdChat, isCreator, foundChat, "apisRun");
       await ChatService.updateOneChat(
         { id: chatId },
         { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 },

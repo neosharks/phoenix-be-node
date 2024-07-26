@@ -7,6 +7,7 @@ import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
+import sendEmail from "../core/email.core";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -78,7 +79,9 @@ class _UserController {
   async getAllCreator(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      let found = await UserService.getAllUserByParams({ isCreator: true });
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      let found = await UserService.getAllUserByParams({ isCreator: true }, skip, take);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       found = found.filter((ele) => ele.id !== id);
       if (found.length > 0) {
@@ -106,6 +109,7 @@ class _UserController {
       const image = req.file;
       let update: any = {};
       if (image) update.coverImage = await GetUploadedFile(image);
+      console.log(update, "sdfg");
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
@@ -133,7 +137,7 @@ class _UserController {
 
   async update(req: Request, res: Response) {
     try {
-      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
+      const validation = userUpdateSchema.validate(req.body);
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
@@ -175,24 +179,66 @@ class _UserController {
   async creatorOnboard(req: Request, res: Response) {
     try {
       const { id, username } = res.locals.user;
-      const validation = userUpdateSchema.validate(req.body, { stripUnknown: true });
-      if (validation.error) {
+      const validation = userUpdateSchema.validate(req.body);
+      if (validation.error)
         return res.status(400).json({ error: validation.error.details[0].message });
-      }
+
       const foundUser = await UserService.getOneUser({ id });
       if (!foundUser) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+
       if (foundUser.role.includes("CREATOR"))
         return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+
       const foundUsername = await UserService.getOneUser({ username });
       if (foundUsername && foundUsername.id !== id)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_USERNAME });
 
+      // Ensure email uniqueness check before update
+      if (req.body.email) {
+        const existingUserWithEmail = await UserService.getOneUser({ email: req.body.email });
+        if (existingUserWithEmail && existingUserWithEmail.id !== id)
+          return res.status(errorCode.GENERIC).send({ message: "Email already exists" });
+      }
       const updatedBody = {
         ...req.body,
-        isCreator: true,
-        role: ["CREATOR", ...foundUser.role],
+        creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
+      // const emailSent = await sendEmail(
+      //   req.body.email,
+      //   "Creator Application Under Review",
+      //   "APPLY_CREATOR",
+      // );
+      // if (!emailSent) {
+      //   return res.status(500).send({ message: "Failed to send email" });
+      // }
+      return res.status(201).send({ message: successMessages.SUCCESS });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async approveCreatorOnboard(req: Request, res: Response) {
+    try {
+      const { users } = req.body;
+      for (let i = 0; i < users.length; i++) {
+        const ele = users[i];
+        const foundUser = await UserService.getOneUser({ id: ele });
+        if (foundUser && !foundUser.isCreator) {
+          const updatedBody = {
+            isCreator: true,
+            role: ["CREATOR", ...foundUser.role],
+            creatorApprovalStatus: "APPROVED",
+            creatorChangeTimeStamp: new Date(),
+          };
+          await UserService.updateOneUser({ id: ele }, updatedBody);
+          // if (foundUser.email)
+          //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+        }
+      }
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -207,6 +253,19 @@ class _UserController {
       const { id } = res.locals.user;
       await UserService.deleteOneUser(id);
       return res.status(200).json({ messge: successMessages.SUCCESS });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async getAllTotalUser(req: Request, res: Response) {
+    try {
+      const found = await UserService.getAllTotalUser();
+      if (!found) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      return res.status(201).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
