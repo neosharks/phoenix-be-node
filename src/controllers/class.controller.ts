@@ -7,7 +7,6 @@ import {
   GetUploadedDocument,
   getObjectSignedUrl,
 } from "../core/s3upload.core";
-import { boolean } from "joi";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -143,7 +142,7 @@ class _ClassController {
 
   async sendMessage(req: Request, res: Response) {
     try {
-      const { classId, participantId, message, isPinned = false } = req.body;
+      const { classId, participantId, message } = req.body;
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       const image = files?.image?.[0];
       const video = files?.video?.[0];
@@ -162,7 +161,6 @@ class _ClassController {
       if (!message && !payload.image && !payload.video && !payload.document) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
-      // if (isPinned) payload.isPinned = isPinned;
       const created = await ClassService.addMessage({
         ...payload,
         userId: Number(participantId),
@@ -227,6 +225,25 @@ class _ClassController {
       await ClassService.updateSendMessage({ id: messageId }, { isPinned });
 
       return res.status(200).send({ message: successMessages.UPDATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async getAvailableParticipants(req: Request, res: Response) {
+    try {
+      let { classId }: any = req.query;
+      if (!classId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
+      const availableParticipants = await ClassService.getAvailableParticipants(parseInt(classId));
+
+      return res
+        .status(200)
+        .send({ message: successMessages.FETCHED, data: availableParticipants });
     } catch (error) {
       console.log("ERROR: ", error);
       return res

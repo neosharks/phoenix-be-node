@@ -166,6 +166,34 @@ class _ClassService {
       throw error;
     }
   }
+
+  async getAvailableParticipants(classId: number) {
+    try {
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profileImage: true,
+          email: true,
+          phoneNumber: true,
+        },
+      });
+
+      const participants = await prisma.classParticipants.findMany({
+        where: { classId },
+        select: { userId: true },
+      });
+
+      const participantIds = participants.map((p) => p.userId);
+      const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+
+      return availableParticipants;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }
 
 export const ClassService = new _ClassService();

@@ -42,4 +42,10 @@ classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSe
 
 classRoutes.get("/getAllMessagesOfClass", checkRoleAuth(), ClassController.getAllMessagesOfClass);
 
+classRoutes.get(
+  "/getAvailableParticipants",
+  checkRoleAuth(),
+  ClassController.getAvailableParticipants,
+);
+
 export default classRoutes;
