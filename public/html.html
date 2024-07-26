@@ -58,6 +58,7 @@
         padding: 10px;
         margin: 10px;
         border-radius: 5px;
+        position: relative;
       }
       #messagelist li.right {
         background: #d1f7c4;
@@ -66,6 +67,9 @@
       #messagelist li.left {
         background: #f1f1f1;
         align-self: flex-start;
+      }
+      #messagelist li.pinned {
+        border: 2px solid gold;
       }
       form.Input {
         display: flex;
@@ -114,6 +118,11 @@
         background-color: blueviolet;
         color: white;
       }
+      .pin-checkbox {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+      }
     </style>
   </head>
   <body>
@@ -160,6 +169,11 @@
         addMessageToUI(data, data.userId === parseInt(userId));
       });
 
+      socket.on("message_updated", (data) => {
+        console.log(data, "message updated");
+        updateMessageInUI(data);
+      });
+
       classList.addEventListener("click", (e) => {
         if (e.target.tagName === "LI") {
           const classId = e.target.getAttribute("data-class");
@@ -193,8 +207,36 @@
         const li = document.createElement("li");
         li.textContent = data.message || "Image/Video/Document";
         li.classList.add(isCurrentUser ? "right" : "left");
+        li.classList.toggle("pinned", data.isPinned);
+        li.setAttribute("data-message-id", data.id);
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = data.isPinned;
+        checkbox.classList.add("pin-checkbox");
+        checkbox.addEventListener("change", () => {
+          const isPinned = checkbox.checked;
+          socket.emit("update_message", {
+            classId: parseInt(currentClassId, 10),
+            messageId: data.id,
+            isPinned: isPinned,
+          });
+        });
+
+        li.appendChild(checkbox);
         messageList.appendChild(li);
         messageList.scrollTop = messageList.scrollHeight;
+      }
+
+      function updateMessageInUI(data) {
+        const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+        if (messageElement) {
+          messageElement.classList.toggle("pinned", data.isPinned);
+          const checkbox = messageElement.querySelector(".pin-checkbox");
+          if (checkbox) {
+            checkbox.checked = data.isPinned;
+          }
+        }
       }
     </script>
   </body>
