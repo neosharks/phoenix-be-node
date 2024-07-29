@@ -9,7 +9,7 @@ import routes from "./src/routes/index.route";
 import config from "./config";
 import Logger from "./src/core/logger.core";
 import { CommonService } from "./src/services/common.service";
-import { checkSocketRoleAuth } from "./src/middlewares/checkRoleAuth.middleware";
+import { socketAuthMiddleware } from "./src/middlewares/checkRoleAuth.middleware";
 import chatSocket from "./src/utils/Socket";
 import path from "path";
 
@@ -29,7 +29,7 @@ const io = new Server(server, {
   },
 });
 
-// io.use(checkSocketRoleAuth());
+io.use(socketAuthMiddleware);
 chatSocket(io);
 
 // MIDDLEWARES

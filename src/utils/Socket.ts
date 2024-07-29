@@ -50,9 +50,19 @@ const Socket = (io: any) => {
           return;
         }
 
-        const imageUrl = data.image ? await GetUploadedFile(data.image) : null;
-        const videoUrl = data.video ? await GetUploadedVideo(data.video) : null;
-        const documentUrl = data.document ? await GetUploadedDocument(data.document) : null;
+        let imageUrl = null;
+        let videoUrl = null;
+        let documentUrl = null;
+
+        if (data.image) {
+          imageUrl = await GetUploadedFile(data.image);
+        }
+        if (data.video) {
+          videoUrl = await GetUploadedVideo(data.video);
+        }
+        if (data.document) {
+          documentUrl = await GetUploadedDocument(data.document);
+        }
 
         const createdMessage = await prisma.classMessage.create({
           data: {
@@ -65,12 +75,15 @@ const Socket = (io: any) => {
           },
         });
 
-        if (createdMessage?.image)
+        if (createdMessage?.image) {
           createdMessage.image = await getObjectSignedUrl(createdMessage.image);
-        if (createdMessage?.video)
+        }
+        if (createdMessage?.video) {
           createdMessage.video = await getObjectSignedUrl(createdMessage.video);
-        if (createdMessage?.document)
+        }
+        if (createdMessage?.document) {
           createdMessage.document = await getObjectSignedUrl(createdMessage.document);
+        }
 
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
         sendNotification(createdMessage);
@@ -118,14 +131,11 @@ const Socket = (io: any) => {
 export default Socket;
 
 const sendNotification = async (notificationData: any) => {
-  console.log("Notification data received:", notificationData);
-
   try {
     const findUser = await prisma.user.findUnique({
       where: { id: notificationData.userId },
     });
 
-    console.log(findUser, "asdasdf");
     if (findUser?.fcmToken) {
       const notificationPayload = {
         roomId: notificationData.chatId,

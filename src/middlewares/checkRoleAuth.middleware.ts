@@ -39,39 +39,26 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
   };
 };
 
-export const checkSocketRoleAuth = (requiredRoles = ["PATRON"]) => {
-  return async (socket: Socket, next: (err?: Error) => void) => {
-    console.log(socket, "sad");
-    try {
-      const token = socket.handshake.auth.token || socket.handshake.query.token;
-      if (!token) {
-        return next(new Error(errorMessage.TOKEN_MISSING));
-      }
+// Socket.IO middleware for authentication
+export const socketAuthMiddleware = async (socket: Socket, next: (err?: any) => void) => {
+  const token = socket.handshake.auth.token;
+  console.log(token, "tokenSocket");
+  if (!token) {
+    return next(new Error("Authentication error: No token"));
+  }
+  const { decoded }: any = verifyJwt(token);
+  console.log(decoded, "tokenSocket");
 
-      const { decoded }: any = verifyJwt(token.replace(/^Bearer\s/, ""));
-      if (!decoded) {
-        return next(new Error(errorMessage.UNAUTHORISED));
-      }
+  if (!decoded) {
+    return next(new Error("Authentication error: Invalid token"));
+  }
+  const { id } = decoded;
+  console.log(id, "tokenSocket");
 
-      const { id } = decoded;
-      const foundUser: any = await UserService.getOneUser({ id });
-      if (!foundUser) {
-        return next(new Error(errorMessage.UNAUTHORISED));
-      }
-
-      const userRoles = foundUser?.role || [];
-      const hasRequiredRole = requiredRoles.some((requiredRole: string) =>
-        userRoles.includes(requiredRole),
-      );
-
-      if (!hasRequiredRole) {
-        return next(new Error(errorMessage.UNAUTHORISED));
-      }
-
-      socket.data.user = foundUser; // Attach user data to the socket instance
-      next();
-    } catch (error) {
-      next(new Error(errorMessage.UNAUTHORISED));
-    }
-  };
+  const foundUser = await UserService.getOneUser({ id });
+  if (!foundUser) {
+    return next(new Error("Authentication error: User not found"));
+  }
+  socket.data.user = foundUser;
+  next();
 };
