@@ -92,8 +92,8 @@ class _ClassController {
 
   async addOneParticipant(req: Request, res: Response) {
     try {
-      const { classId, participantId } = req.body;
-      if (!classId || !participantId)
+      const { participantId, classId } = req.body;
+      if (!participantId || !classId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       await ClassService.addClassParticipant({ userId: participantId, classId });
       return res.status(200).send({ message: successMessages.CREATED });
@@ -214,11 +214,27 @@ class _ClassController {
   async updateSendMessage(req: Request, res: Response) {
     try {
       const { classId, messageId, isPinned = false } = req.body;
-      console.log(classId, messageId, isPinned, ">>>>>>>");
-
       if (!classId || !messageId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundClass = await ClassService.getAllMessagesOfClass(parseInt(classId));
+      if (!foundClass) {
+        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
+      }
+      await Promise.all(
+        foundClass.map(async (message: any) => {
+          if (message.image) {
+            message.image = await getObjectSignedUrl(message.image);
+          }
+          if (message.video) {
+            message.video = await getObjectSignedUrl(message.video);
+          }
+          if (message.document) {
+            message.document = await getObjectSignedUrl(message.document);
+          }
+
+          return message;
+        }),
+      );
       const findMessage = foundClass?.find((res: any) => res.id === messageId);
       if (!findMessage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
