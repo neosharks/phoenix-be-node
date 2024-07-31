@@ -13,6 +13,7 @@ const index_route_1 = __importDefault(require("./src/routes/index.route"));
 //----------------------------------
 const config_1 = __importDefault(require("./config"));
 const logger_core_1 = __importDefault(require("./src/core/logger.core"));
+const checkRoleAuth_middleware_1 = require("./src/middlewares/checkRoleAuth.middleware");
 const Socket_1 = __importDefault(require("./src/utils/Socket"));
 const path_1 = __importDefault(require("path"));
 process.on("uncaughtException", (e) => {
@@ -21,13 +22,13 @@ process.on("uncaughtException", (e) => {
 });
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
-// const io = new Server(server);
-// chatSocket(io);
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: "*",
+        methods: ["GET", "POST"],
     },
 });
+io.use(checkRoleAuth_middleware_1.socketAuthMiddleware);
 (0, Socket_1.default)(io);
 // MIDDLEWARES
 const corsUrl = config_1.default.main.corsUrl;

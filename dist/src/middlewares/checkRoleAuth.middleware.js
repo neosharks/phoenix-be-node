@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkRoleAuth = void 0;
+exports.socketAuthMiddleware = exports.checkRoleAuth = void 0;
 const lodash_1 = require("lodash");
 const jwt_core_1 = require("../core/jwt.core");
 const user_service_1 = require("../services/user.service");
@@ -47,3 +47,25 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
     });
 };
 exports.checkRoleAuth = checkRoleAuth;
+// Socket.IO middleware for authentication
+const socketAuthMiddleware = (socket, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = socket.handshake.auth.token;
+    console.log(token, "tokenSocket");
+    if (!token) {
+        return next(new Error("Authentication error: No token"));
+    }
+    const { decoded } = (0, jwt_core_1.verifyJwt)(token);
+    console.log(decoded, "tokenSocket");
+    if (!decoded) {
+        return next(new Error("Authentication error: Invalid token"));
+    }
+    const { id } = decoded;
+    console.log(id, "tokenSocket");
+    const foundUser = yield user_service_1.UserService.getOneUser({ id });
+    if (!foundUser) {
+        return next(new Error("Authentication error: User not found"));
+    }
+    socket.data.user = foundUser;
+    next();
+});
+exports.socketAuthMiddleware = socketAuthMiddleware;
