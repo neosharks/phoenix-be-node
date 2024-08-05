@@ -27,6 +27,7 @@ class _ClassService {
                                 firstName: true,
                                 lastName: true,
                                 profileImage: true,
+                                username: true,
                                 email: true,
                                 phoneNumber: true,
                             },
@@ -63,6 +64,7 @@ class _ClassService {
                                 firstName: true,
                                 lastName: true,
                                 profileImage: true,
+                                username: true,
                                 email: true,
                                 phoneNumber: true,
                             },
@@ -137,6 +139,7 @@ class _ClassService {
                                 firstName: true,
                                 lastName: true,
                                 profileImage: true,
+                                username: true,
                                 email: true,
                                 phoneNumber: true,
                             },
@@ -181,6 +184,7 @@ class _ClassService {
                                 firstName: true,
                                 lastName: true,
                                 profileImage: true,
+                                username: true,
                                 email: true,
                                 phoneNumber: true,
                             },
@@ -199,6 +203,34 @@ class _ClassService {
                 return yield prisma_1.default.classMessage.update({ where: query, data: data });
             }
             catch (error) {
+                throw error;
+            }
+        });
+    }
+    getAvailableParticipants(classId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const allUsers = yield prisma_1.default.user.findMany({
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        profileImage: true,
+                        username: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
+                });
+                const participants = yield prisma_1.default.classParticipants.findMany({
+                    where: { classId },
+                    select: { userId: true },
+                });
+                const participantIds = participants.map((p) => p.userId);
+                const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+                return availableParticipants;
+            }
+            catch (error) {
+                console.error(error);
                 throw error;
             }
         });

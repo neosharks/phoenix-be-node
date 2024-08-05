@@ -13,10 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-const socketIdToUserId = new Map();
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
+const s3upload_core_1 = require("../core/s3upload.core");
+const path = require("path");
+const fs = require("fs");
+const prisma = new client_1.PrismaClient();
+const socketIdToUserId = new Map();
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp({
         credential: firebase_admin_1.default.credential.cert(serviceAccountKey_1.serviceAccountKey),
@@ -25,110 +28,90 @@ if (!firebase_admin_1.default.apps.length) {
 else {
     firebase_admin_1.default.app();
 }
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+}
 const Socket = (io) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
-        // Handle join room event
-        socket.on("join_room", (chatId) => {
-            socket.join(chatId.toString());
-            console.log(`User ${socket.id} joined room ${chatId}`);
-        });
-        // Handle leave room event
-        socket.on("leave_room", (chatId) => {
-            socket.leave(chatId.toString());
-            console.log(`User ${socket.id} left room ${chatId}`);
-        });
-        // Handle join chat event
-        socket.on("join_chat", (userId) => {
-            socket.join(userId.toString());
-            console.log(`User ${socket.id} joined chat ${userId}`);
-        });
-        // Handle leave chat event
-        socket.on("leave_chat", (userId) => {
-            socket.leave(userId.toString());
-            console.log(`User ${socket.id} left chat ${userId}`);
-        });
-        // Handle typing events
-        socket.on("is_typing", ({ roomId, userId }) => {
-            io.to(roomId.toString()).emit("user_typing", { userId });
-        });
-        socket.on("stop_typing", ({ roomId, userId }) => {
-            io.to(roomId.toString()).emit("user_stopped", { userId });
-        });
-        // Handle send message event
-        socket.on("send_message", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            try {
-                console.log("send_message", data.userId);
-                io.to(data.chatId.toString()).emit("send_message", data);
-                io.to(data.userId.toString()).emit("new_chat", data.roomData);
-                yield sendNotification(data);
-            }
-            catch (error) {
-                console.error("Error handling send_message event:", error);
-            }
-        }));
-        // Handle class message event
         socket.on("send_class_message", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log("send_class_message", data.userId);
-            io.to(data.classId.toString()).emit("send_class_message", data);
-            io.to(data.userId.toString()).emit("new_class_chat", data.roomData);
-        }));
-        // Handle message event
-        socket.on("message", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            const { classId, userId, message, image, video, document } = data;
-            // Store message in the database
-            const createdMessage = yield prisma.classMessage.create({
-                data: {
+            try {
+                const { classId, userId, message, file, fileName, mimetype } = data;
+                let uploadedFileName = null;
+                let fileUrl = null;
+                if (file && fileName && mimetype) {
+                    const fileBuffer = Buffer.from(file, "base64");
+                    if (mimetype.startsWith("image/")) {
+                        uploadedFileName = yield (0, s3upload_core_1.GetUploadedFile)({ buffer: fileBuffer, mimetype });
+                    }
+                    else if (mimetype.startsWith("video/")) {
+                        uploadedFileName = yield (0, s3upload_core_1.GetUploadedVideo)({ buffer: fileBuffer, mimetype });
+                    }
+                    else {
+                        uploadedFileName = yield (0, s3upload_core_1.GetUploadedDocument)({ buffer: fileBuffer, mimetype });
+                    }
+                    fileUrl = yield (0, s3upload_core_1.getObjectSignedUrl)(uploadedFileName);
+                }
+                const messageData = {
                     classId,
                     userId,
                     message,
-                    image,
-                    video,
-                    document,
-                },
-            });
-            // Emit message to the room
-            io.to(classId.toString()).emit("receive_message", createdMessage);
-        }));
-        // Handle user online event
-        socket.on("user_online", (_a) => __awaiter(void 0, [_a], void 0, function* ({ userId }) {
-            try {
-                const user = yield prisma.user.update({
-                    where: { id: userId },
-                    data: { online: true },
+                    isPinned: false,
+                    image: (mimetype === null || mimetype === void 0 ? void 0 : mimetype.startsWith("image/")) ? fileUrl : null,
+                    video: (mimetype === null || mimetype === void 0 ? void 0 : mimetype.startsWith("video/")) ? fileUrl : null,
+                    document: mimetype && !mimetype.startsWith("image/") && !mimetype.startsWith("video/")
+                        ? fileUrl
+                        : null,
+                };
+                const createdMessage = yield prisma.classMessage.create({
+                    data: messageData,
                 });
-                socketIdToUserId.set(socket.id, userId);
-                io.emit("user_online", { userId: user.id, online: true });
-                console.log(userId, "+++user online success+++");
+                io.to(classId.toString()).emit("receive_class_message", createdMessage);
             }
             catch (error) {
-                console.error("Error updating user status:", error);
+                console.error("Error handling send_class_message event:", error);
             }
         }));
-        // Handle disconnect event
+        socket.on("join_room", (classId) => {
+            socket.join(classId.toString());
+            console.log(`User ${socket.id} joined room ${classId}`);
+        });
+        socket.on("update_message", (data) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                const updatedMessage = yield prisma.classMessage.update({
+                    where: { id: data.messageId },
+                    data: { isPinned: data.isPinned },
+                });
+                io.to(updatedMessage.classId.toString()).emit("message_updated", {
+                    messageId: updatedMessage.id,
+                    isPinned: updatedMessage.isPinned,
+                });
+            }
+            catch (error) {
+                console.error("Error updating message:", error);
+            }
+        }));
         socket.on("disconnect", () => __awaiter(void 0, void 0, void 0, function* () {
             console.log("Socket disconnected:", socket.id);
             const userId = socketIdToUserId.get(socket.id);
             if (userId) {
-                try {
-                    const user = yield prisma.user.update({
-                        where: { id: userId },
-                        data: { online: false, lastSeen: new Date() },
-                    });
-                    io.emit("user_online", { userId: user.id, online: false, lastSeen: user.lastSeen });
-                    console.log("User disconnected successfully.");
-                }
-                catch (error) {
-                    console.error("Error updating user status:", error);
-                }
+                yield prisma.user.update({
+                    where: { id: userId },
+                    data: { online: false },
+                });
+                socketIdToUserId.delete(socket.id);
+                io.emit("user_status_update", { userId, isOnline: false });
             }
         }));
+        socket.on("leave_room", (classId) => {
+            socket.leave(classId.toString());
+            console.log(`User ${socket.id} left room ${classId}`);
+        });
     });
 };
 exports.default = Socket;
-// Notification function
 const sendNotification = (notificationData) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Notification data received:", notificationData);
     try {
         const findUser = yield prisma.user.findUnique({
             where: { id: notificationData.userId },

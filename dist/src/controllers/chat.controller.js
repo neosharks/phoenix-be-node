@@ -14,16 +14,11 @@ const chat_service_1 = require("../services/chat.service");
 const user_service_1 = require("../services/user.service");
 const notification_service_1 = require("../services/notification.service");
 const api_constant_1 = require("../constant/api.constant");
-const chat_validator_1 = require("../validators/chat.validator");
 class _ChatController {
     createChat(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { participants } = req.body;
-                const validation = chat_validator_1.chatSchema.validate(req.body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
                 const foundChat = yield chat_service_1.ChatService.getOneChat({
                     OR: [
                         { participantOneId: participants[0], participantTwoId: participants[1] },

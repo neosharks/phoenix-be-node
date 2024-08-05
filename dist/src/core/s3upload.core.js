@@ -70,7 +70,7 @@ function getObjectSignedUrl(key) {
             Key: key,
         };
         const command = new client_s3_1.GetObjectCommand(params);
-        const seconds = 60;
+        const seconds = 180;
         const url = yield (0, s3_request_presigner_1.getSignedUrl)(s3Client, command, { expiresIn: seconds });
         return url;
     });
