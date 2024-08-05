@@ -18,7 +18,10 @@ process.on("uncaughtException", (e) => {
   process.exit(1);
 });
 
-const app = express();
+var SocketIOFileUpload = require("socketio-file-upload");
+const app = express()
+  .use(express.static(__dirname + "/"))
+  .use(SocketIOFileUpload.router);
 
 const server = http.createServer(app);
 
@@ -29,7 +32,7 @@ const io = new Server(server, {
   },
 });
 
-io.use(socketAuthMiddleware);
+// io.use(socketAuthMiddleware);
 chatSocket(io);
 
 // MIDDLEWARES

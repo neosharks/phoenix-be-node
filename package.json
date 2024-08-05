@@ -43,6 +43,7 @@
     "sharp": "^0.33.3",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
+    "socketio-file-upload": "^0.7.3",
     "twilio": "^4.14.0",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.4.0",
     "winston": "^3.11.0",

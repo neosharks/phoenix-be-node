@@ -7,6 +7,9 @@ import {
   GetUploadedDocument,
   getObjectSignedUrl,
 } from "../core/s3upload.core";
+const path = require("path");
+const fs = require("fs");
+
 const prisma = new PrismaClient();
 const socketIdToUserId = new Map<string, number>();
 
@@ -18,78 +21,62 @@ if (!firebase.apps.length) {
   firebase.app();
 }
 
-interface MessageData {
-  message: string;
-  classId: number;
-  chatId: number;
-  userId: number;
-  text: string;
-  roomData: any;
-  image: string;
-  video: string;
-  document: string;
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
 }
 
 const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
 
-    socket.on("join_room", (classId: number) => {
-      socket.join(classId.toString());
-      console.log(`User ${socket.id} joined room ${classId}`);
-    });
-
-    socket.on("send_class_message", async (data: MessageData) => {
+    socket.on("send_class_message", async (data: any) => {
       try {
-        if (
-          !data.classId ||
-          !data.userId ||
-          (!data.message && !data.image && !data.video && !data.document)
-        ) {
-          console.error("Invalid data received:", data);
-          return;
+        const { classId, userId, message, file, fileName, mimetype } = data;
+
+        let uploadedFileName: string | null = null;
+        let fileUrl: string | null = null;
+
+        if (file && fileName && mimetype) {
+          const fileBuffer = Buffer.from(file, "base64");
+
+          if (mimetype.startsWith("image/")) {
+            uploadedFileName = await GetUploadedFile({ buffer: fileBuffer, mimetype });
+          } else if (mimetype.startsWith("video/")) {
+            uploadedFileName = await GetUploadedVideo({ buffer: fileBuffer, mimetype });
+          } else {
+            uploadedFileName = await GetUploadedDocument({ buffer: fileBuffer, mimetype });
+          }
+
+          fileUrl = await getObjectSignedUrl(uploadedFileName);
         }
 
-        let imageUrl = null;
-        let videoUrl = null;
-        let documentUrl = null;
-
-        if (data.image) {
-          imageUrl = await GetUploadedFile(data.image);
-        }
-        if (data.video) {
-          videoUrl = await GetUploadedVideo(data.video);
-        }
-        if (data.document) {
-          documentUrl = await GetUploadedDocument(data.document);
-        }
+        const messageData = {
+          classId,
+          userId,
+          message,
+          isPinned: false,
+          image: mimetype?.startsWith("image/") ? fileUrl : null,
+          video: mimetype?.startsWith("video/") ? fileUrl : null,
+          document:
+            mimetype && !mimetype.startsWith("image/") && !mimetype.startsWith("video/")
+              ? fileUrl
+              : null,
+        };
 
         const createdMessage = await prisma.classMessage.create({
-          data: {
-            classId: data.classId,
-            userId: data.userId,
-            message: data.message,
-            image: imageUrl,
-            video: videoUrl,
-            document: documentUrl,
-          },
+          data: messageData,
         });
 
-        if (createdMessage?.image) {
-          createdMessage.image = await getObjectSignedUrl(createdMessage.image);
-        }
-        if (createdMessage?.video) {
-          createdMessage.video = await getObjectSignedUrl(createdMessage.video);
-        }
-        if (createdMessage?.document) {
-          createdMessage.document = await getObjectSignedUrl(createdMessage.document);
-        }
-
-        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
-        sendNotification(createdMessage);
+        io.to(classId.toString()).emit("receive_class_message", createdMessage);
       } catch (error) {
         console.error("Error handling send_class_message event:", error);
       }
+    });
+
+    socket.on("join_room", (classId: number) => {
+      socket.join(classId.toString());
+      console.log(`User ${socket.id} joined room ${classId}`);
     });
 
     socket.on("update_message", async (data: { messageId: number; isPinned: boolean }) => {
