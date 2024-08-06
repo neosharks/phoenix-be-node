@@ -5,8 +5,6 @@ import { PatronCreatorService } from "../services/patronCreator.service";
 import prisma from "../../prisma";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
-import { getBlurredImage } from "../lib/image.lib";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";
 import { NotificationService } from "../services/notification.service";
@@ -31,17 +29,6 @@ class _UserPostController {
       );
 
       if (!returnPosts) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      if (returnPosts.length > 0) {
-        returnPosts = await Promise.all(
-          returnPosts.map(async (ele: any) => {
-            if (ele?.image?.length > 0) {
-              if (ele.visibility !== "PAID_MEMBER") ele.image = await getObjectSignedUrl(ele.image);
-              else ele.image = await getBlurredImage(ele.image);
-            }
-            return ele;
-          }),
-        );
-      }
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       console.log("Error: ", error);
@@ -89,17 +76,6 @@ class _UserPostController {
       returnPosts = returnPosts.sort(function (a: any, b: any) {
         return b.updatedAt - a.updatedAt;
       });
-      if (returnPosts.length > 0) {
-        returnPosts = await Promise.all(
-          returnPosts.map(async (ele: any) => {
-            if (ele?.image?.length > 0) {
-              if (!ele.isPrivate) ele.image = await getObjectSignedUrl(ele.image);
-              else ele.image = await getBlurredImage(ele.image);
-            }
-            return ele;
-          }),
-        );
-      }
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       console.log("Error: ", error);
@@ -114,8 +90,6 @@ class _UserPostController {
       const { id } = req.query;
       if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserPostService.getOneUserPost({ id });
-      // if (found?.isPrivate && found?.image) found.image = await getBlurredImage(found.image);
-      if (found?.image) found.image = await await getObjectSignedUrl(found.image);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -243,7 +217,7 @@ class _UserPostController {
     try {
       const body = req.body;
       const { description, type, visibility, videoUrl, title, packages } = body;
-      const image = req.file;
+      const image = req.body.image;
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -274,9 +248,7 @@ class _UserPostController {
         });
         payload.pollId = response.id;
       }
-
-      if (type === "IMAGE" && image) if (image) payload.image = await GetUploadedFile(image);
-
+      if (type === "IMAGE" && image) if (image) payload.image = image;
       const created = await UserPostService.createOneUserPost({
         ...payload,
         description,
@@ -286,7 +258,6 @@ class _UserPostController {
         title,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
-      if (created.image) created.image = await getObjectSignedUrl(created.image);
       return res.status(201).send({ message: successMessages.CREATED, data: created });
     } catch (error) {
       console.error(error);
