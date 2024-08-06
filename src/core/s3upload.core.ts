@@ -9,7 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import crypto from "crypto";
 import config from "../../config";
-import logger from "./logger.core";
 
 const bucketName = config.aws.bucketName;
 const region = config.aws.region;
