@@ -19,4 +19,5 @@ classRoutes.get("/getAllParticipantOfClass", (0, checkRoleAuth_middleware_1.chec
 classRoutes.post("/sendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), s3upload_core_1.uploadAllFileMiddleware, class_controller_1.ClassController.sendMessage);
 classRoutes.post("/updateSendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.updateSendMessage);
 classRoutes.get("/getAllMessagesOfClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllMessagesOfClass);
+classRoutes.get("/getAvailableParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAvailableParticipants);
 exports.default = classRoutes;

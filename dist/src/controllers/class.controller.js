@@ -111,8 +111,8 @@ class _ClassController {
     addOneParticipant(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { classId, participantId } = req.body;
-                if (!classId || !participantId)
+                const { participantId, classId } = req.body;
+                if (!participantId || !classId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 yield class_service_1.ClassService.addClassParticipant({ userId: participantId, classId });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
@@ -168,7 +168,7 @@ class _ClassController {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c;
             try {
-                const { classId, participantId, message, isPinned = false } = req.body;
+                const { classId, participantId, message } = req.body;
                 const files = req.files;
                 const image = (_a = files === null || files === void 0 ? void 0 : files.image) === null || _a === void 0 ? void 0 : _a[0];
                 const video = (_b = files === null || files === void 0 ? void 0 : files.video) === null || _b === void 0 ? void 0 : _b[0];
@@ -187,7 +187,6 @@ class _ClassController {
                 if (!message && !payload.image && !payload.video && !payload.document) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 }
-                // if (isPinned) payload.isPinned = isPinned;
                 const created = yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
                 if (created === null || created === void 0 ? void 0 : created.image)
                     created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
@@ -239,15 +238,48 @@ class _ClassController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { classId, messageId, isPinned = false } = req.body;
-                console.log(classId, messageId, isPinned, ">>>>>>>");
                 if (!classId || !messageId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundClass = yield class_service_1.ClassService.getAllMessagesOfClass(parseInt(classId));
+                if (!foundClass) {
+                    return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
+                }
+                yield Promise.all(foundClass.map((message) => __awaiter(this, void 0, void 0, function* () {
+                    if (message.image) {
+                        message.image = yield (0, s3upload_core_1.getObjectSignedUrl)(message.image);
+                    }
+                    if (message.video) {
+                        message.video = yield (0, s3upload_core_1.getObjectSignedUrl)(message.video);
+                    }
+                    if (message.document) {
+                        message.document = yield (0, s3upload_core_1.getObjectSignedUrl)(message.document);
+                    }
+                    return message;
+                })));
                 const findMessage = foundClass === null || foundClass === void 0 ? void 0 : foundClass.find((res) => res.id === messageId);
                 if (!findMessage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 yield class_service_1.ClassService.updateSendMessage({ id: messageId }, { isPinned });
                 return res.status(200).send({ message: api_constant_1.successMessages.UPDATED });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAvailableParticipants(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { classId } = req.query;
+                if (!classId)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const availableParticipants = yield class_service_1.ClassService.getAvailableParticipants(parseInt(classId));
+                return res
+                    .status(200)
+                    .send({ message: api_constant_1.successMessages.FETCHED, data: availableParticipants });
             }
             catch (error) {
                 console.log("ERROR: ", error);
