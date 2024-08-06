@@ -95,9 +95,9 @@ const Socket = (io: any) => {
             classId: data.classId,
             userId: data.userId,
             message: data.message,
-            image: data.image,
-            video: data.video,
-            document: data.document,
+            image: data.image || null,
+            video: data.video || null,
+            document: data.document || null,
           },
         });
 
