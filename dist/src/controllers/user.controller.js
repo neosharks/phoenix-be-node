@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
 const api_constant_1 = require("../constant/api.constant");
-const s3upload_core_1 = require("../core/s3upload.core");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
@@ -24,10 +23,6 @@ class _UserController {
                 const found = yield user_service_1.UserService.getOneUser({ id });
                 if (!found)
                     return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                if (found.profileImage)
-                    found.profileImage = yield (0, s3upload_core_1.getObjectSignedUrl)(found.profileImage);
-                if (found.coverImage)
-                    found.coverImage = yield (0, s3upload_core_1.getObjectSignedUrl)(found.coverImage);
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
@@ -85,10 +80,6 @@ class _UserController {
                 const found = yield user_service_1.UserService.getOneUser({ username });
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                if (found.coverImage)
-                    found.coverImage = yield (0, s3upload_core_1.getObjectSignedUrl)(found.coverImage);
-                if (found.profileImage)
-                    found.profileImage = yield (0, s3upload_core_1.getObjectSignedUrl)(found.profileImage);
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
@@ -109,16 +100,6 @@ class _UserController {
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 found = found.filter((ele) => ele.id !== id);
-                if (found.length > 0) {
-                    found = yield Promise.all(found.map((ele) => __awaiter(this, void 0, void 0, function* () {
-                        var _a, _b;
-                        if (((_a = ele === null || ele === void 0 ? void 0 : ele.profileImage) === null || _a === void 0 ? void 0 : _a.length) > 0)
-                            ele.profileImage = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.profileImage);
-                        if (((_b = ele === null || ele === void 0 ? void 0 : ele.coverImage) === null || _b === void 0 ? void 0 : _b.length) > 0)
-                            ele.coverImage = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.coverImage);
-                        return ele;
-                    })));
-                }
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
@@ -132,10 +113,10 @@ class _UserController {
     updateCoverImage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const image = req.file;
+                const image = req.body.image;
                 let update = {};
                 if (image)
-                    update.coverImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
+                    update.coverImage = image;
                 console.log(update, "sdfg");
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
@@ -151,10 +132,10 @@ class _UserController {
     updateProfileImage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const image = req.file;
+                const image = req.body.image;
                 let update = {};
                 if (image)
-                    update.profileImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
+                    update.profileImage = image;
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
@@ -173,9 +154,9 @@ class _UserController {
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
-                const image = req.file;
+                const image = req.body.image;
                 if (image)
-                    req.body.profileImage = yield (0, s3upload_core_1.GetUploadedFile)(image);
+                    req.body.profileImage = image;
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, req.body);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }

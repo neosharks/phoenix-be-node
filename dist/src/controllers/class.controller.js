@@ -23,7 +23,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClassController = void 0;
 const api_constant_1 = require("../constant/api.constant");
 const class_service_1 = require("../services/class.service");
-const s3upload_core_1 = require("../core/s3upload.core");
 class _ClassController {
     getOneClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -52,12 +51,6 @@ class _ClassController {
                 if (!allClasses) {
                     return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
                 }
-                yield Promise.all(allClasses.map((getClass) => __awaiter(this, void 0, void 0, function* () {
-                    if (getClass.creator.profileImage) {
-                        getClass.creator.profileImage = yield (0, s3upload_core_1.getObjectSignedUrl)(getClass.creator.profileImage);
-                    }
-                    return getClass;
-                })));
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allClasses });
             }
             catch (error) {
@@ -169,31 +162,18 @@ class _ClassController {
             var _a, _b, _c;
             try {
                 const { classId, participantId, message } = req.body;
-                const files = req.files;
-                const image = (_a = files === null || files === void 0 ? void 0 : files.image) === null || _a === void 0 ? void 0 : _a[0];
-                const video = (_b = files === null || files === void 0 ? void 0 : files.video) === null || _b === void 0 ? void 0 : _b[0];
-                const document = (_c = files === null || files === void 0 ? void 0 : files.document) === null || _c === void 0 ? void 0 : _c[0];
+                const image = (_a = req.body) === null || _a === void 0 ? void 0 : _a.image;
+                const video = (_b = req.body) === null || _b === void 0 ? void 0 : _b.video;
+                const document = (_c = req.body) === null || _c === void 0 ? void 0 : _c.document;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
                 if (!classId || !participantId || (!message && !image && !video && !document)) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 }
-                if (image)
-                    payload.image = yield (0, s3upload_core_1.GetUploadedFile)(image);
-                if (video)
-                    payload.video = yield (0, s3upload_core_1.GetUploadedVideo)(video);
-                if (document)
-                    payload.document = yield (0, s3upload_core_1.GetUploadedDocument)(document);
                 if (!message && !payload.image && !payload.video && !payload.document) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 }
-                const created = yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
-                if (created === null || created === void 0 ? void 0 : created.image)
-                    created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
-                if (created === null || created === void 0 ? void 0 : created.video)
-                    created.video = yield (0, s3upload_core_1.getObjectSignedUrl)(created.video);
-                if (created === null || created === void 0 ? void 0 : created.document)
-                    created.document = yield (0, s3upload_core_1.getObjectSignedUrl)(created.document);
+                yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
@@ -212,18 +192,6 @@ class _ClassController {
                 if (!allClasses) {
                     return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
                 }
-                yield Promise.all(allClasses.map((message) => __awaiter(this, void 0, void 0, function* () {
-                    if (message.image) {
-                        message.image = yield (0, s3upload_core_1.getObjectSignedUrl)(message.image);
-                    }
-                    if (message.video) {
-                        message.video = yield (0, s3upload_core_1.getObjectSignedUrl)(message.video);
-                    }
-                    if (message.document) {
-                        message.document = yield (0, s3upload_core_1.getObjectSignedUrl)(message.document);
-                    }
-                    return message;
-                })));
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allClasses });
             }
             catch (error) {
@@ -244,18 +212,6 @@ class _ClassController {
                 if (!foundClass) {
                     return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
                 }
-                yield Promise.all(foundClass.map((message) => __awaiter(this, void 0, void 0, function* () {
-                    if (message.image) {
-                        message.image = yield (0, s3upload_core_1.getObjectSignedUrl)(message.image);
-                    }
-                    if (message.video) {
-                        message.video = yield (0, s3upload_core_1.getObjectSignedUrl)(message.video);
-                    }
-                    if (message.document) {
-                        message.document = yield (0, s3upload_core_1.getObjectSignedUrl)(message.document);
-                    }
-                    return message;
-                })));
                 const findMessage = foundClass === null || foundClass === void 0 ? void 0 : foundClass.find((res) => res.id === messageId);
                 if (!findMessage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
