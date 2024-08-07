@@ -105,6 +105,7 @@ class _UserPostService {
         visibility,
         allowComments,
         videoUrl,
+        document,
         pollId,
         packages,
       } = dataValues;
@@ -120,6 +121,7 @@ class _UserPostService {
           visibility,
           allowComments,
           videoUrl,
+          document,
           pollId,
           packages: { connect: packagesToConnect },
         },

@@ -216,8 +216,7 @@ class _UserPostController {
   async createOneUserPost(req: any, res: Response) {
     try {
       const body = req.body;
-      const { description, type, visibility, videoUrl, title, packages } = body;
-      const image = req.body.image;
+      const { description, type, visibility, videoUrl, document, image, title, packages } = body;
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -227,7 +226,8 @@ class _UserPostController {
         !type ||
         !visibility ||
         (type === "IMAGE" && !image) ||
-        (type === "VIDEO" && !videoUrl)
+        (type === "VIDEO" && !videoUrl) ||
+        (type === "DOCUMENT" && !document)
       )
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
@@ -248,13 +248,15 @@ class _UserPostController {
         });
         payload.pollId = response.id;
       }
-      if (type === "IMAGE" && image) if (image) payload.image = image;
+
       const created = await UserPostService.createOneUserPost({
         ...payload,
         description,
         type,
         visibility,
+        image,
         videoUrl,
+        document,
         title,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });

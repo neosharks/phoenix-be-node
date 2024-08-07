@@ -196,6 +196,7 @@ model UserPost {
   title         String?
   description   String?
   videoUrl      String?
+  document      String?
   visibility    VISIBILITY     @default(EVERYONE)
   packages      Package[]
   allowComments Boolean        @default(true)
@@ -486,6 +487,7 @@ enum USER_POST_TYPE {
   LINK
   VIDEO
   CLASS
+  DOCUMENT
 }
 
 enum VISIBILITY {
