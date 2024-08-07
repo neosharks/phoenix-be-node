@@ -117,7 +117,7 @@ class _UserPostService {
     createOneUserPost(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { description, authorId, title, type, image, visibility, allowComments, videoUrl, pollId, packages, } = dataValues;
+                const { description, authorId, title, type, image, visibility, allowComments, videoUrl, document, pollId, packages, } = dataValues;
                 const packagesToConnect = Array.isArray(packages) ? packages.map((id) => ({ id })) : [];
                 return yield prisma_1.default.userPost.create({
                     data: {
@@ -129,6 +129,7 @@ class _UserPostService {
                         visibility,
                         allowComments,
                         videoUrl,
+                        document,
                         pollId,
                         packages: { connect: packagesToConnect },
                     },
