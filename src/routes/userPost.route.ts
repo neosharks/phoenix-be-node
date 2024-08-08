@@ -10,7 +10,6 @@ const userPostRoutes = express.Router();
 userPostRoutes.post(
   "/createUserPost",
   checkRoleAuth([userRole.CREATOR]),
-  uploadFileMiddleware.single("image"),
   UserPostController.createOneUserPost,
 );
 

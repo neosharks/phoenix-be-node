@@ -7,7 +7,6 @@ const express_1 = __importDefault(require("express"));
 const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middleware");
 const role_constant_1 = require("../constant/role.constant");
 const class_controller_1 = require("../controllers/class.controller");
-const s3upload_core_1 = require("../core/s3upload.core");
 const classRoutes = express_1.default.Router();
 classRoutes.get("/getAllClasses", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllClasses);
 classRoutes.get("/getOneClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getOneClass);
@@ -16,7 +15,7 @@ classRoutes.post("/create", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_
 classRoutes.post("/addOneParticipant", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.addOneParticipant);
 classRoutes.post("/addMultipleParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.addMultipleParticipants);
 classRoutes.get("/getAllParticipantOfClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllParticipantOfClass);
-classRoutes.post("/sendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), s3upload_core_1.uploadAllFileMiddleware, class_controller_1.ClassController.sendMessage);
+classRoutes.post("/sendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.sendMessage);
 classRoutes.post("/updateSendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.updateSendMessage);
 classRoutes.get("/getAllMessagesOfClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllMessagesOfClass);
 classRoutes.get("/getAvailableParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAvailableParticipants);

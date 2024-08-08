@@ -20,26 +20,11 @@ userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboar
 
 userRoutes.post("/approveCreatorOnboard", UserController.approveCreatorOnboard);
 
-userRoutes.post(
-  "/update",
-  checkRoleAuth(),
-  uploadFileMiddleware.single("image"),
-  UserController.update,
-);
+userRoutes.post("/update", checkRoleAuth(), UserController.update);
 
-userRoutes.post(
-  "/updateCoverImage",
-  checkRoleAuth(),
-  uploadFileMiddleware.single("image"),
-  UserController.updateCoverImage,
-);
+userRoutes.post("/updateCoverImage", checkRoleAuth(), UserController.updateCoverImage);
 
-userRoutes.post(
-  "/updateProfileImage",
-  checkRoleAuth(),
-  uploadFileMiddleware.single("image"),
-  UserController.updateProfileImage,
-);
+userRoutes.post("/updateProfileImage", checkRoleAuth(), UserController.updateProfileImage);
 
 userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 

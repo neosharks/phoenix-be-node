@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
-const s3upload_core_1 = require("../core/s3upload.core");
 const prisma = new client_1.PrismaClient();
 const socketIdToUserId = new Map();
 if (!firebase_admin_1.default.apps.length) {
@@ -29,6 +28,42 @@ else {
 const Socket = (io) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
+        // socket.on("send_class_message", async (data: any) => {
+        //   try {
+        //     const { classId, userId, message, file, fileName, mimetype } = data;
+        //     let uploadedFileName: string | null = null;
+        //     let fileUrl: string | null = null;
+        //     if (file && fileName && mimetype) {
+        //       const fileBuffer = Buffer.from(file, "base64");
+        //       if (mimetype.startsWith("image/")) {
+        //         uploadedFileName = await GetUploadedFile({ buffer: fileBuffer, mimetype });
+        //       } else if (mimetype.startsWith("video/")) {
+        //         uploadedFileName = await GetUploadedVideo({ buffer: fileBuffer, mimetype });
+        //       } else {
+        //         uploadedFileName = await GetUploadedDocument({ buffer: fileBuffer, mimetype });
+        //       }
+        //       fileUrl = await getObjectSignedUrl(uploadedFileName);
+        //     }
+        //     const messageData = {
+        //       classId,
+        //       userId,
+        //       message,
+        //       isPinned: false,
+        //       image: mimetype?.startsWith("image/") ? fileUrl : null,
+        //       video: mimetype?.startsWith("video/") ? fileUrl : null,
+        //       document:
+        //         mimetype && !mimetype.startsWith("image/") && !mimetype.startsWith("video/")
+        //           ? fileUrl
+        //           : null,
+        //     };
+        //     const createdMessage = await prisma.classMessage.create({
+        //       data: messageData,
+        //     });
+        //     io.to(classId.toString()).emit("receive_class_message", createdMessage);
+        //   } catch (error) {
+        //     console.error("Error handling send_class_message event:", error);
+        //   }
+        // });
         socket.on("join_room", (classId) => {
             socket.join(classId.toString());
             console.log(`User ${socket.id} joined room ${classId}`);
@@ -41,37 +76,16 @@ const Socket = (io) => {
                     console.error("Invalid data received:", data);
                     return;
                 }
-                let imageUrl = null;
-                let videoUrl = null;
-                let documentUrl = null;
-                if (data.image) {
-                    imageUrl = yield (0, s3upload_core_1.GetUploadedFile)(data.image);
-                }
-                if (data.video) {
-                    videoUrl = yield (0, s3upload_core_1.GetUploadedVideo)(data.video);
-                }
-                if (data.document) {
-                    documentUrl = yield (0, s3upload_core_1.GetUploadedDocument)(data.document);
-                }
                 const createdMessage = yield prisma.classMessage.create({
                     data: {
                         classId: data.classId,
                         userId: data.userId,
                         message: data.message,
-                        image: imageUrl,
-                        video: videoUrl,
-                        document: documentUrl,
+                        image: data.image || null,
+                        video: data.video || null,
+                        document: data.document || null,
                     },
                 });
-                if (createdMessage === null || createdMessage === void 0 ? void 0 : createdMessage.image) {
-                    createdMessage.image = yield (0, s3upload_core_1.getObjectSignedUrl)(createdMessage.image);
-                }
-                if (createdMessage === null || createdMessage === void 0 ? void 0 : createdMessage.video) {
-                    createdMessage.video = yield (0, s3upload_core_1.getObjectSignedUrl)(createdMessage.video);
-                }
-                if (createdMessage === null || createdMessage === void 0 ? void 0 : createdMessage.document) {
-                    createdMessage.document = yield (0, s3upload_core_1.getObjectSignedUrl)(createdMessage.document);
-                }
                 io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
                 sendNotification(createdMessage);
             }

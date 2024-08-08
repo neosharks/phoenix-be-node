@@ -123,6 +123,10 @@
         top: 5px;
         right: 5px;
       }
+      .chatbox img {
+        max-width: 100%;
+        height: auto;
+      }
     </style>
   </head>
   <body>
@@ -138,8 +142,9 @@
       <div class="chat-container">
         <div class="chatbox">
           <ul id="messagelist"></ul>
-          <form class="Input">
-            <input type="text" placeholder="Type your message ..." />
+          <form class="Input" enctype="multipart/form-data">
+            <input type="text" id="messageInput" placeholder="Type your message ..." />
+            <input type="file" id="siofu_input" multiple />
             <button type="submit">Send</button>
           </form>
         </div>
@@ -150,27 +155,27 @@
         </div>
       </div>
     </div>
+
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
       const messageForm = document.querySelector(".chatbox form");
       const messageList = document.querySelector("#messagelist");
       const classList = document.querySelector("#classList");
+      const fileInput = document.querySelector("#siofu_input");
+      const messageInput = document.querySelector("#messageInput");
       const socket = io("http://localhost:3000");
-
       let currentClassId = "";
-      let userId = localStorage.getItem("userId") || 6; // Replace with actual userId retrieval logic
+      const userId = localStorage.getItem("userId") || 6;
 
       socket.on("connect", () => {
         console.log("connected", socket.id);
       });
 
       socket.on("receive_class_message", (data) => {
-        console.log(data);
         addMessageToUI(data, data.userId === parseInt(userId));
       });
 
       socket.on("message_updated", (data) => {
-        console.log(data, "message updated");
         updateMessageInUI(data);
       });
 
@@ -182,6 +187,7 @@
               socket.emit("leave_room", parseInt(currentClassId, 10));
             }
             socket.emit("join_room", parseInt(classId, 10));
+
             currentClassId = classId;
 
             document.querySelector(".sidebar li.active")?.classList.remove("active");
@@ -192,40 +198,86 @@
 
       messageForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const message = e.target.querySelector("input").value;
+        const message = messageInput.value;
         if (message && currentClassId) {
-          socket.emit("send_class_message", {
-            classId: parseInt(currentClassId, 10),
-            userId: parseInt(userId),
-            message: message,
-          });
-          e.target.querySelector("input").value = "";
+          const files = fileInput.files;
+          if (files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              const reader = new FileReader();
+              reader.onload = () => {
+                const fileData = reader.result.split(",")[1];
+                const fileName = file.name;
+                const mimetype = file.type;
+
+                socket.emit("send_class_message", {
+                  classId: parseInt(currentClassId, 10),
+                  userId: parseInt(userId),
+                  message: message,
+                  file: fileData,
+                  fileName: fileName,
+                  mimetype: mimetype,
+                });
+
+                messageInput.value = "";
+                fileInput.value = "";
+              };
+              reader.readAsDataURL(file);
+            }
+          } else {
+            socket.emit("send_class_message", {
+              classId: parseInt(currentClassId, 10),
+              userId: parseInt(userId),
+              message: message,
+            });
+            messageInput.value = "";
+          }
         }
       });
 
-      function addMessageToUI(data, isCurrentUser) {
+      function addMessageToUI(message, isCurrentUser) {
         const li = document.createElement("li");
-        li.textContent = data.message || "Image/Video/Document";
         li.classList.add(isCurrentUser ? "right" : "left");
-        li.classList.toggle("pinned", data.isPinned);
-        li.setAttribute("data-message-id", data.id);
+        li.classList.toggle("pinned", message.isPinned);
+        li.setAttribute("data-message-id", message.id);
 
+        if (message.message) {
+          const text = document.createElement("p");
+          text.textContent = message.message;
+          li.appendChild(text);
+        }
+        if (message.image) {
+          const img = document.createElement("img");
+          img.src = message.image;
+          li.appendChild(img);
+        }
+        if (message.video) {
+          const video = document.createElement("video");
+          video.src = message.video;
+          video.controls = true;
+          li.appendChild(video);
+        }
+
+        if (message.document) {
+          const link = document.createElement("a");
+          link.href = message.document;
+          link.textContent = "View Document";
+          li.appendChild(link);
+        }
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.checked = data.isPinned;
+        checkbox.checked = message.isPinned;
         checkbox.classList.add("pin-checkbox");
         checkbox.addEventListener("change", () => {
           const isPinned = checkbox.checked;
           socket.emit("update_message", {
-            classId: parseInt(currentClassId, 10),
-            messageId: data.id,
+            messageId: message.id,
             isPinned: isPinned,
           });
         });
-
         li.appendChild(checkbox);
+
         messageList.appendChild(li);
-        messageList.scrollTop = messageList.scrollHeight;
       }
 
       function updateMessageInUI(data) {

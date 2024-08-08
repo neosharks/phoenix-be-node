@@ -20,15 +20,19 @@ process.on("uncaughtException", (e) => {
     console.log("-----uncaughtException-----", e);
     process.exit(1);
 });
-const app = (0, express_1.default)();
+var SocketIOFileUpload = require("socketio-file-upload");
+const app = (0, express_1.default)()
+    .use(express_1.default.static(__dirname + "/"))
+    .use(SocketIOFileUpload.router);
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"],
     },
+    maxHttpBufferSize: 1e8,
 });
-io.use(checkRoleAuth_middleware_1.socketAuthMiddleware);
+// io.use(socketAuthMiddleware);
 (0, Socket_1.default)(io);
 // MIDDLEWARES
 const corsUrl = config_1.default.main.corsUrl;

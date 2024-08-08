@@ -9,7 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import crypto from "crypto";
 import config from "../../config";
-import logger from "./logger.core";
 
 const bucketName = config.aws.bucketName;
 const region = config.aws.region;
@@ -62,7 +61,7 @@ export async function getObjectSignedUrl(key: string) {
     Key: key,
   };
   const command = new GetObjectCommand(params);
-  const seconds = 60;
+  const seconds = 180;
   const url = await getSignedUrl(s3Client, command, { expiresIn: seconds });
 
   return url;

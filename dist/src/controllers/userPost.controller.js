@@ -18,8 +18,6 @@ const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
-const s3upload_core_1 = require("../core/s3upload.core");
-const image_lib_1 = require("../lib/image.lib");
 const helper_lib_1 = require("../lib/helper.lib");
 const userPost_validator_1 = require("../validators/userPost.validator");
 const notification_service_1 = require("../services/notification.service");
@@ -40,18 +38,6 @@ class _UserPostController {
                 }, skip, take);
                 if (!returnPosts)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                if (returnPosts.length > 0) {
-                    returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
-                        var _a;
-                        if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                            if (ele.visibility !== "PAID_MEMBER")
-                                ele.image = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
-                            else
-                                ele.image = yield (0, image_lib_1.getBlurredImage)(ele.image);
-                        }
-                        return ele;
-                    })));
-                }
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
@@ -95,18 +81,6 @@ class _UserPostController {
                 returnPosts = returnPosts.sort(function (a, b) {
                     return b.updatedAt - a.updatedAt;
                 });
-                if (returnPosts.length > 0) {
-                    returnPosts = yield Promise.all(returnPosts.map((ele) => __awaiter(this, void 0, void 0, function* () {
-                        var _a;
-                        if (((_a = ele === null || ele === void 0 ? void 0 : ele.image) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                            if (!ele.isPrivate)
-                                ele.image = yield (0, s3upload_core_1.getObjectSignedUrl)(ele.image);
-                            else
-                                ele.image = yield (0, image_lib_1.getBlurredImage)(ele.image);
-                        }
-                        return ele;
-                    })));
-                }
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: returnPosts });
             }
             catch (error) {
@@ -123,10 +97,8 @@ class _UserPostController {
                 const { id } = req.query;
                 if (!id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
-                // if (found?.isPrivate && found?.image) found.image = await getBlurredImage(found.image);
-                if (found === null || found === void 0 ? void 0 : found.image)
-                    found.image = yield yield (0, s3upload_core_1.getObjectSignedUrl)(found.image);
+                const postId = parseInt(id, 10);
+                const found = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
@@ -257,8 +229,7 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
-                const { description, type, visibility, videoUrl, title, packages } = body;
-                const image = req.file;
+                const { description, type, visibility, videoUrl, document, image, title, packages } = body;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
                 if (!description ||
@@ -266,7 +237,8 @@ class _UserPostController {
                     !type ||
                     !visibility ||
                     (type === "IMAGE" && !image) ||
-                    (type === "VIDEO" && !videoUrl))
+                    (type === "VIDEO" && !videoUrl) ||
+                    (type === "DOCUMENT" && !document))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -284,16 +256,13 @@ class _UserPostController {
                     });
                     payload.pollId = response.id;
                 }
-                if (type === "IMAGE" && image)
-                    if (image)
-                        payload.image = yield (0, s3upload_core_1.GetUploadedFile)(image);
                 const created = yield userPost_service_1.UserPostService.createOneUserPost(Object.assign(Object.assign({}, payload), { description,
                     type,
                     visibility,
+                    image,
                     videoUrl,
+                    document,
                     title, packages: visibility === "PAID_MEMBER" ? packages : [] }));
-                if (created.image)
-                    created.image = yield (0, s3upload_core_1.getObjectSignedUrl)(created.image);
                 return res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {
