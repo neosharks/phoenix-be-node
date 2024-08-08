@@ -97,7 +97,8 @@ class _UserPostController {
                 const { id } = req.query;
                 if (!id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const found = yield userPost_service_1.UserPostService.getOneUserPost({ id });
+                const postId = parseInt(id, 10);
+                const found = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!found)
                     return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
