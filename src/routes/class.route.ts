@@ -42,4 +42,6 @@ classRoutes.get(
   ClassController.getAvailableParticipants,
 );
 
+classRoutes.get("/getAllClassesUserJoin", ClassController.getAllClassesUserJoin);
+
 export default classRoutes;

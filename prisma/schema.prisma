@@ -295,6 +295,8 @@ model Class {
   name              String
   isPaid            Boolean             @default(false)
   type              String?
+  price             Int?
+  paymentFrequency  PAYMENT_FREQUENCY   @default(ONE_TIME)
   ClassParticipants ClassParticipants[]
   ClassMessage      ClassMessage[]
   createdAt         DateTime            @default(now())
@@ -303,18 +305,21 @@ model Class {
 }
 
 model ClassMessage {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  message   String?
-  image     String?
-  video     String?
-  document  String?
-  isPinned  Boolean  @default(false)
-  class     Class    @relation(fields: [classId], references: [id])
-  classId   Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int            @id @default(autoincrement())
+  user             User           @relation(fields: [userId], references: [id])
+  userId           Int
+  message          String?
+  image            String?
+  video            String?
+  document         String?
+  isPinned         Boolean        @default(false)
+  class            Class          @relation(fields: [classId], references: [id])
+  classId          Int
+  replyToMessageId Int?
+  repliedMessage   ClassMessage?  @relation("RepliedMessage", fields: [replyToMessageId], references: [id])
+  replies          ClassMessage[] @relation("RepliedMessage")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model ClassParticipants {
@@ -506,4 +511,10 @@ enum PAYMENT_STATUS {
   PAID
   FAILED
   PENDING
+}
+
+enum PAYMENT_FREQUENCY {
+  ONE_TIME
+  MONTHLY
+  YEARLY
 }

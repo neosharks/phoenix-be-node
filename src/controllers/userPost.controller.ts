@@ -14,15 +14,19 @@ class _UserPostController {
     try {
       const { author } = req.query;
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
-      const take = Number(req.query.per_page) || 50;
+      const take = Number(req.query.per_page) || 10;
       if (!author)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      let returnPosts = await UserPostService.getAllUserPostByUser({
-        authorId: foundUser.id,
-      });
+      let returnPosts = await UserPostService.getAllUserPostByUser(
+        {
+          authorId: foundUser.id,
+        },
+        skip,
+        take,
+      );
 
       if (!returnPosts) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
@@ -38,17 +42,22 @@ class _UserPostController {
     try {
       const { id } = res.locals.user;
       let returnPosts: any = [];
-      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id });
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+      const foundPatronCreator = await PatronCreatorService.getAll({ patronId: id }, skip, take);
 
       for (let i = 0; i < foundPatronCreator.length; i++) {
         const ele = foundPatronCreator[i];
-        const allPostsByUser = await UserPostService.getAllUserPostByUser({
-          authorId: ele.creatorId,
-        });
+        const allPostsByUser = await UserPostService.getAllUserPostByUser(
+          {
+            authorId: ele.creatorId,
+          },
+          skip,
+          take,
+        );
         returnPosts = [...returnPosts, ...allPostsByUser];
       }
-      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id });
-
+      const allUserPosts = await UserPostService.getAllUserPostByUser({ authorId: id }, skip, take);
       returnPosts = [...returnPosts, ...allUserPosts];
 
       // Remove duplicate posts
