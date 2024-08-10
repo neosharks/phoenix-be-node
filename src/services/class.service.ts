@@ -33,66 +33,6 @@ class _ClassService {
     }
   }
 
-  async getAllClassesByUserId(userId: number) {
-    try {
-      // Fetch classes created by the user
-      const createdClasses = await prisma.class.findMany({
-        where: { creatorId: userId },
-        include: {
-          ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
-        },
-      });
-
-      // Fetch classes joined by the user
-      const joinedClasses = await prisma.class.findMany({
-        where: {
-          ClassParticipants: {
-            some: { userId: userId },
-          },
-        },
-        include: {
-          ClassParticipants: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  username: true,
-                },
-              },
-            },
-          },
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
-        },
-      });
-
-      return { createdClasses, joinedClasses };
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   async getAllClassesByCreatorId(id: any) {
     try {
       return await prisma.class.findMany({
@@ -214,15 +154,6 @@ class _ClassService {
               username: true,
               email: true,
               phoneNumber: true,
-            },
-          },
-          repliedMessage: {
-            include: {
-              user: {
-                select: {
-                  username: true,
-                },
-              },
             },
           },
         },

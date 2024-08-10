@@ -36,25 +36,6 @@ class _ClassController {
     }
   }
 
-  async getAllClassesUserJoin(req: Request, res: Response) {
-    try {
-      let { userId }: any = req.query;
-      if (!userId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-
-      const allClasses = await ClassService.getAllClassesByUserId(parseInt(userId));
-      if (!allClasses) {
-        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
-      }
-      return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
-    } catch (error) {
-      console.log("ERROR: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
-    }
-  }
-
   async createClass(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
