@@ -33,7 +33,7 @@ model User {
   twitterHandle                String?
   instagramHandle              String?
 
-  creatorApprovalStatus  CREATOR_APPROVAL_STATUS @default(UNINITIATED)
+  creatorApprovalStatus  CREATOR_APPROVAL_STATUS @default(APPROVED)
   creatorChangeTimeStamp DateTime?
 
   status USER_STATUS @default(ACTIVE)

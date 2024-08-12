@@ -36,6 +36,21 @@ class _ClassController {
     }
   }
 
+  async AllClasses(req: Request, res: Response) {
+    try {
+      const allClasses = await ClassService;
+      if (!allClasses) {
+        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
+      }
+      return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async createClass(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
@@ -217,6 +232,25 @@ class _ClassController {
       return res
         .status(200)
         .send({ message: successMessages.FETCHED, data: availableParticipants });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async getAllClassesForUser(req: Request, res: Response) {
+    try {
+      const { userId } = req.query; // Get userId from the request params
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const classes = await ClassService.getAllClassesForUser(Number(userId));
+
+      return res.status(200).json({ message: successMessages.FETCHED, data: classes });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
