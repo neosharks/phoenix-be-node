@@ -279,7 +279,6 @@ class _ClassService {
         },
       });
 
-      // सभी क्लासेस को मर्ज करना
       const allClasses = [
         ...createdClasses,
         ...participatedClasses,
