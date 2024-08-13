@@ -199,6 +199,102 @@ class _ClassService {
       throw error;
     }
   }
+
+  async getAllClassesForUser(userId: number) {
+    try {
+      const createdClasses = await prisma.class.findMany({
+        where: { creatorId: userId },
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+
+      const participatedClasses = await prisma.class.findMany({
+        where: {
+          ClassParticipants: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+
+      const classesWhereUserIsCreatorAndOthersJoined = await prisma.class.findMany({
+        where: {
+          creatorId: userId,
+          ClassParticipants: {
+            some: {
+              userId: { not: userId },
+            },
+          },
+        },
+        include: {
+          ClassParticipants: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  profileImage: true,
+                  username: true,
+                  email: true,
+                  phoneNumber: true,
+                },
+              },
+            },
+          },
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+
+      const allClasses = [
+        ...createdClasses,
+        ...participatedClasses,
+        ...classesWhereUserIsCreatorAndOthersJoined,
+      ];
+
+      const uniqueClasses = allClasses.filter(
+        (value, index, self) => index === self.findIndex((t) => t.id === value.id),
+      );
+
+      return uniqueClasses;
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return error;
+    }
+  }
 }
 
 export const ClassService = new _ClassService();

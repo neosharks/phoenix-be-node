@@ -127,6 +127,49 @@
         max-width: 100%;
         height: auto;
       }
+      .replying-to {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #e3f2fd;
+        border-radius: 5px;
+        display: none; /* Hidden by default */
+      }
+      .replying-to p {
+        margin: 0;
+      }
+      .reply-btn {
+        color: #1e88e5; /* Blue color */
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .replying-to .reply-msg {
+        color: #0d47a1;
+      }
+      .reply-link {
+        display: block;
+        color: blue;
+        cursor: pointer;
+        margin-top: 5px;
+        font-size: 0.9em;
+      }
+      .reply-container {
+        padding: 5px;
+        border-left: 2px solid #ddd;
+        margin-top: 10px;
+        background-color: #f9f9f9;
+      }
+
+      .reply-container p {
+        margin: 0;
+        color: #555;
+      }
+
+      .reply-reference {
+        font-size: 0.85em;
+        color: #007bff; /* Blue color for reference */
+        cursor: pointer;
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -140,6 +183,10 @@
         </ul>
       </div>
       <div class="chat-container">
+        <div class="replying-to" id="replyingTo">
+          <p><strong>Replying to:</strong> <span id="replyMessageText" class="reply-msg"></span></p>
+          <button id="cancelReply">Cancel</button>
+        </div>
         <div class="chatbox">
           <ul id="messagelist"></ul>
           <form class="Input" enctype="multipart/form-data">
@@ -163,8 +210,12 @@
       const classList = document.querySelector("#classList");
       const fileInput = document.querySelector("#siofu_input");
       const messageInput = document.querySelector("#messageInput");
-      const socket = io("http://localhost:3000");
+      const replySection = document.querySelector("#replyingTo");
+      const replyMessageText = document.querySelector("#replyMessageText");
+      const cancelReplyButton = document.querySelector("#cancelReply");
+      const socket = io("https://www.theprimeweb.in");
       let currentClassId = "";
+      let replyMessageId = null;
       const userId = localStorage.getItem("userId") || 6;
 
       socket.on("connect", () => {
@@ -196,6 +247,13 @@
         }
       });
 
+      let replyToMessageId = null;
+
+      function handleReply(messageId) {
+        replyToMessageId = messageId;
+        messageInput.placeholder = "Type your reply ...";
+      }
+
       messageForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const message = messageInput.value;
@@ -214,6 +272,7 @@
                   classId: parseInt(currentClassId, 10),
                   userId: parseInt(userId),
                   message: message,
+                  replyTo: replyToMessageId,
                   file: fileData,
                   fileName: fileName,
                   mimetype: mimetype,
@@ -221,6 +280,8 @@
 
                 messageInput.value = "";
                 fileInput.value = "";
+                replyToMessageId = null; // Reset after sending
+                messageInput.placeholder = "Type your message ...";
               };
               reader.readAsDataURL(file);
             }
@@ -229,8 +290,11 @@
               classId: parseInt(currentClassId, 10),
               userId: parseInt(userId),
               message: message,
+              replyTo: replyToMessageId,
             });
             messageInput.value = "";
+            replyToMessageId = null; // Reset after sending
+            messageInput.placeholder = "Type your message ...";
           }
         }
       });
@@ -257,13 +321,40 @@
           video.controls = true;
           li.appendChild(video);
         }
-
         if (message.document) {
           const link = document.createElement("a");
           link.href = message.document;
           link.textContent = "View Document";
           li.appendChild(link);
         }
+
+        if (message.replyTo) {
+          const replyContainer = document.createElement("div");
+          replyContainer.classList.add("reply-container");
+
+          // Display the reference to the replied message
+          const replyReference = document.createElement("p");
+          replyReference.classList.add("reply-reference");
+          replyReference.textContent = `Replying to message: ${message.replyTo}`;
+          replyReference.addEventListener("click", () => {
+            const originalMessage = document.querySelector(
+              `[data-message-id="${message.replyTo}"]`,
+            );
+            if (originalMessage) {
+              originalMessage.scrollIntoView({ behavior: "smooth" });
+            }
+          });
+          replyContainer.appendChild(replyReference);
+
+          li.appendChild(replyContainer);
+        }
+
+        const replyLink = document.createElement("a");
+        replyLink.href = "#";
+        replyLink.classList.add("reply-link");
+        replyLink.textContent = "Reply";
+        replyLink.addEventListener("click", () => handleReply(message.id));
+        li.appendChild(replyLink);
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = message.isPinned;
@@ -290,6 +381,11 @@
           }
         }
       }
+
+      cancelReplyButton.addEventListener("click", () => {
+        replyMessageId = null;
+        replySection.style.display = "none";
+      });
     </script>
   </body>
 </html>

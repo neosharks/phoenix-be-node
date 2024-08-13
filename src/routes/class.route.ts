@@ -42,4 +42,6 @@ classRoutes.get(
   ClassController.getAvailableParticipants,
 );
 
+classRoutes.get("/getAllClassesForUser", checkRoleAuth(), ClassController.getAllClassesForUser);
+
 export default classRoutes;

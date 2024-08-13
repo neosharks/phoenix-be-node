@@ -1,0 +1,19 @@
+/*
+  Warnings:
+
+  - The values [ONE_TIME_PAYMENT,WEAKLY_PAYMENT,MONTHLY_PAYMENT,YEARLY_PAYMENT] on the enum `PAYMENT_FREQUENCY` will be removed. If these variants are still used in the database, this will fail.
+
+*/
+-- AlterEnum
+BEGIN;
+CREATE TYPE "PAYMENT_FREQUENCY_new" AS ENUM ('ONE_TIME', 'MONTHLY', 'YEARLY');
+ALTER TABLE "Class" ALTER COLUMN "paymentFrequency" DROP DEFAULT;
+ALTER TABLE "Class" ALTER COLUMN "paymentFrequency" TYPE "PAYMENT_FREQUENCY_new" USING ("paymentFrequency"::text::"PAYMENT_FREQUENCY_new");
+ALTER TYPE "PAYMENT_FREQUENCY" RENAME TO "PAYMENT_FREQUENCY_old";
+ALTER TYPE "PAYMENT_FREQUENCY_new" RENAME TO "PAYMENT_FREQUENCY";
+DROP TYPE "PAYMENT_FREQUENCY_old";
+ALTER TABLE "Class" ALTER COLUMN "paymentFrequency" SET DEFAULT 'ONE_TIME';
+COMMIT;
+
+-- AlterTable
+ALTER TABLE "Class" ALTER COLUMN "paymentFrequency" SET DEFAULT 'ONE_TIME';

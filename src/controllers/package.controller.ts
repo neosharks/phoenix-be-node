@@ -120,14 +120,20 @@ class _PackageController {
   async useGetAllSubscriptions(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
       if (!username) {
         return res.status(400).send({ message: errorMessage.MISSING_PARAMS }); // Proper error handling for missing username
       }
-      const found = await PatronCreatorService.getAll({
-        patron: {
-          username: username,
+      const found = await PatronCreatorService.getAll(
+        {
+          patron: {
+            username: username,
+          },
         },
-      });
+        skip,
+        take,
+      );
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
@@ -141,13 +147,19 @@ class _PackageController {
   async getAllPatronsByCreator(req: Request, res: Response) {
     try {
       const { username } = req.params;
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
 
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-      const found = await PatronCreatorService.getAll({
-        creator: {
-          username: username,
+      const found = await PatronCreatorService.getAll(
+        {
+          creator: {
+            username: username,
+          },
         },
-      });
+        skip,
+        take,
+      );
       if (!found) return res.status(404).send({ message: errorMessage.MISSING_PARAMS });
       return res.status(201).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {

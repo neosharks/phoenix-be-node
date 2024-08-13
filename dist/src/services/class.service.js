@@ -235,5 +235,96 @@ class _ClassService {
             }
         });
     }
+    getAllClassesForUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const createdClasses = yield prisma_1.default.class.findMany({
+                    where: { creatorId: userId },
+                    include: {
+                        ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
+                });
+                const participatedClasses = yield prisma_1.default.class.findMany({
+                    where: {
+                        ClassParticipants: {
+                            some: {
+                                userId: userId,
+                            },
+                        },
+                    },
+                    include: {
+                        ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
+                });
+                const classesWhereUserIsCreatorAndOthersJoined = yield prisma_1.default.class.findMany({
+                    where: {
+                        creatorId: userId,
+                        ClassParticipants: {
+                            some: {
+                                userId: { not: userId },
+                            },
+                        },
+                    },
+                    include: {
+                        ClassParticipants: {
+                            include: {
+                                user: {
+                                    select: {
+                                        firstName: true,
+                                        lastName: true,
+                                        profileImage: true,
+                                        username: true,
+                                        email: true,
+                                        phoneNumber: true,
+                                    },
+                                },
+                            },
+                        },
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
+                });
+                const allClasses = [
+                    ...createdClasses,
+                    ...participatedClasses,
+                    ...classesWhereUserIsCreatorAndOthersJoined,
+                ];
+                const uniqueClasses = allClasses.filter((value, index, self) => index === self.findIndex((t) => t.id === value.id));
+                return uniqueClasses;
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return error;
+            }
+        });
+    }
 }
 exports.ClassService = new _ClassService();
