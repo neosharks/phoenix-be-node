@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cp .env ./dist/.env && cp -r ./src/mailTemplates ./dist/src/mailTemplates && tsc",
+    "build-local": "cp .env ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
+    "build-prod": "cp .env.production ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
-    "start": "npm run build && pm2 restart ./dist/index.js",
-    "dev": "nodemon --exec ts-node index.ts",
+    "start": "npm run build-local && pm2 restart ./build/index.js",
+    "dev": "nodemon --exec ts-node -r dotenv/config index.ts",
+    "start-prod": "cross-env NODE_ENV=production npm run build-prod && pm2 restart ./build/index.js",
     "pretty": "prettier --write \"src/**/*.ts\""
   },
   "keywords": [],
@@ -25,6 +27,7 @@
     "cashfree-pg": "^4.1.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
