@@ -28,42 +28,6 @@ else {
 const Socket = (io) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
-        // socket.on("send_class_message", async (data: any) => {
-        //   try {
-        //     const { classId, userId, message, file, fileName, mimetype } = data;
-        //     let uploadedFileName: string | null = null;
-        //     let fileUrl: string | null = null;
-        //     if (file && fileName && mimetype) {
-        //       const fileBuffer = Buffer.from(file, "base64");
-        //       if (mimetype.startsWith("image/")) {
-        //         uploadedFileName = await GetUploadedFile({ buffer: fileBuffer, mimetype });
-        //       } else if (mimetype.startsWith("video/")) {
-        //         uploadedFileName = await GetUploadedVideo({ buffer: fileBuffer, mimetype });
-        //       } else {
-        //         uploadedFileName = await GetUploadedDocument({ buffer: fileBuffer, mimetype });
-        //       }
-        //       fileUrl = await getObjectSignedUrl(uploadedFileName);
-        //     }
-        //     const messageData = {
-        //       classId,
-        //       userId,
-        //       message,
-        //       isPinned: false,
-        //       image: mimetype?.startsWith("image/") ? fileUrl : null,
-        //       video: mimetype?.startsWith("video/") ? fileUrl : null,
-        //       document:
-        //         mimetype && !mimetype.startsWith("image/") && !mimetype.startsWith("video/")
-        //           ? fileUrl
-        //           : null,
-        //     };
-        //     const createdMessage = await prisma.classMessage.create({
-        //       data: messageData,
-        //     });
-        //     io.to(classId.toString()).emit("receive_class_message", createdMessage);
-        //   } catch (error) {
-        //     console.error("Error handling send_class_message event:", error);
-        //   }
-        // });
         socket.on("join_room", (classId) => {
             socket.join(classId.toString());
             console.log(`User ${socket.id} joined room ${classId}`);
@@ -84,6 +48,10 @@ const Socket = (io) => {
                         image: data.image || null,
                         video: data.video || null,
                         document: data.document || null,
+                        replyToMessageId: data.replyToMessageId || null,
+                    },
+                    include: {
+                        repliedMessage: true,
                     },
                 });
                 io.to(data.classId.toString()).emit("receive_class_message", createdMessage);

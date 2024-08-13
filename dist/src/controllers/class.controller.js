@@ -65,10 +65,17 @@ class _ClassController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = res.locals.user;
-                const { name, isPaid = false } = req.body;
+                const { name, isPaid = false, price, paymentFrequency } = req.body;
                 if (!name)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                yield class_service_1.ClassService.createClass({ name, creatorId: id, isPaid, type: "NORMAL" });
+                yield class_service_1.ClassService.createClass({
+                    name,
+                    creatorId: id,
+                    isPaid,
+                    type: "NORMAL",
+                    price,
+                    paymentFrequency,
+                });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
@@ -104,11 +111,15 @@ class _ClassController {
     addOneParticipant(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { participantId, classId } = req.body;
-                if (!participantId || !classId)
+                const { classId, participantId } = req.body;
+                if (!classId || !participantId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                yield class_service_1.ClassService.addClassParticipant({ userId: participantId, classId });
-                return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
+                const addMember = yield class_service_1.ClassService.addClassParticipant({
+                    classId: Number(classId),
+                    userId: Number(participantId),
+                });
+                console.log(addMember, "addMember");
+                return res.status(200).send({ message: api_constant_1.successMessages.CREATED, data: addMember });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -236,6 +247,24 @@ class _ClassController {
                 return res
                     .status(200)
                     .send({ message: api_constant_1.successMessages.FETCHED, data: availableParticipants });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAllClassesForUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { userId } = req.query;
+                if (!userId) {
+                    return res.status(400).json({ message: "User ID is required" });
+                }
+                const classes = yield class_service_1.ClassService.getAllClassesForUser(Number(userId));
+                return res.status(200).json({ message: api_constant_1.successMessages.FETCHED, data: classes });
             }
             catch (error) {
                 console.log("ERROR: ", error);
