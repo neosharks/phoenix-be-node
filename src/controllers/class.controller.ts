@@ -233,7 +233,7 @@ class _ClassController {
         return res.status(400).json({ message: "User ID is required" });
       }
 
-      const classes = await ClassService.getAllClassesForUser(Number(userId));
+      const classes = await ClassService.getAllClassesForUser(userId);
 
       return res.status(200).json({ message: successMessages.FETCHED, data: classes });
     } catch (error) {

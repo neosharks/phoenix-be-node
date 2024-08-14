@@ -200,22 +200,12 @@ class _ClassService {
     }
   }
 
-  async getAllClassesForUser(userId: number) {
+  async getAllClassesForUser(userId: any) {
     try {
       const createdClasses = await prisma.class.findMany({
-        where: { creatorId: userId },
+        where: { creatorId: parseInt(userId) },
         include: {
           ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
         },
       });
 
@@ -223,76 +213,21 @@ class _ClassService {
         where: {
           ClassParticipants: {
             some: {
-              userId: userId,
+              userId: parseInt(userId),
             },
           },
         },
         include: {
           ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
         },
       });
 
-      const classesWhereUserIsCreatorAndOthersJoined = await prisma.class.findMany({
-        where: {
-          creatorId: userId,
-          ClassParticipants: {
-            some: {
-              userId: { not: userId },
-            },
-          },
-        },
-        include: {
-          ClassParticipants: {
-            include: {
-              user: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  username: true,
-                  email: true,
-                  phoneNumber: true,
-                },
-              },
-            },
-          },
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
-        },
-      });
+      const allClasses = [...createdClasses, ...participatedClasses];
 
-      const allClasses = [
-        ...createdClasses,
-        ...participatedClasses,
-        ...classesWhereUserIsCreatorAndOthersJoined,
-      ];
-
-      const uniqueClasses = allClasses.filter(
-        (value, index, self) => index === self.findIndex((t) => t.id === value.id),
-      );
-
-      return uniqueClasses;
+      return allClasses;
     } catch (error) {
-      console.log("ERROR: ", error);
-      return error;
+      console.error(error);
+      throw error;
     }
   }
 }
