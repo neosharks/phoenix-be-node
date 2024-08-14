@@ -21,4 +21,4 @@ USER node
 
 EXPOSE 3000
 
-CMD ["pm2-runtime", "dist/index.js"]
+CMD ["pm2-runtime", "build/index.js"]
