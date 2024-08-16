@@ -235,25 +235,45 @@ class _ClassService {
             }
         });
     }
-    getAllClassesForUser(userId) {
+    getAllClassesForUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const createdClasses = yield prisma_1.default.class.findMany({
-                    where: { creatorId: parseInt(userId) },
+                    where: { creatorId: id },
                     include: {
                         ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
                     },
                 });
                 const participatedClasses = yield prisma_1.default.class.findMany({
                     where: {
                         ClassParticipants: {
                             some: {
-                                userId: parseInt(userId),
+                                userId: id,
                             },
                         },
                     },
                     include: {
                         ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
                     },
                 });
                 return { createdClasses, participatedClasses };
