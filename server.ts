@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import http from "http";
 //----------------------------------
 import routes from "./src/routes/index.route";
+import { connection } from "./sequelize";
 //----------------------------------
 import config from "./config";
 import Logger from "./src/core/logger.core";
@@ -17,6 +18,7 @@ process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
   process.exit(1);
 });
+connection();
 
 var SocketIOFileUpload = require("socketio-file-upload");
 const app = express()
@@ -39,7 +41,6 @@ chatSocket(io);
 // MIDDLEWARES
 const corsUrl = config.main.corsUrl;
 
-// Initialize socket connection
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));

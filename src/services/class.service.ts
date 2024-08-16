@@ -206,6 +206,16 @@ class _ClassService {
         where: { creatorId: parseInt(userId) },
         include: {
           ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
         },
       });
 
@@ -219,6 +229,16 @@ class _ClassService {
         },
         include: {
           ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
         },
       });
       return { createdClasses, participatedClasses };
