@@ -223,7 +223,6 @@ class _ClassService {
       });
 
       const allClasses = [...createdClasses, ...participatedClasses];
-
       return allClasses;
     } catch (error) {
       console.error(error);
