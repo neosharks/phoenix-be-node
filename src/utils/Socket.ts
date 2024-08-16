@@ -46,21 +46,26 @@ const Socket = (io: any) => {
           return;
         }
 
+        // Prepare the base data for creating a message
+        const messageCreateInput = {
+          classId: data.classId,
+          userId: data.userId,
+          message: data.message,
+          image: data.image || null,
+          video: data.video || null,
+          document: data.document || null,
+        };
+
+        if (data.replyToMessageId) {
+          (messageCreateInput as any).repliedMessageId = data.replyToMessageId;
+        }
+
         const createdMessage = await prisma.classMessage.create({
-          data: {
-            classId: data.classId,
-            userId: data.userId,
-            message: data.message,
-            image: data.image || null,
-            video: data.video || null,
-            document: data.document || null,
-            repliedMessageId: data.replyToMessageId || null,
-          },
+          data: messageCreateInput,
           include: {
             repliedMessage: true,
           },
         });
-
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
         sendNotification(createdMessage);
       } catch (error) {

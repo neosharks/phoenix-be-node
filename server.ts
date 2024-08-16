@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import http from "http";
+import { connection } from "./sequelize";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
@@ -33,6 +34,8 @@ const io = new Server(server, {
 
 chatSocket(io);
 
+// connection sequelize
+connection();
 // MIDDLEWARES
 const corsUrl = config.main.corsUrl;
 
