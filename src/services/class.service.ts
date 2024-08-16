@@ -200,10 +200,10 @@ class _ClassService {
     }
   }
 
-  async getAllClassesForUser(userId: any) {
+  async getAllClassesForUser(id: number) {
     try {
       const createdClasses = await prisma.class.findMany({
-        where: { creatorId: parseInt(userId) },
+        where: { creatorId: id },
         include: {
           ClassParticipants: true,
           creator: {
@@ -223,7 +223,7 @@ class _ClassService {
         where: {
           ClassParticipants: {
             some: {
-              userId: parseInt(userId),
+              userId: id,
             },
           },
         },

@@ -315,8 +315,8 @@ model ClassMessage {
   isPinned         Boolean       @default(false)
   class            Class         @relation(fields: [classId], references: [id])
   classId          Int
-  repliedMessage   ClassMessage? @relation("MessageReplies", fields: [repliedMessageId], references: [id])
   repliedMessageId Int?
+  repliedMessage   ClassMessage? @relation("MessageReplies", fields: [repliedMessageId], references: [id])
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 

@@ -5,12 +5,9 @@ import { Server } from "socket.io";
 import http from "http";
 //----------------------------------
 import routes from "./src/routes/index.route";
-import { connection } from "./sequelize";
 //----------------------------------
 import config from "./config";
 import Logger from "./src/core/logger.core";
-import { CommonService } from "./src/services/common.service";
-import { socketAuthMiddleware } from "./src/middlewares/checkRoleAuth.middleware";
 import chatSocket from "./src/utils/Socket";
 import path from "path";
 
@@ -18,7 +15,6 @@ process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
   process.exit(1);
 });
-connection();
 
 var SocketIOFileUpload = require("socketio-file-upload");
 const app = express()
@@ -35,7 +31,6 @@ const io = new Server(server, {
   maxHttpBufferSize: 1e8,
 });
 
-// io.use(socketAuthMiddleware);
 chatSocket(io);
 
 // MIDDLEWARES
