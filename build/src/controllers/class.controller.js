@@ -259,11 +259,8 @@ class _ClassController {
     getAllClassesForUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.query;
-                if (!userId) {
-                    return res.status(400).json({ message: "User ID is required" });
-                }
-                const classes = yield class_service_1.ClassService.getAllClassesForUser(Number(userId));
+                const { id } = res.locals.user;
+                const classes = yield class_service_1.ClassService.getAllClassesForUser(id);
                 return res.status(200).json({ message: api_constant_1.successMessages.FETCHED, data: classes });
             }
             catch (error) {

@@ -48,7 +48,7 @@ const Socket = (io) => {
                         image: data.image || null,
                         video: data.video || null,
                         document: data.document || null,
-                        replyToMessageId: data.replyToMessageId || null,
+                        repliedMessageId: data.replyToMessageId || null,
                     },
                     include: {
                         repliedMessage: true,
