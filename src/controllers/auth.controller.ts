@@ -77,7 +77,6 @@ class _AuthController {
         return res.status(403).json({ message: errorMessage.WRONG_AUTH_METHOD });
       if (!isMatch) return res.status(403).json({ message: errorMessage.INCORRECT_PASSWORD });
       const accessToken = await signJwt(foundUser);
-      localStorage.setItem("token", accessToken);
       return res
         .status(200)
         .json({ messge: successMessages.SUCCESS, accessToken, user: foundUser });
