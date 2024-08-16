@@ -40,16 +40,20 @@ const Socket = (io) => {
                     console.error("Invalid data received:", data);
                     return;
                 }
+                // Prepare the base data for creating a message
+                const messageCreateInput = {
+                    classId: data.classId,
+                    userId: data.userId,
+                    message: data.message,
+                    image: data.image || null,
+                    video: data.video || null,
+                    document: data.document || null,
+                };
+                if (data.replyToMessageId) {
+                    messageCreateInput.repliedMessageId = data.replyToMessageId;
+                }
                 const createdMessage = yield prisma.classMessage.create({
-                    data: {
-                        classId: data.classId,
-                        userId: data.userId,
-                        message: data.message,
-                        image: data.image || null,
-                        video: data.video || null,
-                        document: data.document || null,
-                        repliedMessageId: data.replyToMessageId || null,
-                    },
+                    data: messageCreateInput,
                     include: {
                         repliedMessage: true,
                     },

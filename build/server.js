@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const socket_io_1 = require("socket.io");
 const http_1 = __importDefault(require("http"));
+const sequelize_1 = require("./sequelize");
 //----------------------------------
 const index_route_1 = __importDefault(require("./src/routes/index.route"));
 //----------------------------------
@@ -31,11 +32,11 @@ const io = new socket_io_1.Server(server, {
     },
     maxHttpBufferSize: 1e8,
 });
-// io.use(socketAuthMiddleware);
 (0, Socket_1.default)(io);
+// connection sequelize
+(0, sequelize_1.connection)();
 // MIDDLEWARES
 const corsUrl = config_1.default.main.corsUrl;
-// Initialize socket connection
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use((0, cors_1.default)({ origin: corsUrl, optionsSuccessStatus: 200 }));
