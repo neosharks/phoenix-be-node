@@ -200,10 +200,10 @@ class _ClassService {
     }
   }
 
-  async getAllClassesForUser(userId: number) {
+  async getAllClassesForUser(id: number) {
     try {
       const createdClasses = await prisma.class.findMany({
-        where: { creatorId: userId },
+        where: { creatorId: id },
         include: {
           ClassParticipants: true,
           creator: {
@@ -223,7 +223,7 @@ class _ClassService {
         where: {
           ClassParticipants: {
             some: {
-              userId: userId,
+              userId: id,
             },
           },
         },
@@ -241,58 +241,10 @@ class _ClassService {
           },
         },
       });
-
-      const classesWhereUserIsCreatorAndOthersJoined = await prisma.class.findMany({
-        where: {
-          creatorId: userId,
-          ClassParticipants: {
-            some: {
-              userId: { not: userId },
-            },
-          },
-        },
-        include: {
-          ClassParticipants: {
-            include: {
-              user: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  username: true,
-                  email: true,
-                  phoneNumber: true,
-                },
-              },
-            },
-          },
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
-        },
-      });
-
-      const allClasses = [
-        ...createdClasses,
-        ...participatedClasses,
-        ...classesWhereUserIsCreatorAndOthersJoined,
-      ];
-
-      const uniqueClasses = allClasses.filter(
-        (value, index, self) => index === self.findIndex((t) => t.id === value.id),
-      );
-
-      return uniqueClasses;
+      return { createdClasses, participatedClasses };
     } catch (error) {
-      console.log("ERROR: ", error);
-      return error;
+      console.error(error);
+      throw error;
     }
   }
 }

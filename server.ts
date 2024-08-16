@@ -3,13 +3,12 @@ import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import http from "http";
+import { connection } from "./sequelize";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
 import config from "./config";
 import Logger from "./src/core/logger.core";
-import { CommonService } from "./src/services/common.service";
-import { socketAuthMiddleware } from "./src/middlewares/checkRoleAuth.middleware";
 import chatSocket from "./src/utils/Socket";
 import path from "path";
 
@@ -33,13 +32,13 @@ const io = new Server(server, {
   maxHttpBufferSize: 1e8,
 });
 
-// io.use(socketAuthMiddleware);
 chatSocket(io);
 
+// connection sequelize
+connection();
 // MIDDLEWARES
 const corsUrl = config.main.corsUrl;
 
-// Initialize socket connection
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));

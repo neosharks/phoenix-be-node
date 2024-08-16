@@ -227,14 +227,8 @@ class _ClassController {
 
   async getAllClassesForUser(req: Request, res: Response) {
     try {
-      const { userId } = req.query;
-
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-
-      const classes = await ClassService.getAllClassesForUser(Number(userId));
-
+      const { id } = res.locals.user;
+      const classes = await ClassService.getAllClassesForUser(id);
       return res.status(200).json({ message: successMessages.FETCHED, data: classes });
     } catch (error) {
       console.log("ERROR: ", error);
