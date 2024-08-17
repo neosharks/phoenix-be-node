@@ -85,7 +85,6 @@ class _AuthController {
                 if (!isMatch)
                     return res.status(403).json({ message: api_constant_1.errorMessage.INCORRECT_PASSWORD });
                 const accessToken = yield (0, jwt_core_1.signJwt)(foundUser);
-                localStorage.setItem("token", accessToken);
                 return res
                     .status(200)
                     .json({ messge: api_constant_1.successMessages.SUCCESS, accessToken, user: foundUser });
