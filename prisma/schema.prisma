@@ -305,23 +305,21 @@ model Class {
 }
 
 model ClassMessage {
-  id               Int           @id @default(autoincrement())
-  user             User          @relation(fields: [userId], references: [id])
+  id               Int            @id @default(autoincrement())
+  user             User           @relation(fields: [userId], references: [id])
   userId           Int
   message          String?
   image            String?
   video            String?
   document         String?
-  isPinned         Boolean       @default(false)
-  class            Class         @relation(fields: [classId], references: [id])
+  isPinned         Boolean        @default(false)
+  class            Class          @relation(fields: [classId], references: [id])
   classId          Int
-  repliedMessage   ClassMessage? @relation("MessageReplies", fields: [repliedMessageId], references: [id])
-  repliedMessageId Int?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  // This field allows querying replies to this message
-  replies ClassMessage[] @relation("MessageReplies")
+  replyToMessageId Int?
+  repliedMessage   ClassMessage?  @relation("MessageReply", fields: [replyToMessageId], references: [id])
+  replyToMessage   ClassMessage[] @relation("MessageReply")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model ClassParticipants {

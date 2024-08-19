@@ -213,9 +213,9 @@
       const replySection = document.querySelector("#replyingTo");
       const replyMessageText = document.querySelector("#replyMessageText");
       const cancelReplyButton = document.querySelector("#cancelReply");
-      const socket = io("https://www.theprimeweb.in");
+      const socket = io("http://localhost:3000");
       let currentClassId = "";
-      let replyMessageId = null;
+      let replyToMessageId = null;
       const userId = localStorage.getItem("userId") || 6;
 
       socket.on("connect", () => {
@@ -238,16 +238,12 @@
               socket.emit("leave_room", parseInt(currentClassId, 10));
             }
             socket.emit("join_room", parseInt(classId, 10));
-
             currentClassId = classId;
-
             document.querySelector(".sidebar li.active")?.classList.remove("active");
             e.target.classList.add("active");
           }
         }
       });
-
-      let replyToMessageId = null;
 
       function handleReply(messageId) {
         replyToMessageId = messageId;
@@ -324,66 +320,43 @@
         if (message.document) {
           const link = document.createElement("a");
           link.href = message.document;
-          link.textContent = "View Document";
+          link.textContent = "Download document";
           li.appendChild(link);
         }
-
-        if (message.replyTo) {
-          const replyContainer = document.createElement("div");
-          replyContainer.classList.add("reply-container");
-
-          // Display the reference to the replied message
-          const replyReference = document.createElement("p");
-          replyReference.classList.add("reply-reference");
-          replyReference.textContent = `Replying to message: ${message.replyTo}`;
-          replyReference.addEventListener("click", () => {
-            const originalMessage = document.querySelector(
-              `[data-message-id="${message.replyTo}"]`,
-            );
-            if (originalMessage) {
-              originalMessage.scrollIntoView({ behavior: "smooth" });
-            }
-          });
-          replyContainer.appendChild(replyReference);
-
-          li.appendChild(replyContainer);
+        if (message.replyToMessageId) {
+          const reply = document.createElement("div");
+          reply.classList.add("reply");
+          reply.textContent = `Replying to message ID: ${message.replyToMessageId}`;
+          li.prepend(reply);
         }
-
-        const replyLink = document.createElement("a");
-        replyLink.href = "#";
-        replyLink.classList.add("reply-link");
-        replyLink.textContent = "Reply";
-        replyLink.addEventListener("click", () => handleReply(message.id));
-        li.appendChild(replyLink);
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = message.isPinned;
-        checkbox.classList.add("pin-checkbox");
-        checkbox.addEventListener("change", () => {
-          const isPinned = checkbox.checked;
+        const pinButton = document.createElement("button");
+        pinButton.textContent = message.isPinned ? "Unpin" : "Pin";
+        pinButton.addEventListener("click", () => {
           socket.emit("update_message", {
             messageId: message.id,
-            isPinned: isPinned,
+            isPinned: !message.isPinned,
           });
         });
-        li.appendChild(checkbox);
+        li.appendChild(pinButton);
 
         messageList.appendChild(li);
+        messageList.scrollTop = messageList.scrollHeight; // Auto-scroll to latest message
       }
 
-      function updateMessageInUI(data) {
-        const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
-        if (messageElement) {
-          messageElement.classList.toggle("pinned", data.isPinned);
-          const checkbox = messageElement.querySelector(".pin-checkbox");
-          if (checkbox) {
-            checkbox.checked = data.isPinned;
+      function updateMessageInUI(message) {
+        const messageItem = document.querySelector(`[data-message-id="${message.id}"]`);
+        if (messageItem) {
+          messageItem.classList.toggle("pinned", message.isPinned);
+          const pinButton = messageItem.querySelector("button");
+          if (pinButton) {
+            pinButton.textContent = message.isPinned ? "Unpin" : "Pin";
           }
         }
       }
 
       cancelReplyButton.addEventListener("click", () => {
-        replyMessageId = null;
+        replyToMessageId = null;
+        messageInput.placeholder = "Type your message ...";
         replySection.style.display = "none";
       });
     </script>

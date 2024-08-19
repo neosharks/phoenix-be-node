@@ -17,94 +17,60 @@ if (!firebase.apps.length) {
 interface MessageData {
   message: string;
   classId: number;
-  chatId: number;
   userId: number;
-  text: string;
-  roomData: any;
-  image: string;
-  video: string;
-  document: string;
-  replyToMessageId: any;
+  image?: string;
+  video?: string;
+  document?: string;
+  replyToMessageId?: number | null;
 }
 
 const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
-    socket.on("join_room", (classId: number) => {
-      socket.join(classId.toString());
+
+    socket.on("join_room", async (classId: any) => {
+      socket.join(classId);
       console.log(`User ${socket.id} joined room ${classId}`);
     });
 
-    socket.on("send_class_message", async (data: MessageData) => {
-      try {
-        if (
-          !data.classId ||
-          !data.userId ||
-          (!data.message && !data.image && !data.video && !data.document)
-        ) {
-          console.error("Invalid data received:", data);
-          return;
-        }
-
-        // Prepare the base data for creating a message
-        const messageCreateInput = {
-          classId: data.classId,
-          userId: data.userId,
-          message: data.message,
-          image: data.image || null,
-          video: data.video || null,
-          document: data.document || null,
-        };
-
-        if (data.replyToMessageId) {
-          (messageCreateInput as any).repliedMessageId = data.replyToMessageId;
-        }
-
-        const createdMessage = await prisma.classMessage.create({
-          data: messageCreateInput,
-          include: {
-            repliedMessage: true,
-          },
-        });
-        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
-        sendNotification(createdMessage);
-      } catch (error) {
-        console.error("Error handling send_class_message event:", error);
-      }
-    });
-
-    socket.on("update_message", async (data: { messageId: number; isPinned: boolean }) => {
-      try {
-        const updatedMessage = await prisma.classMessage.update({
-          where: { id: data.messageId },
-          data: { isPinned: data.isPinned },
-        });
-
-        io.to(updatedMessage.classId.toString()).emit("message_updated", {
-          messageId: updatedMessage.id,
-          isPinned: updatedMessage.isPinned,
-        });
-      } catch (error) {
-        console.error("Error updating message:", error);
-      }
-    });
-
-    socket.on("disconnect", async () => {
-      console.log("Socket disconnected:", socket.id);
-      const userId = socketIdToUserId.get(socket.id);
-      if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { online: false },
-        });
-        socketIdToUserId.delete(socket.id);
-        io.emit("user_status_update", { userId, isOnline: false });
-      }
-    });
-
-    socket.on("leave_room", (classId: number) => {
-      socket.leave(classId.toString());
+    socket.on("leave_room", (classId: any) => {
+      socket.leave(classId);
       console.log(`User ${socket.id} left room ${classId}`);
+    });
+
+    socket.on("send_class_message", async (data: any) => {
+      const { classId, userId, message, replyTo, file } = data;
+      let fileUrl = null;
+
+      if (file) {
+        // Handle file upload to S3 or local storage and get the file URL
+        // For example purposes, assuming file is saved and URL is assigned to fileUrl
+      }
+
+      const newMessage = await prisma.classMessage.create({
+        data: {
+          userId,
+          message,
+          image: fileUrl, // You can choose to save the appropriate URL based on file type
+          classId,
+          replyToMessageId: replyTo,
+        },
+      });
+
+      io.to(classId).emit("receive_class_message", newMessage);
+    });
+
+    socket.on("update_message", async ({ messageId, isPinned }: any) => {
+      const updatedMessage = await prisma.classMessage.update({
+        where: { id: messageId },
+        data: { isPinned },
+      });
+
+      io.emit("message_updated", updatedMessage);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
     });
   });
 };
