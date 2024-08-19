@@ -31,11 +31,9 @@ const Socket = (io: any) => {
           return;
         }
 
-        // Check if the user exists
         const findUser = await prisma.user.findUnique({
           where: { id: data.userId },
         });
-        console.log(findUser);
 
         if (!findUser) {
           console.error("User not found:", data.userId);
