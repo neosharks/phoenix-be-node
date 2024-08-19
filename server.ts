@@ -29,7 +29,6 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST"],
   },
-  maxHttpBufferSize: 1e8,
 });
 
 chatSocket(io);

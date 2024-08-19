@@ -14,62 +14,62 @@ if (!firebase.apps.length) {
   firebase.app();
 }
 
-interface MessageData {
-  message: string;
-  classId: number;
-  chatId: number;
-  userId: number;
-  text: string;
-  roomData: any;
-  image: string;
-  video: string;
-  document: string;
-  replyToMessageId: any;
-}
-
 const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
+
     socket.on("join_room", (classId: number) => {
       socket.join(classId.toString());
       console.log(`User ${socket.id} joined room ${classId}`);
     });
 
-    socket.on("send_class_message", async (data: MessageData) => {
+    socket.on("send_class_message", async (data: any) => {
       try {
-        if (
-          !data.classId ||
-          !data.userId ||
-          (!data.message && !data.image && !data.video && !data.document)
-        ) {
+        if (!data.classId || !data.userId || (!data.message && !data.file)) {
           console.error("Invalid data received:", data);
+          socket.emit("error", { message: "Invalid data received" });
           return;
         }
 
-        // Prepare the base data for creating a message
-        const messageCreateInput = {
-          classId: data.classId,
-          userId: data.userId,
-          message: data.message,
-          image: data.image || null,
-          video: data.video || null,
-          document: data.document || null,
-        };
+        // Check if the user exists
+        const findUser = await prisma.user.findUnique({
+          where: { id: data.userId },
+        });
+        console.log(findUser);
 
-        if (data.replyToMessageId) {
-          (messageCreateInput as any).repliedMessageId = data.replyToMessageId;
+        if (!findUser) {
+          console.error("User not found:", data.userId);
+          socket.emit("error", { message: "User not found" });
+          return;
+        }
+
+        const classExists = await prisma.class.findUnique({
+          where: { id: data.classId },
+        });
+
+        if (!classExists) {
+          console.error("Class not found:", data.classId);
+          socket.emit("error", { message: "Class not found" });
+          return;
         }
 
         const createdMessage = await prisma.classMessage.create({
-          data: messageCreateInput,
-          include: {
-            repliedMessage: true,
+          data: {
+            classId: data.classId,
+            userId: data.userId,
+            message: data.message,
+            image: data.image || null,
+            video: data.video || null,
+            document: data.document || null,
+            repliedMessageId: data.repliedMessageId || null,
           },
         });
+
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
         sendNotification(createdMessage);
       } catch (error) {
         console.error("Error handling send_class_message event:", error);
+        socket.emit("error", { message: "An error occurred while sending the message" });
       }
     });
 
