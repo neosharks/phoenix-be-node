@@ -26,7 +26,7 @@ CREATE TYPE "PATRON_CREATOR_STATUS" AS ENUM ('ACTIVE', 'EXPIRED', 'PENDING');
 CREATE TYPE "GENDER" AS ENUM ('MALE', 'FEMALE', 'OTHER');
 
 -- CreateEnum
-CREATE TYPE "NOTIFICATION" AS ENUM ('NEW_POST', 'MESSAGE', 'POLL', 'MENTIONED', 'NEW_COMMENT', 'NEW_LIKE');
+CREATE TYPE "NOTIFICATION" AS ENUM ('NEW_POST', 'MESSAGE', 'POLL', 'MENTIONED', 'NEW_COMMENT', 'NEW_LIKE', 'CLASS');
 
 -- CreateEnum
 CREATE TYPE "MESSAGE_TYPE" AS ENUM ('TEXT', 'IMAGE', 'AUDIO');
@@ -47,7 +47,7 @@ CREATE TYPE "CREATOR_APPROVAL_STATUS" AS ENUM ('PENDING', 'APPROVED', 'DENIED', 
 CREATE TYPE "VERIFICATION_CODE_TYPE" AS ENUM ('LOGIN', 'FORGET_PASSWORD');
 
 -- CreateEnum
-CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK', 'VIDEO', 'CLASS');
+CREATE TYPE "USER_POST_TYPE" AS ENUM ('TEXT', 'IMAGE', 'POLL', 'LINK', 'VIDEO', 'CLASS', 'DOCUMENT');
 
 -- CreateEnum
 CREATE TYPE "VISIBILITY" AS ENUM ('EVERYONE', 'FREE_MEMBER', 'PAID_MEMBER');
@@ -57,6 +57,9 @@ CREATE TYPE "SUBSCRIPTION_TYPE" AS ENUM ('FREE', 'PAID');
 
 -- CreateEnum
 CREATE TYPE "PAYMENT_STATUS" AS ENUM ('CREATED', 'PAID', 'FAILED', 'PENDING');
+
+-- CreateEnum
+CREATE TYPE "PAYMENT_FREQUENCY" AS ENUM ('ONE_TIME', 'MONTHLY', 'YEARLY');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -101,6 +104,9 @@ CREATE TABLE "User" (
     "verificationCodeSource" "VERIFICATION_CODE_SOURCE",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "online" BOOLEAN NOT NULL DEFAULT false,
+    "fcmToken" TEXT,
+    "lastSeen" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -210,6 +216,7 @@ CREATE TABLE "UserPost" (
     "title" TEXT,
     "description" TEXT,
     "videoUrl" TEXT,
+    "document" TEXT,
     "visibility" "VISIBILITY" NOT NULL DEFAULT 'EVERYONE',
     "allowComments" BOOLEAN NOT NULL DEFAULT true,
     "pollId" INTEGER,
@@ -309,6 +316,8 @@ CREATE TABLE "Class" (
     "name" TEXT NOT NULL,
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "type" TEXT,
+    "price" INTEGER,
+    "paymentFrequency" "PAYMENT_FREQUENCY" NOT NULL DEFAULT 'ONE_TIME',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -319,9 +328,13 @@ CREATE TABLE "Class" (
 CREATE TABLE "ClassMessage" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
-    "message" TEXT NOT NULL,
+    "message" TEXT,
+    "image" TEXT,
+    "video" TEXT,
+    "document" TEXT,
     "isPinned" BOOLEAN NOT NULL DEFAULT false,
     "classId" INTEGER NOT NULL,
+    "repliedMessageId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -485,6 +498,9 @@ ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_userId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_repliedMessageId_fkey" FOREIGN KEY ("repliedMessageId") REFERENCES "ClassMessage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ClassParticipants" ADD CONSTRAINT "ClassParticipants_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
