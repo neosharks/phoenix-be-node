@@ -21,6 +21,8 @@ export const errorMessage = {
   NO_PAYMENT: "NO_PAYMENT",
   DATA_MISMATCH: "DATA_MISMATCH",
   SMS_ISSUE: "SMS_ISSUE",
+  CLASS_NOT_PAID: "CLASS_NOT_PAID",
+  CLASS_NOT_FOUND: "CLASS_NOT_FOUND",
 };
 
 export const errorCode = {
@@ -36,4 +38,5 @@ export const successMessages = {
   SUCCESS: "SUCCESS",
   FETCHED: "FETCHED",
   UPDATED: "UPDATED",
+  JOINED_CLASS: "JOINED_CLASS",
 };

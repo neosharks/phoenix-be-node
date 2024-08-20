@@ -47,8 +47,8 @@ class _ClassController {
         creatorId: id,
         isPaid,
         type: "NORMAL",
-        price,
-        paymentFrequency,
+        price: price || null,
+        paymentFrequency: paymentFrequency || null,
       });
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
@@ -91,7 +91,6 @@ class _ClassController {
         classId: Number(classId),
         userId: Number(participantId),
       });
-      console.log(addMember, "addMember");
       return res.status(200).send({ message: successMessages.CREATED, data: addMember });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -235,6 +234,52 @@ class _ClassController {
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async joinPaidClass(req: Request, res: Response) {
+    try {
+      const { id } = req.body;
+      const userId = res.locals.user.id;
+
+      if (!id) {
+        return res.status(400).send({ message: "Class ID is required" });
+      }
+
+      const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
+
+      if (!foundClass) {
+        return res.status(404).send({ message: "Class not found" });
+      }
+
+      if (!foundClass.isPaid) {
+        await ClassService.addClassParticipant({
+          classId: Number(id),
+          userId,
+        });
+        return res.status(200).send({ message: "Successfully joined the class" });
+      }
+
+      const patronCreator = await ClassService.getPatronCreatorSubscription(
+        userId,
+        foundClass.creatorId,
+      );
+
+      if (!patronCreator) {
+        return res
+          .status(403)
+          .send({ message: "You need an active subscription to join this class" });
+      }
+
+      await ClassService.addClassParticipant({
+        classId: Number(id),
+        userId,
+      });
+
+      return res.status(200).send({ message: "Successfully joined the class" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send({ message: "Internal server error" });
     }
   }
 }

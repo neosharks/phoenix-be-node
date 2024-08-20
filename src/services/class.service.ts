@@ -247,6 +247,16 @@ class _ClassService {
       throw error;
     }
   }
+
+  async getPatronCreatorSubscription(userId: number, creatorId: number) {
+    return await prisma.patronCreator.findFirst({
+      where: {
+        patronId: userId,
+        creatorId: creatorId,
+        status: "ACTIVE",
+      },
+    });
+  }
 }
 
 export const ClassService = new _ClassService();

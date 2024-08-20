@@ -7,6 +7,7 @@ import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
 import sendEmail from "../core/email.core";
+import { User } from "../../sequelize";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -255,6 +256,24 @@ class _UserController {
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const users = await User.findAll({});
+      res.json(users);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  async createUser(req: Request, res: Response) {
+    try {
+      const { name, email, password } = req.body;
+      const newUser = await User.create({ name, email, password });
+      res.json(newUser);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   }
 }

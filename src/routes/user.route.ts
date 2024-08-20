@@ -30,5 +30,6 @@ userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 
 userRoutes.delete("/delete", UserController.delete);
 userRoutes.get("/allUser", UserController.getAllTotalUser);
+userRoutes.post("/createUser", UserController.createUser);
 
 export default userRoutes;

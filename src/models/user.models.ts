@@ -1,4 +1,5 @@
-module.exports = (sequelize: any, DataTypes: any) => {
+import { Sequelize, DataTypes } from "sequelize";
+const initializeUserModel = (sequelize: Sequelize) => {
   const User = sequelize.define(
     "User",
     {
@@ -51,8 +52,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         defaultValue: false,
       },
       gender: {
-        type: DataTypes.ENUM,
-        values: ["MALE", "FEMALE", "OTHER"],
+        type: DataTypes.ENUM("MALE", "FEMALE", "OTHER"),
       },
       role: {
         type: DataTypes.ARRAY(DataTypes.ENUM("PATRON", "CREATOR", "ADMIN")),
@@ -63,8 +63,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         allowNull: true,
       },
       country: {
-        type: DataTypes.ENUM,
-        values: ["INDIA", "USA", "UK", "NEPAL", "SRI_LANKA", "BHUTAN", "PAKISTAN"],
+        type: DataTypes.ENUM("INDIA", "USA", "UK", "NEPAL", "SRI_LANKA", "BHUTAN", "PAKISTAN"),
         defaultValue: "INDIA",
       },
       dob: {
@@ -72,8 +71,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         allowNull: true,
       },
       industry: {
-        type: DataTypes.ENUM,
-        values: [
+        type: DataTypes.ENUM(
           "BEAUTY_AND_MAKEUP",
           "MUSIC",
           "COMEDY",
@@ -120,7 +118,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
           "ARTISANS_AND_CRAFTSMEN",
           "AUTOMOTIVE_AND_DIY_MECHANICS",
           "NICHE_HOBBIES",
-        ],
+        ),
       },
       onBoardingComplete: {
         type: DataTypes.BOOLEAN,
@@ -151,8 +149,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         allowNull: true,
       },
       creatorApprovalStatus: {
-        type: DataTypes.ENUM,
-        values: ["UNINITIATED", "PENDING", "APPROVED", "REJECTED"],
+        type: DataTypes.ENUM("UNINITIATED", "PENDING", "APPROVED", "REJECTED"),
         defaultValue: "UNINITIATED",
       },
       creatorChangeTimeStamp: {
@@ -160,8 +157,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM,
-        values: ["ACTIVE", "INACTIVE", "BANNED"],
+        type: DataTypes.ENUM("ACTIVE", "INACTIVE", "BANNED"),
         defaultValue: "ACTIVE",
       },
       password: {
@@ -211,8 +207,7 @@ module.exports = (sequelize: any, DataTypes: any) => {
         defaultValue: 0,
       },
       verificationCodeSource: {
-        type: DataTypes.ENUM,
-        values: ["SMS", "EMAIL", "CALL"],
+        type: DataTypes.ENUM("SMS", "EMAIL", "CALL"),
       },
       createdAt: {
         type: DataTypes.DATE,
@@ -241,12 +236,8 @@ module.exports = (sequelize: any, DataTypes: any) => {
   );
 
   // Associations
-  User.associate = (models: { Message: any; Chat: any }) => {
-    User.hasMany(models.Message, { foreignKey: "senderId" });
-    User.hasMany(models.Chat, { as: "participantOne", foreignKey: "participantOneId" });
-    User.hasMany(models.Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
-    // Add other associations here...
-  };
 
   return User;
 };
+
+export default initializeUserModel;

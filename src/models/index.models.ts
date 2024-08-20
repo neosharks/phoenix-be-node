@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
-import initializeUserModel from "./src/models/user.models";
+import initializeUserModel from "./user.models";
 
 dotenv.config();
 
@@ -25,4 +25,4 @@ export const connection = async () => {
   }
 };
 
-export { Sequelize, User };
+export { sequelize, User };

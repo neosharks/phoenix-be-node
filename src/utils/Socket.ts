@@ -25,7 +25,11 @@ const Socket = (io: any) => {
 
     socket.on("send_class_message", async (data: any) => {
       try {
-        if (!data.classId || !data.userId || (!data.message && !data.file)) {
+        if (
+          !data.classId ||
+          !data.userId ||
+          (!data.message && !data.image && !data.video && !data.document)
+        ) {
           console.error("Invalid data received:", data);
           socket.emit("error", { message: "Invalid data received" });
           return;
@@ -103,41 +107,6 @@ const Socket = (io: any) => {
     socket.on("leave_room", (classId: number) => {
       socket.leave(classId.toString());
       console.log(`User ${socket.id} left room ${classId}`);
-    });
-
-    socket.on("send_class_message", async (data: any) => {
-      const { classId, userId, message, replyTo, file } = data;
-      let fileUrl = null;
-
-      if (file) {
-        // Handle file upload to S3 or local storage and get the file URL
-        // For example purposes, assuming file is saved and URL is assigned to fileUrl
-      }
-
-      const newMessage = await prisma.classMessage.create({
-        data: {
-          userId,
-          message,
-          image: fileUrl, // You can choose to save the appropriate URL based on file type
-          classId,
-          replyToMessageId: replyTo,
-        },
-      });
-
-      io.to(classId).emit("receive_class_message", newMessage);
-    });
-
-    socket.on("update_message", async ({ messageId, isPinned }: any) => {
-      const updatedMessage = await prisma.classMessage.update({
-        where: { id: messageId },
-        data: { isPinned },
-      });
-
-      io.emit("message_updated", updatedMessage);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
     });
   });
 };

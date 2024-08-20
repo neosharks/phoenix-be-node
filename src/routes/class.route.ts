@@ -44,4 +44,6 @@ classRoutes.get(
 
 classRoutes.get("/getAllClassesForUser", checkRoleAuth(), ClassController.getAllClassesForUser);
 
+classRoutes.post("/joinPaidClass", checkRoleAuth(), ClassController.joinPaidClass);
+
 export default classRoutes;
