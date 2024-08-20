@@ -21,4 +21,5 @@ userRoutes.post("/updateProfileImage", (0, checkRoleAuth_middleware_1.checkRoleA
 userRoutes.post("/joinForFree", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), user_controller_1.UserController.joinForFree);
 userRoutes.delete("/delete", user_controller_1.UserController.delete);
 userRoutes.get("/allUser", user_controller_1.UserController.getAllTotalUser);
+userRoutes.post("/createUser", user_controller_1.UserController.createUser);
 exports.default = userRoutes;

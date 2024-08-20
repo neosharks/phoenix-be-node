@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
@@ -15,6 +18,7 @@ const api_constant_1 = require("../constant/api.constant");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
+const user_models_1 = __importDefault(require("../models/user.models"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -291,6 +295,29 @@ class _UserController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAllUsers(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const users = yield user_models_1.default.findAll({});
+                res.json(users);
+            }
+            catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        });
+    }
+    createUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { name, email, password } = req.body;
+                const newUser = yield user_models_1.default.create({ name, email, password });
+                res.json(newUser);
+            }
+            catch (err) {
+                res.status(500).json({ error: err.message });
             }
         });
     }

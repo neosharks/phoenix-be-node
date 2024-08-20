@@ -20,4 +20,5 @@ classRoutes.post("/updateSendMessage", (0, checkRoleAuth_middleware_1.checkRoleA
 classRoutes.get("/getAllMessagesOfClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllMessagesOfClass);
 classRoutes.get("/getAvailableParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAvailableParticipants);
 classRoutes.get("/getAllClassesForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllClassesForUser);
+classRoutes.post("/joinPaidClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.joinPaidClass);
 exports.default = classRoutes;

@@ -7,8 +7,7 @@ import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
 import sendEmail from "../core/email.core";
-import { User } from "../../sequelize";
-
+import User from "../models/user.models";
 class _UserController {
   async getUser(req: Request, res: Response) {
     try {

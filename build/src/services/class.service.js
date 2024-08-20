@@ -284,5 +284,16 @@ class _ClassService {
             }
         });
     }
+    getPatronCreatorSubscription(userId, creatorId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield prisma_1.default.patronCreator.findFirst({
+                where: {
+                    patronId: userId,
+                    creatorId: creatorId,
+                    status: "ACTIVE",
+                },
+            });
+        });
+    }
 }
 exports.ClassService = new _ClassService();

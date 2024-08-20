@@ -65,6 +65,9 @@ const Socket = (io: any) => {
             document: data.document || null,
             repliedMessageId: data.repliedMessageId || null,
           },
+          include: {
+            repliedMessage: true,
+          },
         });
 
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);

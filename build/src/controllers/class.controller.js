@@ -73,8 +73,8 @@ class _ClassController {
                     creatorId: id,
                     isPaid,
                     type: "NORMAL",
-                    price,
-                    paymentFrequency,
+                    price: price || null,
+                    paymentFrequency: paymentFrequency || null,
                 });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -118,7 +118,6 @@ class _ClassController {
                     classId: Number(classId),
                     userId: Number(participantId),
                 });
-                console.log(addMember, "addMember");
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED, data: addMember });
             }
             catch (error) {
@@ -268,6 +267,43 @@ class _ClassController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    joinPaidClass(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.body;
+                const userId = res.locals.user.id;
+                if (!id) {
+                    return res.status(400).send({ message: "Class ID is required" });
+                }
+                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(id) });
+                if (!foundClass) {
+                    return res.status(404).send({ message: "Class not found" });
+                }
+                if (!foundClass.isPaid) {
+                    yield class_service_1.ClassService.addClassParticipant({
+                        classId: Number(id),
+                        userId,
+                    });
+                    return res.status(200).send({ message: "Successfully joined the class" });
+                }
+                const patronCreator = yield class_service_1.ClassService.getPatronCreatorSubscription(userId, foundClass.creatorId);
+                if (!patronCreator) {
+                    return res
+                        .status(403)
+                        .send({ message: "You need an active subscription to join this class" });
+                }
+                yield class_service_1.ClassService.addClassParticipant({
+                    classId: Number(id),
+                    userId,
+                });
+                return res.status(200).send({ message: "Successfully joined the class" });
+            }
+            catch (error) {
+                console.error(error);
+                return res.status(500).send({ message: "Internal server error" });
             }
         });
     }
