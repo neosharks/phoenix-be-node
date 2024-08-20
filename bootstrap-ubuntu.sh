@@ -57,19 +57,6 @@ sudo ufw allow ssh
 sudo ufw allow http
 sudo ufw allow https
 
-# Install Certbot
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt update
-sudo apt install -y python3-certbot-nginx
-
-# Obtain and configure SSL certificates with Certbot
-sudo certbot --nginx -d qalakar.com -d www.qalakar.com
-
-# Test the renewal process
-sudo certbot renew --dry-run
-
-# Install Yarn globally
-sudo npm install -g yarn
 
 # Navigate to your project directory (replace /path/to/your/project with the actual path)
 cd /phoenix-be-node
@@ -81,7 +68,7 @@ yarn install
 yarn start
 
 # Ensure the application is managed by PM2
-pm2 start yarn --name "qalakar" -- start
+pm2 start npm --name "qalakar" -- start
 
 # Save the PM2 process list and corresponding environments
 pm2 save

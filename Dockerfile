@@ -2,16 +2,17 @@ FROM node:lts
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json package-lock.json ./
+
+RUN npm install --frozen-lockfile
 
 COPY . .
 
-RUN yarn build
+RUN npm run build-prod
 
 ENV NODE_ENV production
 
-RUN yarn global add prisma pm2
+RUN npm i -g prisma pm2
 
 RUN prisma generate
 
