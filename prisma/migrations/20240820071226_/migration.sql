@@ -327,14 +327,14 @@ CREATE TABLE "Class" (
 -- CreateTable
 CREATE TABLE "ClassMessage" (
     "id" SERIAL NOT NULL,
+    "classId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
     "message" TEXT,
     "image" TEXT,
     "video" TEXT,
     "document" TEXT,
-    "isPinned" BOOLEAN NOT NULL DEFAULT false,
-    "classId" INTEGER NOT NULL,
     "repliedMessageId" INTEGER,
+    "isPinned" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -494,10 +494,10 @@ ALTER TABLE "AllLinks" ADD CONSTRAINT "AllLinks_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "Class" ADD CONSTRAINT "Class_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ClassMessage" ADD CONSTRAINT "ClassMessage_repliedMessageId_fkey" FOREIGN KEY ("repliedMessageId") REFERENCES "ClassMessage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
