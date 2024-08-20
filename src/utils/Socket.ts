@@ -14,27 +14,94 @@ if (!firebase.apps.length) {
   firebase.app();
 }
 
-interface MessageData {
-  message: string;
-  classId: number;
-  userId: number;
-  image?: string;
-  video?: string;
-  document?: string;
-  replyToMessageId?: number | null;
-}
-
 const Socket = (io: any) => {
   io.on("connection", (socket: any) => {
     console.log("User connected:", socket.id);
 
-    socket.on("join_room", async (classId: any) => {
-      socket.join(classId);
+    socket.on("join_room", (classId: number) => {
+      socket.join(classId.toString());
       console.log(`User ${socket.id} joined room ${classId}`);
     });
 
-    socket.on("leave_room", (classId: any) => {
-      socket.leave(classId);
+    socket.on("send_class_message", async (data: any) => {
+      try {
+        if (!data.classId || !data.userId || (!data.message && !data.file)) {
+          console.error("Invalid data received:", data);
+          socket.emit("error", { message: "Invalid data received" });
+          return;
+        }
+
+        const findUser = await prisma.user.findUnique({
+          where: { id: data.userId },
+        });
+
+        if (!findUser) {
+          console.error("User not found:", data.userId);
+          socket.emit("error", { message: "User not found" });
+          return;
+        }
+
+        const classExists = await prisma.class.findUnique({
+          where: { id: data.classId },
+        });
+
+        if (!classExists) {
+          console.error("Class not found:", data.classId);
+          socket.emit("error", { message: "Class not found" });
+          return;
+        }
+
+        const createdMessage = await prisma.classMessage.create({
+          data: {
+            classId: data.classId,
+            userId: data.userId,
+            message: data.message,
+            image: data.image || null,
+            video: data.video || null,
+            document: data.document || null,
+            repliedMessageId: data.repliedMessageId || null,
+          },
+        });
+
+        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
+        sendNotification(createdMessage);
+      } catch (error) {
+        console.error("Error handling send_class_message event:", error);
+        socket.emit("error", { message: "An error occurred while sending the message" });
+      }
+    });
+
+    socket.on("update_message", async (data: { messageId: number; isPinned: boolean }) => {
+      try {
+        const updatedMessage = await prisma.classMessage.update({
+          where: { id: data.messageId },
+          data: { isPinned: data.isPinned },
+        });
+
+        io.to(updatedMessage.classId.toString()).emit("message_updated", {
+          messageId: updatedMessage.id,
+          isPinned: updatedMessage.isPinned,
+        });
+      } catch (error) {
+        console.error("Error updating message:", error);
+      }
+    });
+
+    socket.on("disconnect", async () => {
+      console.log("Socket disconnected:", socket.id);
+      const userId = socketIdToUserId.get(socket.id);
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { online: false },
+        });
+        socketIdToUserId.delete(socket.id);
+        io.emit("user_status_update", { userId, isOnline: false });
+      }
+    });
+
+    socket.on("leave_room", (classId: number) => {
+      socket.leave(classId.toString());
       console.log(`User ${socket.id} left room ${classId}`);
     });
 
