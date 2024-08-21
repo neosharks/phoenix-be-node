@@ -10,6 +10,7 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 import chatSocket from "./src/utils/Socket";
 import path from "path";
+require("./src/models/sequelize");
 
 process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
