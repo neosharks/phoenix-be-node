@@ -146,6 +146,7 @@ class _ClassService {
       return await prisma.classMessage.findMany({
         where: { classId: id },
         include: {
+          repliedMessage: true,
           user: {
             select: {
               firstName: true,
@@ -173,6 +174,21 @@ class _ClassService {
 
   async getAvailableParticipants(classId: number) {
     try {
+      const classData = await prisma.class.findUnique({
+        where: {
+          id: classId,
+        },
+        select: {
+          creatorId: true,
+        },
+      });
+
+      if (!classData) {
+        throw new Error("Class not found");
+      }
+
+      const creatorId = classData.creatorId;
+
       const allUsers = await prisma.user.findMany({
         select: {
           id: true,
@@ -191,7 +207,9 @@ class _ClassService {
       });
 
       const participantIds = participants.map((p) => p.userId);
-      const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+      const availableParticipants = allUsers.filter(
+        (user) => user.id !== creatorId && !participantIds.includes(user.id),
+      );
 
       return availableParticipants;
     } catch (error) {
