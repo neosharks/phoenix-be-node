@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import firebase from "firebase-admin";
 import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
-import { getObjectSignedUrl } from "../core/s3upload.core";
 
 const prisma = new PrismaClient();
 const socketIdToUserId = new Map<string, number>();
@@ -25,7 +24,11 @@ const Socket = (io: any) => {
 
     socket.on("send_class_message", async (data: any) => {
       try {
-        if (!data.classId || !data.userId || (!data.message && !data.file)) {
+        if (
+          !data.classId ||
+          !data.userId ||
+          (!data.message && !data.image && !data.video && !data.document)
+        ) {
           console.error("Invalid data received:", data);
           socket.emit("error", { message: "Invalid data received" });
           return;
@@ -60,6 +63,9 @@ const Socket = (io: any) => {
             video: data.video || null,
             document: data.document || null,
             repliedMessageId: data.repliedMessageId || null,
+          },
+          include: {
+            repliedMessage: true,
           },
         });
 
