@@ -211,7 +211,8 @@
         const replySection = document.querySelector("#replyingTo");
         const replyMessageText = document.querySelector("#replyMessageText");
         const cancelReplyButton = document.querySelector("#cancelReply");
-        const socket = io("http://localhost:3000");
+        // const socket = io("http://localhost:3000");
+        const socket = io("https://theprimeweb.in");
         let currentClassId = "";
         let replyMessageId = null;
         const userId = localStorage.getItem("userId") || 1;
