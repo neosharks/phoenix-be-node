@@ -146,6 +146,7 @@ class _ClassService {
       return await prisma.classMessage.findMany({
         where: { classId: id },
         include: {
+          repliedMessage: true,
           user: {
             select: {
               firstName: true,

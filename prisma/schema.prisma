@@ -296,7 +296,7 @@ model Class {
   isPaid            Boolean             @default(false)
   type              String?
   price             Int?
-  paymentFrequency  PAYMENT_FREQUENCY   @default(ONE_TIME)
+  paymentFrequency  PAYMENT_FREQUENCY?
   ClassParticipants ClassParticipants[]
   ClassMessage      ClassMessage[]
   createdAt         DateTime            @default(now())
@@ -316,7 +316,6 @@ model ClassMessage {
   isPinned         Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  // Define relationships
   class            Class          @relation(fields: [classId], references: [id])
   user             User           @relation(fields: [userId], references: [id])
   repliedMessage   ClassMessage?  @relation("MessageReplies", fields: [repliedMessageId], references: [id])
