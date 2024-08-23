@@ -1,9 +1,10 @@
 import prisma from "../../prisma";
-
+import AllLinks from "../models/allLinks.model";
+import User from "../models/user.model";
 class _UserService {
   async getOneUser(query: any) {
     try {
-      return await prisma.user.findUnique({ where: query });
+      return await User.findOne({ where: query });
     } catch (error) {
       throw error;
     }
@@ -11,9 +12,7 @@ class _UserService {
 
   async getAllLinks(query: any) {
     try {
-      return await prisma.allLinks.findMany({
-        where: query,
-      });
+      return await AllLinks.findAll({ where: query });
     } catch (error) {
       throw error;
     }
@@ -21,9 +20,7 @@ class _UserService {
 
   async createLink(data: any) {
     try {
-      return await prisma.allLinks.create({
-        data,
-      });
+      return await AllLinks.create(data);
     } catch (error) {
       throw error;
     }
@@ -31,21 +28,21 @@ class _UserService {
 
   async getAllUserByParams(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.user.findMany({
+      return await User.findAll({
         where: query,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          profileImage: true,
-          email: true,
-          username: true,
-          role: true,
-          industry: true,
-          coverImage: true,
-        },
-        skip,
-        take,
+        attributes: [
+          "id",
+          "firstName",
+          "lastName",
+          "profileImage",
+          "email",
+          "username",
+          "role",
+          "industry",
+          "coverImage",
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       throw error;
@@ -54,19 +51,19 @@ class _UserService {
 
   async getAllUser(skip: number = 0, take: number = 10) {
     try {
-      return await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          profileImage: true,
-          email: true,
-          username: true,
-          phoneNumber: true,
-          role: true,
-        },
-        skip,
-        take,
+      return await User.findAll({
+        attributes: [
+          "id",
+          "firstName",
+          "lastName",
+          "profileImage",
+          "email",
+          "username",
+          "phoneNumber",
+          "role",
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       throw error;
@@ -75,7 +72,7 @@ class _UserService {
 
   async getAllTotalUser() {
     try {
-      return await prisma.user.findMany();
+      return await User.findAll();
     } catch (error) {
       throw error;
     }
@@ -83,7 +80,7 @@ class _UserService {
 
   async createOneUser(data: any) {
     try {
-      return await prisma.user.create({ data: data });
+      return await User.create(data);
     } catch (error) {
       throw error;
     }
@@ -91,7 +88,7 @@ class _UserService {
 
   async updateOneUser(query: any, data: any) {
     try {
-      return await prisma.user.update({ where: query, data: data });
+      return await User.update(data, { where: query });
     } catch (error) {
       throw error;
     }
@@ -99,7 +96,7 @@ class _UserService {
 
   async deleteOneUser(id: any) {
     try {
-      return await prisma.user.delete({ where: { id } });
+      return await User.destroy({ where: { id } });
     } catch (error) {
       throw error;
     }

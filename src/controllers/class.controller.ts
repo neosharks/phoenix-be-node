@@ -91,6 +91,7 @@ class _ClassController {
         classId: Number(classId),
         userId: Number(participantId),
       });
+      console.log(addMember, "addMember");
       return res.status(200).send({ message: successMessages.CREATED, data: addMember });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -132,36 +133,6 @@ class _ClassController {
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
-    }
-  }
-
-  async sendMessage(req: Request, res: Response) {
-    try {
-      const { classId, participantId, message } = req.body;
-      const image = req.body?.image;
-      const video = req.body?.video;
-      const document = req.body?.document;
-      const { id } = res.locals.user;
-      const payload: any = { authorId: id };
-
-      if (!classId || !participantId || (!message && !image && !video && !document)) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
-
-      if (!message && !payload.image && !payload.video && !payload.document) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
-      await ClassService.addMessage({
-        ...payload,
-        userId: Number(participantId),
-        classId: Number(classId),
-        message: message || "",
-        isPinned: false,
-      });
-      return res.status(200).send({ message: successMessages.CREATED });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      return res.status(500).json({ error: "Internal server error" });
     }
   }
 
@@ -236,7 +207,6 @@ class _ClassController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
-
   async joinPaidClass(req: Request, res: Response) {
     try {
       const { id } = req.body;

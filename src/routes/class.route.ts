@@ -31,7 +31,6 @@ classRoutes.get(
   ClassController.getAllParticipantOfClass,
 );
 
-classRoutes.post("/sendMessage", checkRoleAuth(), ClassController.sendMessage);
 classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSendMessage);
 
 classRoutes.get("/getAllMessagesOfClass", checkRoleAuth(), ClassController.getAllMessagesOfClass);

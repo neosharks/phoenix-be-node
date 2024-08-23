@@ -8,6 +8,10 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";
 import { NotificationService } from "../services/notification.service";
+import UserPost from "../models/userPost.model";
+import User from "../models/user.model";
+import { sequelize } from "../models/sequelize";
+import Poll from "../models/poll.model";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -17,13 +21,13 @@ class _UserPostController {
       const take = Number(req.query.per_page) || 10;
       if (!author)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
       const foundUser = await UserService.getOneUser({ username: author });
       if (!foundUser)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+
       let returnPosts = await UserPostService.getAllUserPostByUser(
-        {
-          authorId: foundUser.id,
-        },
+        { authorId: foundUser.id },
         skip,
         take,
       );
@@ -49,9 +53,7 @@ class _UserPostController {
       for (let i = 0; i < foundPatronCreator.length; i++) {
         const ele = foundPatronCreator[i];
         const allPostsByUser = await UserPostService.getAllUserPostByUser(
-          {
-            authorId: ele.creatorId,
-          },
+          { authorId: ele.creatorId },
           skip,
           take,
         );
@@ -73,9 +75,8 @@ class _UserPostController {
 
       if (returnPosts.length === 0)
         return res.status(200).send({ message: errorMessage.NOT_FOUND });
-      returnPosts = returnPosts.sort(function (a: any, b: any) {
-        return b.updatedAt - a.updatedAt;
-      });
+
+      returnPosts = returnPosts.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
       return res.status(200).send({ message: successMessages.SUCCESS, data: returnPosts });
     } catch (error) {
       console.log("Error: ", error);
@@ -89,6 +90,7 @@ class _UserPostController {
     try {
       const { id } = req.query;
       if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
       const postId = parseInt(id as string, 10);
       const found = await UserPostService.getOneUserPost({ id: postId });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
@@ -115,37 +117,37 @@ class _UserPostController {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       }
 
-      const foundPost = await prisma.userPost.findUnique({
+      const foundPost = await UserPost.findOne({
         where: { id: postId },
-        include: {
-          likedBy: true, // Include likedBy for easy manipulation
-          author: true,
-        },
+        include: [
+          { model: User, as: "likedBy" },
+          { model: User, as: "author" },
+        ],
       });
 
       if (!foundPost) {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
       }
 
-      const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
+      const userIndex = foundPost.likedBy.findIndex((user: any) => user.id === id);
       if (userIndex === -1) {
-        await prisma.userPost.update({
-          where: { id: postId },
-          data: { likedBy: { connect: { id: id } } },
-        });
+        await UserPost.update(
+          { likedBy: sequelize.literal(`array_append(likedBy, ${id})`) },
+          { where: { id: postId } },
+        );
 
         await NotificationService.createOneNotification({
           aboutUserId: id,
           notifiedUserId: foundPost.authorId,
           message: ` have liked on your post`,
-          link: postId.toString(), // Ensure link is stringified if necessary
+          link: postId.toString(),
           type: "NEW_LIKE",
         });
       } else {
-        await prisma.userPost.update({
-          where: { id: postId },
-          data: { likedBy: { disconnect: { id: id } } },
-        });
+        await UserPost.update(
+          { likedBy: sequelize.literal(`array_remove(likedBy, ${id})`) },
+          { where: { id: postId } },
+        );
       }
 
       res.status(201).send({ message: successMessages.CREATED });
@@ -167,21 +169,27 @@ class _UserPostController {
       }
       if (!pollId || !selectedId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
+
+      const foundPoll = await Poll.findOne({ where: { id: pollId } });
       if (!foundPoll)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+
       const userIndex = foundPoll.selectedOptions.findIndex((user: any) => user.userId === id);
       if (userIndex === -1) {
-        await prisma.poll.update({
-          where: { id: pollId },
-          data: { selectedOptions: [...foundPoll.selectedOptions, { userId: id, selectedId }] },
-        });
+        await Poll.update(
+          {
+            selectedOptions: sequelize.literal(
+              `array_append(selectedOptions, {userId: ${id}, selectedId: ${selectedId}})`,
+            ),
+          },
+          { where: { id: pollId } },
+        );
       } else {
         foundPoll.selectedOptions[userIndex].selectedId = selectedId;
-        await prisma.poll.update({
-          where: { id: pollId },
-          data: { selectedOptions: [...foundPoll.selectedOptions] },
-        });
+        await Poll.update(
+          { selectedOptions: foundPoll.selectedOptions },
+          { where: { id: pollId } },
+        );
       }
       res.status(201).send({ message: successMessages.CREATED });
     } catch (error) {
@@ -201,9 +209,11 @@ class _UserPostController {
       }
       if (!postId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
       if (!foundPost)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+
       await UserPostService.updateOneUserPost({ id: postId }, updates);
       res.status(201).send({ message: successMessages.UPDATED });
     } catch (error) {
@@ -214,7 +224,7 @@ class _UserPostController {
     }
   }
 
-  async createOneUserPost(req: any, res: Response) {
+  async createOneUserPost(req: Request, res: Response) {
     try {
       const body = req.body;
       const { description, type, visibility, videoUrl, document, image, title, packages } = body;
@@ -230,10 +240,10 @@ class _UserPostController {
         (type === "VIDEO" && !videoUrl) ||
         (type === "DOCUMENT" && !document)
       )
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: "Missing parameters" });
 
       if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: "Missing parameters" });
 
       if (type === "POLL") {
         const { options } = req.body;
@@ -261,26 +271,20 @@ class _UserPostController {
         title,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
-      return res.status(201).send({ message: successMessages.CREATED, data: created });
+      return res.status(201).send({ message: "Created successfully", data: created });
     } catch (error) {
       console.error(error);
-      console.log("Error: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      return res.status(500).json({ message: "Internal server error", error: error });
     }
   }
 
-  async commentOnPostByUser(req: any, res: Response) {
+  async commentOnPostByUser(req: Request, res: Response) {
     try {
       const { description, authorId, userPostId } = req.body;
-      const validation = userPostSchema.validate(req.body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const { id } = res.locals.user;
       if (!description || !authorId || !userPostId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: "Missing parameters" });
+
       const created: any = await UserPostService.createOneComment({
         description,
         authorId,
@@ -289,38 +293,34 @@ class _UserPostController {
       await NotificationService.createOneNotification({
         aboutUserId: id,
         notifiedUserId: authorId,
-        message: `${created.firstName + " " + created.lastName} have commented on your post`,
+        message: `${created.firstName} ${created.lastName} commented on your post`,
         link: String(userPostId),
         type: "NEW_COMMENT",
       });
-      res.status(201).send({ message: successMessages.SUCCESS, data: created });
+      res.status(201).send({ message: "Comment added successfully", data: created });
     } catch (error) {
-      console.log("Error: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error", error: error });
     }
   }
 
-  async delete(req: any, res: Response) {
+  async delete(req: Request, res: Response) {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      if (!postId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!postId) return res.status(400).send({ message: "Missing parameters" });
+
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPost) return res.status(404).send({ message: "Post not found" });
+
       if (id !== foundPost.authorId) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_ALLOWED });
+        return res.status(403).send({ message: "Not allowed" });
       }
       await UserPostService.delete(postId);
-      res.status(201).send({ message: successMessages.SUCCESS });
+      res.status(200).send({ message: "Post deleted successfully" });
     } catch (error) {
-      console.log("Error: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error", error: error });
     }
   }
 }

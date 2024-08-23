@@ -1,57 +1,65 @@
 import prisma from "../../prisma";
+import UserPost from "../models/userPost.model";
+import PostComment from "../models/postComment.model";
+import Poll from "../models/poll.model";
+import User from "../models/user.model";
 
 class _UserPostService {
   async getAllUserPostByUser(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.userPost.findMany({
+      return await UserPost.findAll({
         where: query,
-        include: {
-          poll: true,
-          packages: true,
-          class: true,
-          comments: {
-            select: {
-              description: true,
-              createdAt: true,
-              updatedAt: true,
-              author: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  email: true,
-                  username: true,
-                  role: true,
-                },
+        include: [
+          "poll",
+          "packages",
+          "class",
+          {
+            model: "PostComment",
+            attributes: ["description", "createdAt", "updatedAt"],
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "firstName",
+                  "lastName",
+                  "profileImage",
+                  "email",
+                  "username",
+                  "role",
+                ],
               },
-            },
+            ],
           },
-          likedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+          {
+            model: User,
+            as: "likedBy",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-          author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+          {
+            model: User,
+            as: "author",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-        },
-        skip,
-        take,
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       throw error;
@@ -60,26 +68,20 @@ class _UserPostService {
 
   async getOneUserPost(query: any) {
     try {
-      return await prisma.userPost.findUnique({
+      return await UserPost.findOne({
         where: query,
-        include: {
-          comments: {
-            include: {
-              author: true,
-            },
+        include: [
+          {
+            model: "PostComment",
+            include: [{ model: User }],
           },
-          author: true,
-          likedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-            },
+          { model: User, as: "author" },
+          {
+            model: "User",
+            as: "likedBy",
+            attributes: ["id", "firstName", "lastName", "profileImage", "email", "username"],
           },
-        },
+        ],
       });
     } catch (error) {
       throw error;
@@ -88,7 +90,7 @@ class _UserPostService {
 
   async updateOneUserPost(query: any, data: any) {
     try {
-      return await prisma.userPost.update({ where: query, data: data });
+      return await UserPost.update(data, { where: query });
     } catch (error) {
       throw error;
     }
@@ -109,37 +111,35 @@ class _UserPostService {
         pollId,
         packages,
       } = dataValues;
-      const packagesToConnect = Array.isArray(packages) ? packages.map((id: any) => ({ id })) : [];
-
-      return await prisma.userPost.create({
-        data: {
-          description,
-          authorId,
-          title,
-          type,
-          image,
-          visibility,
-          allowComments,
-          videoUrl,
-          document,
-          pollId,
-          packages: { connect: packagesToConnect },
-        },
-        include: {
-          likedBy: true,
-          comments: true,
-          author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+      return await UserPost.create({
+        description,
+        authorId,
+        title,
+        type,
+        image,
+        visibility,
+        allowComments,
+        videoUrl,
+        document,
+        pollId,
+        packages: { connect: packages.map((id: any) => ({ id })) },
+        include: [
+          "likedBy",
+          "comments",
+          {
+            model: User,
+            as: "author",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-        },
+        ],
       });
     } catch (error) {
       throw error;
@@ -149,21 +149,24 @@ class _UserPostService {
   async createOneComment(dataValues: any) {
     const { description, authorId, userPostId } = dataValues;
     try {
-      return await prisma.postComment.create({
-        data: { description, authorId, userPostId },
-        include: {
-          author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+      return await PostComment.create({
+        description,
+        authorId,
+        userPostId,
+        include: [
+          {
+            model: User,
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-        },
+        ],
       });
     } catch (error) {
       throw error;
@@ -172,7 +175,7 @@ class _UserPostService {
 
   async createPoll(data: any) {
     try {
-      return await prisma.poll.create({ data });
+      return await Poll.create({ data });
     } catch (error) {
       throw error;
     }
@@ -180,7 +183,7 @@ class _UserPostService {
 
   async getOnePoll(query: any) {
     try {
-      return await prisma.poll.findUnique({
+      return await Poll.findOne({
         where: query,
       });
     } catch (error) {
@@ -190,7 +193,7 @@ class _UserPostService {
 
   async updateOnePoll(query: any, data: any) {
     try {
-      return await prisma.poll.update({ where: query, data: data });
+      return await Poll.update(data, { where: query });
     } catch (error) {
       throw error;
     }
@@ -198,12 +201,11 @@ class _UserPostService {
 
   async delete(postId: any) {
     try {
-      await prisma.postComment.deleteMany({ where: { userPostId: postId } });
-      return await prisma.userPost.delete({ where: { id: postId } });
+      await PostComment.destroy({ where: { userPostId: postId } });
+      return await UserPost.destroy({ where: { id: postId } });
     } catch (error) {
       throw error;
     }
   }
 }
-
 export const UserPostService = new _UserPostService();

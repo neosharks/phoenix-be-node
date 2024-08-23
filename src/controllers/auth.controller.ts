@@ -110,7 +110,6 @@ class _AuthController {
       }
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       if (foundUser) {
-        //Fix this
         const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
         if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
           const fiveMinutesAgo = new Date();
@@ -216,7 +215,6 @@ class _AuthController {
         "FORGET_PASSWORD",
         {
           code,
-          name: `${foundUser.username}`,
         },
       );
       return res.status(200).json({ message: successMessages.SUCCESS, email });
@@ -231,9 +229,9 @@ class _AuthController {
   async requestEmailOtp(req: Request, res: Response) {
     try {
       const { email } = req.body;
-      const validation = forgetPasswordSchema.validate(email);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
+      const { error } = forgetPasswordSchema.validate({ email });
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
       }
       if (!email)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
@@ -254,7 +252,6 @@ class _AuthController {
         "FORGET_PASSWORD",
         {
           code,
-          name: `${foundUser.username}`,
         },
       );
       return res.status(200).json({ message: successMessages.SUCCESS, email });
@@ -269,28 +266,28 @@ class _AuthController {
   async verifyForgetPassword(req: Request, res: Response) {
     try {
       const { email, code, password } = req.body;
-      console.log(email, code, password);
-      const validation = verifyForgetPasswordSchema.validate({ email, code, password });
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
+      const { error } = verifyForgetPasswordSchema.validate({ email, code, password });
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
       }
       if (!email || !code || !password)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
-      const foundUser: any = await UserService.getOneUser({ email });
+      const foundUser = await UserService.getOneUser({
+        email,
+        verificationCode: code,
+        verificationCodeSource: "EMAIL",
+      });
       if (!foundUser)
         return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
-      if (parseInt(foundUser.verificationCode) !== parseInt(code))
-        return res.status(errorCode.UNAUTHORISED).json({ message: errorMessage.INCORRECT_DATA });
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(password, salt);
       await UserService.updateOneUser(
-        { email },
+        { id: foundUser.id },
         {
           password: hash,
           verificationCode: null,
           verificationCodeSource: null,
-          verificationCodeTimestamp: null,
         },
       );
       return res.status(200).json({ message: successMessages.UPDATED });
@@ -309,24 +306,25 @@ class _AuthController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      const { password, id } = res.locals.user;
-      if (!oldPassword || !newPassword)
-        return res.status(errorCode.GENERIC).json({ message: errorMessage.MISSING_PARAMS });
-      if (!password) return res.status(403).json({ message: errorMessage.WRONG_AUTH_METHOD });
-      let isMatch = false;
-      isMatch = await bcrypt.compareSync(oldPassword, password);
-      if (!isMatch) return res.status(403).json({ message: errorMessage.INCORRECT_PASSWORD });
+      const { id } = res.locals.user; // Assuming the user ID is stored in the request object
+      const foundUser = await UserService.getOneUser({ id: id });
+      if (!foundUser) {
+        return res.status(404).json({ message: errorMessage.NOT_FOUND });
+      }
+      const isMatch = await bcrypt.compareSync(oldPassword, foundUser.password);
+      if (!isMatch) {
+        return res.status(403).json({ message: errorMessage.INCORRECT_PASSWORD });
+      }
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(newPassword, salt);
-      await UserService.updateOneUser({ id }, { password: hash });
-      const accessToken = await signJwt(res.locals.user);
-      return res.status(200).json({ message: successMessages.SUCCESS, accessToken });
+      await UserService.updateOneUser({ id: id }, { password: hash });
+      return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 

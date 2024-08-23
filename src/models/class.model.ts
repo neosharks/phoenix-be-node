@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
 import ClassParticipants from "./classParticipants.model";
@@ -28,11 +28,17 @@ const Class = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    type: DataTypes.STRING,
-    price: DataTypes.INTEGER,
+    type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    price: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     paymentFrequency: {
       type: DataTypes.ENUM("ONE_TIME", "MONTHLY", "YEARLY"),
-      defaultValue: "ONE_TIME",
+      allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -49,9 +55,10 @@ const Class = sequelize.define(
   },
 );
 
+// Associations
 // Class.belongsTo(User, { foreignKey: "creatorId" });
-Class.hasMany(ClassParticipants, { foreignKey: "classId" });
-Class.hasMany(ClassMessage, { foreignKey: "classId" });
-Class.hasMany(UserPost, { foreignKey: "classId" });
+Class.hasMany(ClassParticipants, { foreignKey: "classId", as: "participants" });
+Class.hasMany(ClassMessage, { foreignKey: "classId", as: "messages" });
+Class.hasMany(UserPost, { foreignKey: "classId", as: "posts" });
 
 export default Class;

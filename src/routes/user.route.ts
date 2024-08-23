@@ -1,7 +1,6 @@
 import express from "express";
 import { UserController } from "../controllers/user.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
-import { uploadFileMiddleware } from "../core/s3upload.core";
 import { userRole } from "../constant/role.constant";
 
 const userRoutes = express.Router();
@@ -30,6 +29,5 @@ userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 
 userRoutes.delete("/delete", UserController.delete);
 userRoutes.get("/allUser", UserController.getAllTotalUser);
-userRoutes.post("/createUser", UserController.createUser);
 
 export default userRoutes;

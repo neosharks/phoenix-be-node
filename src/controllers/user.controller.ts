@@ -7,19 +7,18 @@ import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
 import sendEmail from "../core/email.core";
-import User from "../models/user.model";
 class _UserController {
   async getUser(req: Request, res: Response) {
     try {
       const id = res.locals.user.id;
       const found = await UserService.getOneUser({ id });
-      if (!found) return res.status(400).send({ message: errorMessage.NOT_FOUND });
-      return res.status(201).send({ message: successMessages.SUCCESS, user: found });
+      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+      return res.status(200).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in getUser:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
@@ -28,15 +27,17 @@ class _UserController {
       const { username } = req.params;
       if (!username || typeof username !== "string")
         return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
       const found = await UserService.getOneUser({ username });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+
       const allLinks = await UserService.getAllLinks({ id: found.id });
       return res.status(200).send({ message: successMessages.SUCCESS, allLinks });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in getAllLinks:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
@@ -44,30 +45,35 @@ class _UserController {
     try {
       const { url, platform, highlight } = req.body;
       const { id } = res.locals.user;
-      if (!url) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
+      if (!url) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
       await UserService.createLink({ userId: id, url, platform, highlight });
-      return res.status(200).json({ message: successMessages.CREATED });
+      return res.status(201).json({ message: successMessages.CREATED });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in createLink:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
   async getUserByUsername(req: Request, res: Response) {
     try {
       const { username } = req.params;
+
       if (!username || typeof username !== "string")
         return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
       const found = await UserService.getOneUser({ username });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+
       return res.status(200).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in getUserByUsername:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
@@ -76,46 +82,49 @@ class _UserController {
       const { id } = res.locals.user;
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
       const take = Number(req.query.per_page) || 10;
+
       let found = await UserService.getAllUserByParams({ isCreator: true }, skip, take);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      found = found.filter((ele) => ele.id !== id);
+
+      found = found.filter((ele: any) => ele.id !== id);
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in getAllCreator:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
   async updateCoverImage(req: Request, res: Response) {
     try {
-      const image = req.body.image;
-      let update: any = {};
-      if (image) update.coverImage = image;
-      console.log(update, "sdfg");
+      const { image } = req.body;
+      if (!image) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
+      const update = { coverImage: image };
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in updateCoverImage:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
   async updateProfileImage(req: Request, res: Response) {
     try {
-      const image = req.body.image;
-      let update: any = {};
-      if (image) update.profileImage = image;
+      const { image } = req.body;
+      if (!image) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
+      const update = { profileImage: image };
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in updateProfileImage:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
@@ -125,38 +134,42 @@ class _UserController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      const image = req.body.image;
-      if (image) req.body.profileImage = image;
-      await UserService.updateOneUser({ id: res.locals.user.id }, req.body);
+
+      const { image } = req.body;
+      const update = image ? { ...req.body, profileImage: image } : req.body;
+
+      await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in update:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
   async joinForFree(req: Request, res: Response) {
     try {
-      const { user } = res.locals;
       const { creatorId } = req.body;
-      if (!creatorId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!creatorId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
+      const { user } = res.locals;
       const foundPatronCreator = await PatronCreatorService.getFirst({
         creatorId,
         patronId: user.id,
         type: "FREE",
       });
+
       if (foundPatronCreator)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.REDUNDANT_REQUEST });
-      await PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
-      return res.status(200).json({ message: successMessages.UPDATED });
+        return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
+
+      await PackageService.linkPatronCreator(user.id, creatorId, "FREE");
+      return res.status(201).json({ message: successMessages.UPDATED });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("Error in joinForFree:", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error });
     }
   }
 
@@ -255,24 +268,6 @@ class _UserController {
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
-    }
-  }
-  async getAllUsers(req: Request, res: Response) {
-    try {
-      const users = await User.findAll({});
-      res.json(users);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  }
-
-  async createUser(req: Request, res: Response) {
-    try {
-      const { name, email, password } = req.body;
-      const newUser = await User.create({ name, email, password });
-      res.json(newUser);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
     }
   }
 }

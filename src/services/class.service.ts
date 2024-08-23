@@ -1,55 +1,65 @@
-import prisma from "../../prisma";
+import { db } from "../models/sequelize";
+const { ClassParticipants, User, ClassMessage, PatronCreator } = db;
+import Class from "../models/class.model";
+
 class _ClassService {
   async getOneClassByProps(query: any) {
     try {
-      return await prisma.class.findUnique({
+      return await Class.findOne({
         where: query,
-        include: {
-          ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+        include: [
+          { model: ClassParticipants },
+          {
+            model: User,
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
           },
-        },
+        ],
       });
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async getAllClassesByProps(query: any) {
     try {
-      return await prisma.class.findMany({
+      return await Class.findAll({
         where: query,
       });
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async getAllClassesByCreatorId(id: any) {
     try {
-      return await prisma.class.findMany({
+      return await Class.findAll({
         where: { creatorId: parseInt(id) },
-        include: {
-          ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+        include: [
+          {
+            model: ClassParticipants,
           },
-        },
+          {
+            model: User,
+            as: "creator",
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
+          },
+        ],
       });
     } catch (error) {
       console.error(error);
@@ -58,30 +68,25 @@ class _ClassService {
 
   async createClass(data: any) {
     try {
-      return await prisma.class.create({
-        data: data,
-      });
+      return await Class.create(data);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async addClassParticipant(data: any) {
     try {
-      return await prisma.classParticipants.create({
-        data: data,
-      });
+      return await ClassParticipants.create(data);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async addMultipleParticipants(participantsData: any[]) {
     try {
-      return await prisma.classParticipants.createMany({
-        data: participantsData,
-        skipDuplicates: true,
-      });
+      return await ClassParticipants.bulkCreate(participantsData, { ignoreDuplicates: true });
     } catch (error) {
       console.error(error);
       throw error;
@@ -90,108 +95,87 @@ class _ClassService {
 
   async updateClassByProps(query: any, data: any) {
     try {
-      return await prisma.class.update({
+      return await Class.update(data, {
         where: query,
-        data: data,
       });
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async getAllParticipantOfClass(id: number) {
     try {
-      return await prisma.classParticipants.findMany({
+      return await ClassParticipants.findAll({
         where: { classId: id },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+        include: [
+          {
+            model: User,
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
           },
-        },
+        ],
       });
     } catch (error) {
       console.error(error);
-    }
-  }
-
-  async addMessage(dataValues: any) {
-    try {
-      const { classId, userId, message, image, isPinned, video, document } = dataValues;
-
-      return await prisma.classMessage.create({
-        data: {
-          classId,
-          userId,
-          message,
-          isPinned,
-          image,
-          video,
-          document,
-        },
-      });
-    } catch (error) {
-      console.error(error);
+      throw error;
     }
   }
 
   async getAllMessagesOfClass(id: number) {
     try {
-      return await prisma.classMessage.findMany({
+      return await ClassMessage.findAll({
         where: { classId: id },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+        include: [
+          {
+            model: User,
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
           },
-        },
+        ],
       });
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
   async updateSendMessage(query: any, data: any) {
     try {
-      return await prisma.classMessage.update({ where: query, data: data });
+      return await ClassMessage.update(data, {
+        where: query,
+      });
     } catch (error) {
+      console.error(error);
       throw error;
     }
   }
 
   async getAvailableParticipants(classId: number) {
     try {
-      const allUsers = await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          profileImage: true,
-          username: true,
-          email: true,
-          phoneNumber: true,
-        },
-      });
+      const allUsers = await User.findAll();
 
-      const participants = await prisma.classParticipants.findMany({
+      const participants = await ClassParticipants.findAll({
         where: { classId },
-        select: { userId: true },
+        attributes: ["userId"],
       });
 
-      const participantIds = participants.map((p) => p.userId);
-      const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+      const participantIds = participants.map((p: any) => p.userId);
+      const availableParticipants = allUsers.filter(
+        (user: any) => !participantIds.includes(user.id),
+      );
 
       return availableParticipants;
     } catch (error) {
@@ -200,62 +184,67 @@ class _ClassService {
     }
   }
 
-  async getAllClassesForUser(id: number) {
+  async getAllClassesForUser(userId: number) {
     try {
-      const createdClasses = await prisma.class.findMany({
-        where: { creatorId: id },
-        include: {
-          ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+      const createdClasses = await Class.findAll({
+        where: { creatorId: userId },
+        include: [
+          { model: ClassParticipants, as: "participants" },
+          {
+            model: User,
+            as: "creator",
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
           },
-        },
+        ],
       });
 
-      const participatedClasses = await prisma.class.findMany({
-        where: {
-          ClassParticipants: {
-            some: {
-              userId: id,
-            },
+      const participatedClasses = await Class.findAll({
+        include: [
+          {
+            model: ClassParticipants,
+            as: "participants",
+            where: { userId: userId },
           },
-        },
-        include: {
-          ClassParticipants: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+          {
+            model: User,
+            as: "creator",
+            attributes: [
+              "firstName",
+              "lastName",
+              "profileImage",
+              "username",
+              "email",
+              "phoneNumber",
+            ],
           },
-        },
+        ],
       });
+
       return { createdClasses, participatedClasses };
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
-
   async getPatronCreatorSubscription(userId: number, creatorId: number) {
-    return await prisma.patronCreator.findFirst({
-      where: {
-        patronId: userId,
-        creatorId: creatorId,
-        status: "ACTIVE",
-      },
-    });
+    try {
+      return await PatronCreator.findOne({
+        where: {
+          patronId: userId,
+          creatorId: creatorId,
+          status: "ACTIVE",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
 
