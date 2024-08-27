@@ -1,7 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
-import Class from "./class.model";
-import User from "./user.model";
 
 const ClassMessage = sequelize.define(
   "ClassMessage",
@@ -55,9 +53,6 @@ const ClassMessage = sequelize.define(
   },
 );
 
-// ClassMessage.belongsTo(Class, { foreignKey: "classId" });
-// ClassMessage.belongsTo(User, { foreignKey: "userId" });
-// ClassMessage.belongsTo(ClassMessage, { as: "repliedMessage", foreignKey: "repliedMessageId" });
-ClassMessage.hasMany(ClassMessage, { as: "replies", foreignKey: "repliedMessageId" });
+// Associations complete
 
 export default ClassMessage;

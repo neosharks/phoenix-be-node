@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { UserPostService } from "../services/userPost.service";
 import { UserService } from "../services/user.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
-import prisma from "../../prisma";
-import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";

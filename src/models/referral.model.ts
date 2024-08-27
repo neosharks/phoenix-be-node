@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import Payment from "./payment.model";
 
 const Referral = sequelize.define(
   "Referral",
@@ -51,8 +49,5 @@ const Referral = sequelize.define(
 );
 
 // Associations
-// Referral.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-// Referral.belongsTo(User, { as: "user", foreignKey: "userId" });
-// Referral.belongsTo(Payment, { foreignKey: "paymentId" });
 
 export default Referral;

@@ -1,8 +1,8 @@
-import prisma from "../../prisma";
+import Payment from "../models/payment.model";
 class _PaymentService {
   async getAllPaymentByProps(query: any) {
     try {
-      return await prisma.payment.findMany({ where: query });
+      return await Payment.findAll({ where: query });
     } catch (error) {
       throw error;
     }
@@ -10,7 +10,7 @@ class _PaymentService {
 
   async getOnePaymentByProps(query: any) {
     try {
-      return await prisma.payment.findUnique({ where: query });
+      return await Payment.findOne({ where: query });
     } catch (error) {
       console.error(error);
       throw error;
@@ -20,14 +20,12 @@ class _PaymentService {
   async createOnePayment(dataValues: any) {
     try {
       const { userId, orderId, packageId, amount, currency } = dataValues;
-      return await prisma.payment.create({
-        data: {
-          userId,
-          orderId,
-          packageId,
-          amount,
-          currency,
-        },
+      return await Payment.create({
+        userId,
+        orderId,
+        packageId,
+        amount,
+        currency,
       });
     } catch (error) {
       console.error(error);
@@ -37,7 +35,7 @@ class _PaymentService {
 
   async updateOneByProps(query: any, data: any) {
     try {
-      return await prisma.payment.update({ where: query, data: data });
+      return await Payment.update(data, { where: query });
     } catch (error) {
       console.error(error);
       throw error;

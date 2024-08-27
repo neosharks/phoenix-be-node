@@ -1,7 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import Payment from "./payment.model";
 
 const WalletTransactions = sequelize.define(
   "WalletTransactions",
@@ -44,7 +42,6 @@ const WalletTransactions = sequelize.define(
   },
 );
 
-// WalletTransactions.belongsTo(User, { foreignKey: "userId" });
-// WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
+// Associate completed
 
 export default WalletTransactions;

@@ -1,16 +1,12 @@
-import prisma from "../../prisma";
+import PatronCreator from "../models/patronCreator.model";
 class _InsightService {
   async getAllPackagesOfCreator(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.patronCreator.findMany({
+      return await PatronCreator.findAll({
         where: query,
-        orderBy: [
-          {
-            createdAt: "asc",
-          },
-        ],
-        skip,
-        take,
+        order: [["createdAt", "ASC"]],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       console.error(error);

@@ -1,8 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import ClassParticipants from "./classParticipants.model";
-import ClassMessage from "./classMessage.model";
 import UserPost from "./userPost.model";
 
 const Class = sequelize.define(
@@ -55,10 +52,7 @@ const Class = sequelize.define(
   },
 );
 
-// Associations
-// Class.belongsTo(User, { foreignKey: "creatorId" });
-Class.hasMany(ClassParticipants, { foreignKey: "classId", as: "participants" });
-Class.hasMany(ClassMessage, { foreignKey: "classId", as: "messages" });
-Class.hasMany(UserPost, { foreignKey: "classId", as: "posts" });
+// Associations complete
+UserPost.belongsTo(Class, { foreignKey: "classId" });
 
 export default Class;

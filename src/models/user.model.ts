@@ -1,17 +1,13 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
-import Package from "./package.model";
 import Message from "./message.model";
 import Chat from "./chat.model";
 import Notification from "./notification.model";
 import PatronCreator from "./patronCreator.model";
 import UserPost from "./userPost.model";
 import PostComment from "./postComment.model";
-import Poll from "./poll.model";
-import Payment from "./payment.model";
 import ClickStream from "./clickStream.model";
 import WalletTransactions from "./walletTransactions.model";
-import AllLinks from "./allLinks.model";
 import Class from "./class.model";
 import ClassMessage from "./classMessage.model";
 import ClassParticipants from "./classParticipants.model";
@@ -185,26 +181,77 @@ const User = sequelize.define(
 );
 
 // // Define associations
-// User.hasMany(Package);
-// User.hasMany(Message);
-// User.hasMany(Chat, { as: "participantOne", foreignKey: "participantOneId" });
-// User.hasMany(Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
-// User.hasMany(Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
-// User.hasMany(Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
-// User.hasMany(Poll);
-// User.hasMany(PatronCreator, { as: "creatorId", foreignKey: "creatorId" });
-// User.hasMany(PatronCreator, { as: "patronId", foreignKey: "patronId" });
-// User.hasMany(PostComment);
-// User.hasMany(UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
-// User.hasMany(UserPost, { as: "likedByUser", foreignKey: "authorId" });
-// User.hasMany(Payment);
-// User.hasMany(ClickStream);
-// User.hasMany(WalletTransactions);
-// User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
-// User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
-// User.hasMany(AllLinks);
-User.hasMany(ClassParticipants);
+User.hasMany(Chat, { as: "participantOne", foreignKey: "participantOneId" });
+User.hasMany(Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
+User.hasMany(Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
+User.hasMany(Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+User.hasMany(UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
+User.hasMany(UserPost, { as: "likedByUser", foreignKey: "authorId" });
+User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
+User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
+User.hasMany(PostComment);
+
+//ClickStream associate
+ClickStream.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(ClickStream);
+
 User.hasMany(ClassMessage);
 User.hasMany(Class);
+User.hasMany(ClassParticipants);
+ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
+Class.hasMany(ClassParticipants, { foreignKey: "classId" });
+ClassParticipants.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(ClassParticipants, { foreignKey: "userId" });
+
+// Class Associate
+Class.belongsTo(User, { foreignKey: "creatorId" });
+User.hasMany(ClassParticipants, { foreignKey: "userId" });
+Class.hasMany(ClassParticipants, { foreignKey: "classId" });
+Class.hasMany(ClassParticipants, { foreignKey: "classId", as: "participants" });
+Class.hasMany(ClassMessage, { foreignKey: "classId", as: "messages" });
+Class.hasMany(UserPost, { foreignKey: "classId", as: "posts" });
+
+// ClassParticipants associate
+ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
+ClassParticipants.belongsTo(User, { foreignKey: "userId" });
+
+//Chat associate
+Chat.belongsTo(User, { as: "participantOne", foreignKey: "participantOneId" });
+Chat.belongsTo(User, { as: "participantTwo", foreignKey: "participantTwoId" });
+Chat.hasMany(Message, { foreignKey: "chatId", onDelete: "CASCADE" });
+
+// ClassMessage associate
+ClassMessage.belongsTo(Class, { foreignKey: "classId" });
+ClassMessage.belongsTo(User, { foreignKey: "userId" });
+ClassMessage.belongsTo(ClassMessage, { as: "repliedMessage", foreignKey: "repliedMessageId" });
+ClassMessage.hasMany(ClassMessage, { as: "replies", foreignKey: "repliedMessageId" });
+
+//Message associate
+User.hasMany(Message);
+Message.belongsTo(Chat, { foreignKey: "chatId" });
+Message.belongsTo(User, { as: "sender", foreignKey: "senderId" });
+
+//Notification associate
+Notification.belongsTo(User, { as: "aboutUser", foreignKey: "aboutUserId" });
+Notification.belongsTo(User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+
+//PatronCreator associate
+PatronCreator.belongsTo(User, { as: "patron", foreignKey: "patronId" });
+PatronCreator.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
+User.hasMany(PatronCreator, { as: "creatorId", foreignKey: "creatorId" });
+User.hasMany(PatronCreator, { as: "patronId", foreignKey: "patronId" });
+
+//PostComment associate
+PostComment.belongsTo(User, { as: "author", foreignKey: "authorId" });
+PostComment.belongsTo(UserPost, { foreignKey: "userPostId" });
+
+//Referral associate
+Referral.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
+Referral.belongsTo(User, { as: "user", foreignKey: "userId" });
+
+UserPost.belongsTo(User, { as: "author", foreignKey: "authorId" });
+UserPost.belongsToMany(User, { through: "LikedBy", as: "likedBy" });
+
+WalletTransactions.belongsTo(User, { foreignKey: "userId" });
 
 export default User;

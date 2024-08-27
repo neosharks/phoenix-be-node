@@ -54,8 +54,10 @@ const Poll = sequelize.define(
   },
 );
 
-// Associations
-// Poll.belongsTo(User, { as: "author", foreignKey: "authorId" });
+// Associations complete
+Poll.belongsTo(User, { as: "author", foreignKey: "authorId" });
+User.hasMany(Poll, { as: "author", foreignKey: "authorId" });
 Poll.hasMany(UserPost, { foreignKey: "pollId" });
+UserPost.belongsTo(Poll, { foreignKey: "pollId" });
 
 export default Poll;

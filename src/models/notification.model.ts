@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
 
 const Notification = sequelize.define(
   "Notification",
@@ -70,8 +69,6 @@ const Notification = sequelize.define(
   },
 );
 
-// Associations
-// Notification.belongsTo(User, { as: "aboutUser", foreignKey: "aboutUserId" });
-// Notification.belongsTo(User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+// Associations complete
 
 export default Notification;

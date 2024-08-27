@@ -1,27 +1,24 @@
-import prisma from "../../prisma";
+import Notification from "../models/notification.model";
 import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
 
 class _NotificationService {
   async getAllNotificationOfUser(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.notification.findMany({
+      return await Notification.findAll({
         where: query,
-        include: {
-          aboutUser: {
-            select: {
-              profileImage: true,
-              firstName: true,
-              lastName: true,
-              username: true,
-            },
+        include: [
+          {
+            model: "User",
+            as: "aboutUser",
+            attributes: ["profileImage", "firstName", "lastName", "username"],
           },
-        },
-        skip,
-        take,
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -29,11 +26,16 @@ class _NotificationService {
   async createOneNotification(dataValues: any) {
     try {
       const { aboutUserId, notifiedUserId, message, link, type } = dataValues;
-      return prisma.notification.create({
-        data: { aboutUserId, notifiedUserId, message, read: false, link, type },
+      return await Notification.create({
+        aboutUserId,
+        notifiedUserId,
+        message,
+        read: false,
+        link,
+        type,
       });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }
@@ -41,16 +43,9 @@ class _NotificationService {
   async markAllAsRead(dataValues: any) {
     try {
       const { id } = dataValues;
-      return prisma.notification.updateMany({
-        where: {
-          notifiedUserId: id,
-        },
-        data: {
-          read: true,
-        },
-      });
+      return await Notification.update({ read: true }, { where: { notifiedUserId: id } });
     } catch (error) {
-      console.log("ERROR: ", error);
+      logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }

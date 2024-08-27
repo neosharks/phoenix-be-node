@@ -1,6 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
 
 const ClickStream = sequelize.define(
   "ClickStream",
@@ -36,6 +35,6 @@ const ClickStream = sequelize.define(
   },
 );
 
-// ClickStream.belongsTo(User, { foreignKey: "userId" });
+// Associations complete
 
 export default ClickStream;

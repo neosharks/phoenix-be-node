@@ -1,8 +1,8 @@
-import prisma from "../../prisma";
+import PatronCreator from "../models/patronCreator.model";
 class _PatronCreatorService {
   async getFirst(query: any) {
     try {
-      return await prisma.patronCreator.findFirst({ where: query });
+      return await PatronCreator.findOne({ where: query });
     } catch (error) {
       throw error;
     }
@@ -10,7 +10,9 @@ class _PatronCreatorService {
 
   async getOne(query: any) {
     try {
-      return await prisma.patronCreator.findUnique({ where: query });
+      return await PatronCreator.findOne({
+        where: query,
+      });
     } catch (error) {
       throw error;
     }
@@ -18,35 +20,42 @@ class _PatronCreatorService {
 
   async getAll(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.patronCreator.findMany({
+      return await PatronCreator.findAll({
         where: query,
-        include: {
-          package: true,
-          creator: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              industry: true,
-            },
+        include: [
+          {
+            model: "Package",
+            as: "package",
           },
-          patron: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              industry: true,
-            },
+          {
+            model: "User",
+            as: "creator",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "industry",
+            ],
           },
-        },
-        skip,
-        take,
+          {
+            model: "User",
+            as: "patron",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "industry",
+            ],
+          },
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       throw error;

@@ -1,10 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
 import PostComment from "./postComment.model";
-import Poll from "./poll.model";
-import Class from "./class.model";
-import Package from "./package.model";
 
 const UserPost = sequelize.define(
   "UserPost",
@@ -90,12 +86,8 @@ const UserPost = sequelize.define(
   },
 );
 
-// Associations
-// UserPost.belongsTo(User, { as: "author", foreignKey: "authorId" });
-// UserPost.belongsToMany(User, { through: "LikedBy", as: "likedBy" });
-// UserPost.belongsToMany(Package, { through: "UserPostPackages", as: "packages" });
-// UserPost.belongsTo(Poll, { foreignKey: "pollId" });
-// UserPost.belongsTo(Class, { foreignKey: "classId" });
+// Associations completed
+
 UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
 
 export default UserPost;

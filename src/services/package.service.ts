@@ -1,17 +1,16 @@
-import prisma from "../../prisma";
+import { db } from "../models/sequelize";
+const { Package, Tier, PatronCreator } = db;
 
 class _PackageService {
   async getAllPackagesOfCreator(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.package.findMany({
+      return await Package.findAll({
         where: {
-          creator: {
-            username: query.username,
-          },
+          creatorUsername: query.username,
         },
-        include: { tier: true },
-        skip,
-        take,
+        include: [{ model: Tier }],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       console.error(error);
@@ -21,50 +20,54 @@ class _PackageService {
 
   async getOnePackage(query: any) {
     try {
-      return await prisma.package.findUnique({ where: query, include: { tier: true } });
+      return await Package.findOne({ where: query, include: [{ model: Tier }] });
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
+
   async createOnePackage(dataValues: any) {
+    const transaction = await db.sequelize.transaction();
     try {
       const { tier, name, price, description, creatorId } = dataValues;
-      return await prisma.package.create({
-        data: {
+      const newPackage = await Package.create(
+        {
           name,
           price,
           description,
           creatorId,
-          tier: {
-            connect: tier.map((ele: any) => {
-              return { id: ele };
-            }),
-          },
+          tiers: tier.map((ele: any) => ({ id: ele })),
         },
-      });
+        {
+          include: [{ model: Tier }],
+          transaction,
+        },
+      );
+
+      await transaction.commit();
+      return newPackage;
     } catch (error) {
-      console.error(error);
-      throw error;
+      await transaction.rollback();
+      console.error("Error creating package: ", error);
+      throw new Error("Failed to create package");
     }
   }
 
   async updatePackage(props: any, dataValues: any) {
     try {
-      return await prisma.package.update({ where: props, data: dataValues });
+      return await Package.update(dataValues, { where: props });
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  //------------------------
-
   async getAllTiers(skip: number = 0, take: number = 10) {
     try {
-      return await prisma.tier.findMany({
-        skip,
-        take,
+      return await Tier.findAll({
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       console.error(error);
@@ -74,7 +77,7 @@ class _PackageService {
 
   async createOneTier(data: any) {
     try {
-      return await prisma.tier.create({ data: data });
+      return await Tier.create({ data: data });
     } catch (error) {
       console.error(error);
       throw error;
@@ -87,7 +90,7 @@ class _PackageService {
       const expiryDate = new Date(currentDate);
       expiryDate.setMonth(expiryDate.getMonth() + 1);
 
-      return await prisma.patronCreator.create({
+      return await PatronCreator.create({
         data: {
           patronId,
           creatorId,
@@ -105,13 +108,14 @@ class _PackageService {
 
   async getAllPurchasedByPatron(patronId: any, creatorId: any) {
     try {
-      return await prisma.patronCreator.findMany({
+      return await PatronCreator.findAll({
         where: { patronId, creatorId },
-        include: {
-          package: {
-            include: { tier: true },
+        include: [
+          {
+            model: Package,
+            include: [{ model: Tier }],
           },
-        },
+        ],
       });
     } catch (error) {
       console.error(error);

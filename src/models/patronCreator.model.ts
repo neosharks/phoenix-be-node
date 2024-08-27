@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import Package from "./package.model";
 
 const PatronCreator = sequelize.define(
   "PatronCreator",
@@ -62,9 +60,6 @@ const PatronCreator = sequelize.define(
   },
 );
 
-// Associations
-// PatronCreator.belongsTo(User, { as: "patron", foreignKey: "patronId" });
-// PatronCreator.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-// PatronCreator.belongsTo(Package, { foreignKey: "packageId" });
+// Associations completed
 
 export default PatronCreator;

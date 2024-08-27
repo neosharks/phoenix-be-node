@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import logger from "../core/logger.core";
 import { InsightService } from "../services/insights.service";
 
 class _InsightController {
@@ -25,7 +23,7 @@ class _InsightController {
 
       let obj: any = {};
 
-      result?.forEach((e) => {
+      result?.forEach((e: any) => {
         let date = new Date(e.createdAt);
         const monthName = date.toLocaleString("en-US", { month: "long" });
 

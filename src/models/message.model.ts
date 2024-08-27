@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import Chat from "./chat.model";
-import User from "./user.model";
 
 const Message = sequelize.define(
   "Message",
@@ -55,8 +53,6 @@ const Message = sequelize.define(
   },
 );
 
-// Associations
-// Message.belongsTo(Chat, { foreignKey: "chatId" });
-// Message.belongsTo(User, { as: "sender", foreignKey: "senderId" });
+// Associations completed
 
 export default Message;

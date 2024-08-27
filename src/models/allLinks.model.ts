@@ -40,7 +40,8 @@ const AllLinks = sequelize.define(
     modelName: "AllLinks",
   },
 );
-
-// AllLinks.belongsTo(User, { foreignKey: "userId" });
+// complete associate
+AllLinks.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(AllLinks, { foreignKey: "userId" });
 
 export default AllLinks;

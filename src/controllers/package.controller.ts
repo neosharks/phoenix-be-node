@@ -1,22 +1,20 @@
 import { Request, Response } from "express";
+import { Op } from "sequelize";
 import { PackageService } from "../services/package.service";
 import { ChatService } from "../services/chat.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
-import prisma from "../../prisma";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import logger from "../core/logger.core";
 import { PaymentService } from "../services/payment.service";
-import { updatePackageSchema, packageSchema } from "../validators/package.validator";
 import { UserService } from "../services/user.service";
 
 export const AssignTierAndLink = async (foundPackage: any, user: any) => {
-  const { tier, creatorId } = foundPackage;
-  tier &&
-    tier.length > 0 &&
-    tier.map(async (ele: any) => {
+  const { tiers, creatorId } = foundPackage;
+  if (tiers && tiers.length > 0) {
+    for (const ele of tiers) {
       if (ele.tierType === "ONE_TIME_MESSAGE") {
         const foundChat = await ChatService.getOneChat({
-          OR: [
+          [Op.or]: [
             { participantOneId: user.id, participantTwoId: creatorId },
             { participantOneId: creatorId, participantTwoId: user.id },
           ],
@@ -30,7 +28,7 @@ export const AssignTierAndLink = async (foundPackage: any, user: any) => {
       }
       if (ele.tierType === "UNLIMITED_MESSAGE") {
         const foundChat = await ChatService.getOneChat({
-          OR: [
+          [Op.or]: [
             { participantOneId: user.id, participantTwoId: creatorId },
             { participantOneId: creatorId, participantTwoId: user.id },
           ],
@@ -42,7 +40,8 @@ export const AssignTierAndLink = async (foundPackage: any, user: any) => {
             { pendingAllowed: foundChat.pendingAllowed + 1000 },
           );
       }
-    });
+    }
+  }
   await PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", foundPackage.id);
 };
 
@@ -101,7 +100,7 @@ class _PackageController {
       });
       let allPackagesEnums = ["SUPPORT", "BRONZE", "SILVER", "GOLD", "PLATINUM", "RUBY"];
       if (found && found.length > 0) {
-        found.forEach((ele) => {
+        found.forEach((ele: any) => {
           allPackagesEnums = allPackagesEnums.filter((item) => item !== ele.name);
         });
       }
@@ -123,14 +122,10 @@ class _PackageController {
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
       const take = Number(req.query.per_page) || 10;
       if (!username) {
-        return res.status(400).send({ message: errorMessage.MISSING_PARAMS }); // Proper error handling for missing username
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       }
       const found = await PatronCreatorService.getAll(
-        {
-          patron: {
-            username: username,
-          },
-        },
+        { "$patron.username$": username },
         skip,
         take,
       );
@@ -152,11 +147,7 @@ class _PackageController {
 
       if (!username) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await PatronCreatorService.getAll(
-        {
-          creator: {
-            username: username,
-          },
-        },
+        { "$creator.username$": username },
         skip,
         take,
       );
@@ -254,7 +245,7 @@ class _PackageController {
 
       tier &&
         tier.length > 0 &&
-        tier.map(async (ele) => {
+        tier.map(async (ele: any) => {
           if (ele.tierType === "ONE_TIME_MESSAGE") {
             const foundChat = await ChatService.getOneChat({
               OR: [

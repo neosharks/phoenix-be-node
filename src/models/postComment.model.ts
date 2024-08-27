@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import UserPost from "./userPost.model";
 
 const PostComment = sequelize.define(
   "PostComment",
@@ -46,8 +44,6 @@ const PostComment = sequelize.define(
   },
 );
 
-// Associations
-// PostComment.belongsTo(User, { as: "author", foreignKey: "authorId" });
-// PostComment.belongsTo(UserPost, { foreignKey: "userPostId" });
+// Associations completed
 
 export default PostComment;

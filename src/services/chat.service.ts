@@ -1,36 +1,41 @@
-import prisma from "../../prisma";
+import { db } from "../models/sequelize";
 import { errorMessage } from "../constant/api.constant";
-import logger from "../core/logger.core";
+
+const { Chat, Message, User } = db;
 
 class _ChatService {
   async getOneChat(query: any) {
     try {
-      const result = await prisma.chat.findFirst({
+      const result = await Chat.findOne({
         where: query,
-        include: {
-          participantOne: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+        include: [
+          {
+            model: User,
+            as: "participantOne",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-          participantTwo: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+          {
+            model: User,
+            as: "participantTwo",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-        },
+        ],
       });
       console.log(result, "result");
       return result;
@@ -40,36 +45,40 @@ class _ChatService {
     }
   }
 
-  async getAllChat(query: any, skip: any = 0, take: any = 10) {
+  async getAllChat(query: any, skip: number = 0, take: number = 10) {
     try {
-      return await prisma.chat.findMany({
+      return await Chat.findAll({
         where: query,
-        include: {
-          participantOne: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+        include: [
+          {
+            model: User,
+            as: "participantOne",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-          participantTwo: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+          {
+            model: User,
+            as: "participantTwo",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
           },
-        },
-        skip,
-        take,
+        ],
+        offset: skip,
+        limit: take,
       });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -79,12 +88,10 @@ class _ChatService {
 
   async createOneChat(participants: any, allowed: any) {
     try {
-      return await prisma.chat.create({
-        data: {
-          participantOneId: participants[0],
-          participantTwoId: participants[1],
-          pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
-        },
+      return await Chat.create({
+        participantOneId: participants[0],
+        participantTwoId: participants[1],
+        pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
       });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -94,7 +101,7 @@ class _ChatService {
 
   async getOneMessage(query: any) {
     try {
-      return await prisma.message.findUnique({ where: query });
+      return await Message.findOne({ where: query });
     } catch (error) {
       console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
@@ -103,7 +110,7 @@ class _ChatService {
 
   async updateOneChat(query: any, data: any) {
     try {
-      return await prisma.chat.update({ where: query, data });
+      return await Chat.update(data, { where: query });
     } catch (error) {
       console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
@@ -112,9 +119,7 @@ class _ChatService {
 
   async getAllMessageForChat(query: any) {
     try {
-      return await prisma.message.findMany({
-        where: query,
-      });
+      return await Message.findAll({ where: query });
     } catch (error) {
       console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
@@ -123,18 +128,22 @@ class _ChatService {
 
   async createOneMessage(data: any) {
     try {
-      return await prisma.message.create({
-        data: data,
-        select: {
-          id: true,
-          chatId: true,
-          message: true,
-          contentType: true,
-          senderId: true,
-          createdAt: true,
-          updatedAt: true,
+      return await Message.create(
+        {
+          ...data,
         },
-      });
+        {
+          attributes: [
+            "id",
+            "chatId",
+            "message",
+            "contentType",
+            "senderId",
+            "createdAt",
+            "updatedAt",
+          ],
+        },
+      );
     } catch (error) {
       console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);

@@ -1,12 +1,9 @@
-import prisma from "../../prisma";
-import logger from "../core/logger.core";
-
+import ClickStream from "../models/clickStream.model";
 class _CommonService {
   async createClickStream(data: any) {
     try {
-      return await prisma.clickStream.create({ data: data });
+      return await ClickStream.create(data);
     } catch (error) {
-      console.error(error);
       throw error;
     }
   }

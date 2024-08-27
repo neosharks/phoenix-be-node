@@ -1,7 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
-import Class from "./class.model";
-import User from "./user.model";
 
 const ClassParticipants = sequelize.define(
   "ClassParticipants",
@@ -40,7 +38,6 @@ const ClassParticipants = sequelize.define(
   },
 );
 
-// ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
-// ClassParticipants.belongsTo(User, { foreignKey: "userId" });
+// Associations complete
 
 export default ClassParticipants;

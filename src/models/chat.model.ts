@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import User from "./user.model";
-import Message from "./message.model";
 
 const Chat = sequelize.define(
   "Chat",
@@ -54,9 +52,6 @@ const Chat = sequelize.define(
   },
 );
 
-// Associations
-// Chat.belongsTo(User, { as: "participantOne", foreignKey: "participantOneId" });
-// Chat.belongsTo(User, { as: "participantTwo", foreignKey: "participantTwoId" });
-Chat.hasMany(Message, { foreignKey: "chatId", onDelete: "CASCADE" });
+// Associations complete
 
 export default Chat;

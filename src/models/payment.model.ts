@@ -1,7 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
-import Package from "./package.model";
 import WalletTransactions from "./walletTransactions.model";
 import Referral from "./referral.model";
 
@@ -51,8 +50,11 @@ const Payment = sequelize.define(
   },
 );
 
-// Payment.belongsTo(User, { foreignKey: "userId" });
-// Payment.belongsTo(Package, { foreignKey: "packageId" });
+// Associations complete
+
+Payment.belongsTo(User, { foreignKey: "userId" });
+Referral.belongsTo(Payment, { foreignKey: "paymentId" });
+WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
 Payment.hasMany(WalletTransactions, { foreignKey: "paymentId" });
 Payment.hasMany(Referral, { foreignKey: "paymentId" });
 
