@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
-import { number } from "joi";
-
+import User from "../models/user.model";
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
     try {
@@ -38,11 +37,19 @@ class _ClassController {
 
   async createClass(req: Request, res: Response) {
     try {
-      const { id } = res.locals.user;
       const { name, isPaid = false, price, paymentFrequency } = req.body;
-      if (!name)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      await ClassService.createClass({
+      const { id } = res.locals.user;
+      // Validate input
+      if (!name) {
+        return res.status(400).send({ message: "Name is required" });
+      }
+
+      const userExists = await User.findByPk(id);
+      if (!userExists) {
+        return res.status(404).send({ message: "User not found" });
+      }
+      // Create new class
+      const newClass = await ClassService.createClass({
         name,
         creatorId: id,
         isPaid,
@@ -50,7 +57,9 @@ class _ClassController {
         price: price || null,
         paymentFrequency: paymentFrequency || null,
       });
-      return res.status(200).send({ message: successMessages.CREATED });
+
+      // Respond with the created class
+      return res.status(201).send({ message: successMessages.CREATED, data: newClass });
     } catch (error) {
       console.log("ERROR: ", error);
       return res

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-
+import User from "../models/user.model";
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
@@ -218,30 +218,52 @@ class _UserController {
     }
   }
 
+  // async approveCreatorOnboard(req: Request, res: Response) {
+  //   try {
+  //     const { users } = req.body;
+  //     for (let i = 0; i < users.length; i++) {
+  //       const ele = users[i];
+  //       const foundUser = await UserService.getOneUser({ id: ele });
+  //       if (foundUser && !foundUser.isCreator) {
+  //         const updatedBody = {
+  //           isCreator: true,
+  //           role: ["CREATOR", ...foundUser.role],
+  //           creatorApprovalStatus: "APPROVED",
+  //           creatorChangeTimeStamp: new Date(),
+  //         };
+  //         await UserService.updateOneUser({ id: ele }, updatedBody);
+  //         // if (foundUser.email)
+  //         //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+  //       }
+  //     }
+  //     return res.status(201).send({ message: successMessages.SUCCESS });
+  //   } catch (error) {
+  //     console.log("ERROR: ", error);
+  //     return res
+  //       .status(errorCode.INTERNAL_SERVER)
+  //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+  //   }
+  // }
+
   async approveCreatorOnboard(req: Request, res: Response) {
     try {
       const { users } = req.body;
       for (let i = 0; i < users.length; i++) {
-        const ele = users[i];
-        const foundUser = await UserService.getOneUser({ id: ele });
+        const userId = users[i];
+        const foundUser = await User.findByPk(userId);
         if (foundUser && !foundUser.isCreator) {
-          const updatedBody = {
+          await foundUser.update({
             isCreator: true,
-            role: ["CREATOR", ...foundUser.role],
+            role: [...foundUser.role, "CREATOR"],
             creatorApprovalStatus: "APPROVED",
             creatorChangeTimeStamp: new Date(),
-          };
-          await UserService.updateOneUser({ id: ele }, updatedBody);
-          // if (foundUser.email)
-          //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+          });
         }
       }
-      return res.status(201).send({ message: successMessages.SUCCESS });
+      return res.status(201).send({ message: "User approval successful." });
     } catch (error) {
-      console.log("ERROR: ", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+      console.error("ERROR: ", error);
+      return res.status(500).json({ message: "Internal server error", error });
     }
   }
 

@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
-import UserPost from "./userPost.model";
+import User from "./user.model";
 
 const Class = sequelize.define(
   "Class",
@@ -53,6 +53,5 @@ const Class = sequelize.define(
 );
 
 // Associations complete
-UserPost.belongsTo(Class, { foreignKey: "classId" });
 
 export default Class;

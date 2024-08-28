@@ -35,6 +35,7 @@ db.patronCreator = require("./patronCreator.model");
 db.notification = require("./notification.model");
 db.classParticipants = require("./classParticipants.model");
 db.referral = require("./referral.model");
+
 db.sequelize
   .sync({ force: false })
   .then(() => {

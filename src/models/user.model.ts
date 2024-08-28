@@ -156,7 +156,10 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-    verificationCodeSource: DataTypes.ENUM("WHATSAPP", "SMS", "EMAIL"),
+    verificationCodeSource: {
+      type: DataTypes.ENUM("WHATSAPP", "SMS", "EMAIL"),
+      allowNull: true,
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -204,7 +207,9 @@ ClassParticipants.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(ClassParticipants, { foreignKey: "userId" });
 
 // Class Associate
+User.hasMany(Class, { foreignKey: "creatorId" });
 Class.belongsTo(User, { foreignKey: "creatorId" });
+
 User.hasMany(ClassParticipants, { foreignKey: "userId" });
 Class.hasMany(ClassParticipants, { foreignKey: "classId" });
 Class.hasMany(ClassParticipants, { foreignKey: "classId", as: "participants" });
