@@ -59,18 +59,16 @@ const Package = sequelize.define(
 // Associations complete
 Package.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
 Package.belongsTo(UserPost, { foreignKey: "userPostId" });
-User.hasMany(Package, { foreignKey: "userId" });
-UserPost.hasMany(Package, { foreignKey: "userId" });
+
+User.hasMany(Package, { foreignKey: "creatorId" });
+UserPost.hasMany(Package, { foreignKey: "userPostId" });
 
 Package.hasMany(PatronCreator, { foreignKey: "packageId" });
 Package.hasMany(Payment, { foreignKey: "packageId" });
 Package.hasMany(Tier, { foreignKey: "packageId" });
 
 PatronCreator.belongsTo(Package, { foreignKey: "packageId" });
-Package.hasMany(PatronCreator, { foreignKey: "packageId" });
-
 Payment.belongsTo(Package, { foreignKey: "packageId" });
-Package.hasMany(Payment, { foreignKey: "packageId" });
-UserPost.belongsToMany(Package, { through: "UserPostPackages", as: "packages" });
+Tier.belongsTo(Package, { foreignKey: "packageId" });
 
 export default Package;

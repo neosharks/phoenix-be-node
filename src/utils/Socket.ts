@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import firebase from "firebase-admin";
 import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
-import { getObjectSignedUrl } from "../core/s3upload.core";
-
-const prisma = new PrismaClient();
+import User from "../models/user.model";
+import ClassMessage from "../models/classMessage.model";
+import Class from "../models/class.model";
 const socketIdToUserId = new Map<string, number>();
 
 if (!firebase.apps.length) {
@@ -22,7 +21,6 @@ const Socket = (io: any) => {
       socket.join(classId.toString());
       console.log(`User ${socket.id} joined room ${classId}`);
     });
-
     socket.on("send_class_message", async (data: any) => {
       try {
         if (
@@ -35,9 +33,7 @@ const Socket = (io: any) => {
           return;
         }
 
-        const findUser = await prisma.user.findUnique({
-          where: { id: data.userId },
-        });
+        const findUser = await User.findByPk(data.userId);
 
         if (!findUser) {
           console.error("User not found:", data.userId);
@@ -45,9 +41,7 @@ const Socket = (io: any) => {
           return;
         }
 
-        const classExists = await prisma.class.findUnique({
-          where: { id: data.classId },
-        });
+        const classExists = await Class.findByPk(data.classId);
 
         if (!classExists) {
           console.error("Class not found:", data.classId);
@@ -55,19 +49,14 @@ const Socket = (io: any) => {
           return;
         }
 
-        const createdMessage = await prisma.classMessage.create({
-          data: {
-            classId: data.classId,
-            userId: data.userId,
-            message: data.message,
-            image: data.image || null,
-            video: data.video || null,
-            document: data.document || null,
-            repliedMessageId: data.repliedMessageId || null,
-          },
-          include: {
-            repliedMessage: true,
-          },
+        const createdMessage = await ClassMessage.create({
+          classId: data.classId,
+          userId: data.userId,
+          message: data.message,
+          image: data.image || null,
+          video: data.video || null,
+          document: data.document || null,
+          repliedMessageId: data.repliedMessageId || null,
         });
 
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
@@ -80,15 +69,18 @@ const Socket = (io: any) => {
 
     socket.on("update_message", async (data: { messageId: number; isPinned: boolean }) => {
       try {
-        const updatedMessage = await prisma.classMessage.update({
-          where: { id: data.messageId },
-          data: { isPinned: data.isPinned },
-        });
+        const [affectedCount] = await ClassMessage.update(
+          { isPinned: data.isPinned },
+          { where: { id: data.messageId } },
+        );
 
-        io.to(updatedMessage.classId.toString()).emit("message_updated", {
-          messageId: updatedMessage.id,
-          isPinned: updatedMessage.isPinned,
-        });
+        if (affectedCount > 0) {
+          const updatedMessage = await ClassMessage.findByPk(data.messageId);
+          io.to(updatedMessage.classId.toString()).emit("message_updated", {
+            messageId: updatedMessage.id,
+            isPinned: updatedMessage.isPinned,
+          });
+        }
       } catch (error) {
         console.error("Error updating message:", error);
       }
@@ -98,10 +90,7 @@ const Socket = (io: any) => {
       console.log("Socket disconnected:", socket.id);
       const userId = socketIdToUserId.get(socket.id);
       if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { online: false },
-        });
+        await User.update({ online: false }, { where: { id: userId } });
         socketIdToUserId.delete(socket.id);
         io.emit("user_status_update", { userId, isOnline: false });
       }
@@ -118,23 +107,21 @@ export default Socket;
 
 const sendNotification = async (notificationData: any) => {
   try {
-    const findUser = await prisma.user.findUnique({
-      where: { id: notificationData.userId },
-    });
+    const findUser = await User.findByPk(notificationData.userId);
 
     if (findUser?.fcmToken) {
       const notificationPayload = {
-        roomId: notificationData.chatId,
+        roomId: notificationData.classId,
         roomName: findUser.username,
         receiverIds: notificationData.userId,
-        type: notificationData.roomData.type,
+        type: notificationData.type,
       };
 
       const res = await firebase.messaging().send({
         token: findUser.fcmToken,
         notification: {
           title: "New Message",
-          body: notificationData.text,
+          body: notificationData.message,
         },
         data: {
           notification_type: "chat",

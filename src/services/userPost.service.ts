@@ -3,6 +3,8 @@ import UserPost from "../models/userPost.model";
 import PostComment from "../models/postComment.model";
 import Poll from "../models/poll.model";
 import User from "../models/user.model";
+import Package from "../models/package.model";
+import Class from "../models/class.model";
 
 class _UserPostService {
   async getAllUserPostByUser(query: any, skip: number = 0, take: number = 10) {
@@ -10,26 +12,26 @@ class _UserPostService {
       return await UserPost.findAll({
         where: query,
         include: [
-          "poll",
-          "packages",
-          "class",
+          { model: Poll },
+          { model: Package },
+          { model: Class },
           {
-            model: "PostComment",
+            model: PostComment,
+            as: "comments",
             attributes: ["description", "createdAt", "updatedAt"],
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "firstName",
-                  "lastName",
-                  "profileImage",
-                  "email",
-                  "username",
-                  "role",
-                ],
-              },
-            ],
+            include: {
+              model: User,
+              as: "author",
+              attributes: [
+                "id",
+                "firstName",
+                "lastName",
+                "profileImage",
+                "email",
+                "username",
+                "role",
+              ],
+            },
           },
           {
             model: User,
@@ -72,12 +74,19 @@ class _UserPostService {
         where: query,
         include: [
           {
-            model: "PostComment",
-            include: [{ model: User }],
+            model: PostComment,
+            as: "comments",
+            include: {
+              model: User,
+              as: "author",
+            },
           },
-          { model: User, as: "author" },
           {
-            model: "User",
+            model: User,
+            as: "author",
+          },
+          {
+            model: User,
             as: "likedBy",
             attributes: ["id", "firstName", "lastName", "profileImage", "email", "username"],
           },
@@ -111,7 +120,8 @@ class _UserPostService {
         pollId,
         packages,
       } = dataValues;
-      return await UserPost.create({
+
+      const createdPost = await UserPost.create({
         description,
         authorId,
         title,
@@ -122,10 +132,23 @@ class _UserPostService {
         videoUrl,
         document,
         pollId,
-        packages: { connect: packages.map((id: any) => ({ id })) },
+      });
+
+      if (Array.isArray(packages)) {
+        await createdPost.setPackages(packages);
+      }
+
+      return await UserPost.findOne({
+        where: { id: createdPost.id },
         include: [
-          "likedBy",
-          "comments",
+          {
+            model: User,
+            as: "likedBy",
+          },
+          {
+            model: PostComment,
+            as: "comments",
+          },
           {
             model: User,
             as: "author",
@@ -147,8 +170,8 @@ class _UserPostService {
   }
 
   async createOneComment(dataValues: any) {
-    const { description, authorId, userPostId } = dataValues;
     try {
+      const { description, authorId, userPostId } = dataValues;
       return await PostComment.create({
         description,
         authorId,
@@ -156,6 +179,7 @@ class _UserPostService {
         include: [
           {
             model: User,
+            as: "author",
             attributes: [
               "id",
               "firstName",
@@ -175,7 +199,7 @@ class _UserPostService {
 
   async createPoll(data: any) {
     try {
-      return await Poll.create({ data });
+      return await Poll.create(data);
     } catch (error) {
       throw error;
     }

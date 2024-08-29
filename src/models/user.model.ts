@@ -193,11 +193,6 @@ User.hasMany(UserPost, { as: "likedByUser", foreignKey: "authorId" });
 User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
 User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
 User.hasMany(PostComment);
-
-//ClickStream associate
-ClickStream.belongsTo(User, { foreignKey: "userId" });
-User.hasMany(ClickStream);
-
 User.hasMany(ClassMessage);
 User.hasMany(Class);
 User.hasMany(ClassParticipants);
@@ -206,8 +201,20 @@ Class.hasMany(ClassParticipants, { foreignKey: "classId" });
 ClassParticipants.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(ClassParticipants, { foreignKey: "userId" });
 
+//ClickStream associate
+ClickStream.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(ClickStream);
+
 // Class Associate
 User.hasMany(Class, { foreignKey: "creatorId" });
+User.hasMany(Class, {
+  foreignKey: "creatorId",
+  as: "classes",
+});
+Class.belongsTo(User, {
+  foreignKey: "creatorId",
+  as: "creator",
+});
 Class.belongsTo(User, { foreignKey: "creatorId" });
 
 User.hasMany(ClassParticipants, { foreignKey: "userId" });

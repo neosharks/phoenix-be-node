@@ -3,31 +3,26 @@ import { ChatService } from "../services/chat.service";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { Op } from "sequelize";
 
 class _ChatController {
   async createChat(req: Request, res: Response) {
     try {
       const { participants } = req.body;
-
       const foundChat = await ChatService.getOneChat({
-        [Op.or]: [
+        OR: [
           { participantOneId: participants[0], participantTwoId: participants[1] },
           { participantOneId: participants[1], participantTwoId: participants[0] },
         ],
       });
-
-      if (foundChat) {
+      if (foundChat)
         return res.status(400).json({ message: errorMessage.EXISTING_DATA, data: foundChat });
-      }
-
       const created = await ChatService.createOneChat(participants, "UNLIMITED");
       return res.status(201).json({ message: successMessages.CREATED, data: created });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -36,24 +31,21 @@ class _ChatController {
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
       const take = Number(req.query.per_page) || 10;
       const { id } = res.locals.user;
-
       const foundChat = await ChatService.getAllChat(
         {
-          [Op.or]: [{ participantOneId: id }, { participantTwoId: id }],
+          OR: [{ participantOneId: id }, { participantTwoId: id }],
         },
         skip,
         take,
       );
-
-      const finalData: any[] = [];
-      for (const ele of foundChat) {
-        const saveObj: any = {
-          id: ele.id,
-          unreadCount: ele.unreadCount,
-          pendingAllowed: ele.pendingAllowed,
-          participants: [ele.participantOne, ele.participantTwo],
-        };
-
+      const finalData: any = [];
+      for (let i = 0; i < foundChat.length; i++) {
+        const ele = foundChat[i];
+        const saveObj: any = {};
+        saveObj.id = ele.id;
+        saveObj.unreadCount = ele.unreadCount;
+        saveObj.pendingAllowed = ele.pendingAllowed;
+        saveObj.participants = [ele.participantOne, ele.participantTwo];
         const foundMessages = await ChatService.getAllMessageForChat({
           chatId: ele.id,
         });
@@ -61,13 +53,12 @@ class _ChatController {
 
         finalData.push(saveObj);
       }
-
       return res.status(200).json({ message: successMessages.SUCCESS, chats: finalData });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -81,7 +72,7 @@ class _ChatController {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
@@ -89,26 +80,22 @@ class _ChatController {
     try {
       const { chatId, contentType, message, senderId } = req.body;
       const { isCreator, firstName, lastName } = res.locals.user;
-
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
-      if (!isCreator && foundChat.pendingAllowed === 0) {
+      if (!isCreator && foundChat.pendingAllowed === 0)
         return res.status(errorCode.GENERIC).json({ message: errorMessage.LIMIT_EXHAUSTED });
-      }
-
       const createdChat = await ChatService.createOneMessage({
         chatId,
         senderId,
         message,
         contentType,
       });
-
+      console.log(createdChat, isCreator, foundChat, "apisRun");
       await ChatService.updateOneChat(
         { id: chatId },
         { pendingAllowed: isCreator ? foundChat.pendingAllowed : foundChat.pendingAllowed - 1 },
       );
-
-      if (isCreator) {
+      if (isCreator)
         await NotificationService.createOneNotification({
           aboutUserId: senderId,
           notifiedUserId:
@@ -118,44 +105,36 @@ class _ChatController {
           message: `You have a new message from ${firstName + " " + lastName}`,
           type: "MESSAGE",
         });
-      }
-
       return res.status(201).json({ message: successMessages.SUCCESS, data: createdChat });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 
   async getAllMessageByChat(req: Request, res: Response) {
     try {
       const { id } = req.query;
-      const foundChat = await ChatService.getOneChat({ id });
-      if (!foundChat) {
-        return res.status(404).json({ message: errorMessage.NOT_FOUND });
-      }
-
-      const participants = [foundChat.participantOne, foundChat.participantTwo];
-      const foundMessages = await ChatService.getAllMessageForChat({
+      const foundChat = await ChatService.getOneChat({ id: id });
+      const participants = [foundChat?.participantOne, foundChat?.participantTwo];
+      const found = await ChatService.getAllMessageForChat({
         chatId: id,
       });
-
       const response: any = {
         id,
         participants,
-        messages: foundMessages,
-        type: foundChat.type,
-        unreadCount: foundChat.unreadCount,
+        messages: found,
+        type: foundChat?.type,
+        unreadCount: foundChat?.unreadCount,
       };
-
       return res.status(200).json({ message: successMessages.SUCCESS, chat: response });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
         .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
 }

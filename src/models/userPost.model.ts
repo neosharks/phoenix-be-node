@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "./sequelize";
 import PostComment from "./postComment.model";
 import Class from "./class.model";
+import Poll from "./poll.model";
 
 const UserPost = sequelize.define(
   "UserPost",

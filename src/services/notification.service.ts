@@ -1,4 +1,7 @@
+import { Op } from "sequelize";
 import Notification from "../models/notification.model";
+import User from "../models/user.model";
+
 import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
 
@@ -9,7 +12,7 @@ class _NotificationService {
         where: query,
         include: [
           {
-            model: "User",
+            model: User,
             as: "aboutUser",
             attributes: ["profileImage", "firstName", "lastName", "username"],
           },
@@ -43,7 +46,14 @@ class _NotificationService {
   async markAllAsRead(dataValues: any) {
     try {
       const { id } = dataValues;
-      return await Notification.update({ read: true }, { where: { notifiedUserId: id } });
+      return await Notification.update(
+        { read: true },
+        {
+          where: {
+            notifiedUserId: id,
+          },
+        },
+      );
     } catch (error) {
       logger.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);

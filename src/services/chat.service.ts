@@ -128,22 +128,9 @@ class _ChatService {
 
   async createOneMessage(data: any) {
     try {
-      return await Message.create(
-        {
-          ...data,
-        },
-        {
-          attributes: [
-            "id",
-            "chatId",
-            "message",
-            "contentType",
-            "senderId",
-            "createdAt",
-            "updatedAt",
-          ],
-        },
-      );
+      return await Message.create({
+        ...data,
+      });
     } catch (error) {
       console.log("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);

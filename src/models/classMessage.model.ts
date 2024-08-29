@@ -23,10 +23,22 @@ const ClassMessage = sequelize.define(
         key: "id",
       },
     },
-    message: DataTypes.STRING,
-    image: DataTypes.STRING,
-    video: DataTypes.STRING,
-    document: DataTypes.STRING,
+    message: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    video: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    document: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     repliedMessageId: {
       type: DataTypes.INTEGER,
       references: {

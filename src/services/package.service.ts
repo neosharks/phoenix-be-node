@@ -6,7 +6,7 @@ class _PackageService {
     try {
       return await Package.findAll({
         where: {
-          creatorUsername: query.username,
+          creator: { username: query.username },
         },
         include: [{ model: Tier }],
         offset: skip,
@@ -28,29 +28,21 @@ class _PackageService {
   }
 
   async createOnePackage(dataValues: any) {
-    const transaction = await db.sequelize.transaction();
     try {
       const { tier, name, price, description, creatorId } = dataValues;
-      const newPackage = await Package.create(
-        {
-          name,
-          price,
-          description,
-          creatorId,
-          tiers: tier.map((ele: any) => ({ id: ele })),
-        },
-        {
-          include: [{ model: Tier }],
-          transaction,
-        },
-      );
-
-      await transaction.commit();
+      const newPackage = await Package.create({
+        name,
+        price,
+        description,
+        creatorId,
+      });
+      if (tier && tier.length > 0) {
+        await newPackage.setTiers(tier);
+      }
       return newPackage;
     } catch (error) {
-      await transaction.rollback();
-      console.error("Error creating package: ", error);
-      throw new Error("Failed to create package");
+      console.error(error);
+      throw error;
     }
   }
 
@@ -77,7 +69,7 @@ class _PackageService {
 
   async createOneTier(data: any) {
     try {
-      return await Tier.create({ data: data });
+      return await Tier.create(data);
     } catch (error) {
       console.error(error);
       throw error;

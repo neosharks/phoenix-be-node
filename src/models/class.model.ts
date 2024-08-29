@@ -13,14 +13,11 @@ const Class = sequelize.define(
     creatorId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+    name: DataTypes.STRING,
     isPaid: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

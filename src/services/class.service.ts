@@ -1,6 +1,8 @@
-import { db } from "../models/sequelize";
-const { ClassParticipants, User, ClassMessage, PatronCreator } = db;
+import ClassParticipants from "../models/classParticipants.model";
+import User from "../models/user.model";
 import Class from "../models/class.model";
+import ClassMessage from "../models/classMessage.model";
+import PatronCreator from "../models/patronCreator.model";
 
 class _ClassService {
   async getOneClassByProps(query: any) {
@@ -11,6 +13,7 @@ class _ClassService {
           { model: ClassParticipants },
           {
             model: User,
+            as: "creator",
             attributes: [
               "firstName",
               "lastName",
@@ -68,19 +71,17 @@ class _ClassService {
 
   async createClass(data: any) {
     try {
-      return await Class.create(data);
+      return await Class.create({ data });
     } catch (error) {
       console.error(error);
-      throw error;
     }
   }
 
   async addClassParticipant(data: any) {
     try {
-      return await ClassParticipants.create(data);
+      return await ClassParticipants.create({ data });
     } catch (error) {
       console.error(error);
-      throw error;
     }
   }
 
@@ -134,6 +135,14 @@ class _ClassService {
         where: { classId: id },
         include: [
           {
+            model: ClassMessage,
+            as: "repliedMessage",
+            include: {
+              model: User,
+              attributes: ["firstName", "lastName", "profileImage", "username"],
+            },
+          },
+          {
             model: User,
             attributes: [
               "firstName",
@@ -148,7 +157,6 @@ class _ClassService {
       });
     } catch (error) {
       console.error(error);
-      throw error;
     }
   }
 
@@ -165,7 +173,28 @@ class _ClassService {
 
   async getAvailableParticipants(classId: number) {
     try {
-      const allUsers = await User.findAll();
+      const classData = await Class.findOne({
+        where: { id: classId },
+        attributes: ["creatorId"],
+      });
+
+      if (!classData) {
+        throw new Error("Class not found");
+      }
+
+      const creatorId = classData.creatorId;
+
+      const allUsers = await User.findAll({
+        attributes: [
+          "id",
+          "firstName",
+          "lastName",
+          "profileImage",
+          "username",
+          "email",
+          "phoneNumber",
+        ],
+      });
 
       const participants = await ClassParticipants.findAll({
         where: { classId },
@@ -174,7 +203,7 @@ class _ClassService {
 
       const participantIds = participants.map((p: any) => p.userId);
       const availableParticipants = allUsers.filter(
-        (user: any) => !participantIds.includes(user.id),
+        (user: any) => user.id !== creatorId && !participantIds.includes(user.id),
       );
 
       return availableParticipants;
@@ -184,12 +213,12 @@ class _ClassService {
     }
   }
 
-  async getAllClassesForUser(userId: number) {
+  async getAllClassesForUser(id: number) {
     try {
       const createdClasses = await Class.findAll({
-        where: { creatorId: userId },
+        where: { creatorId: id },
         include: [
-          { model: ClassParticipants, as: "participants" },
+          { model: ClassParticipants },
           {
             model: User,
             as: "creator",
@@ -206,12 +235,11 @@ class _ClassService {
       });
 
       const participatedClasses = await Class.findAll({
+        where: {
+          "$ClassParticipants.userId$": id,
+        },
         include: [
-          {
-            model: ClassParticipants,
-            as: "participants",
-            where: { userId: userId },
-          },
+          { model: ClassParticipants },
           {
             model: User,
             as: "creator",
@@ -233,6 +261,7 @@ class _ClassService {
       throw error;
     }
   }
+
   async getPatronCreatorSubscription(userId: number, creatorId: number) {
     try {
       return await PatronCreator.findOne({
