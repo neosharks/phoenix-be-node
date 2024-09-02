@@ -15,8 +15,8 @@ import {
   loginViaNumberSchema,
 } from "../validators/auth.validator";
 import logger from "../core/logger.core";
-import sendEmail from "../core/email.core";
 import sendOtpSms from "../core/sms.core";
+import emailQueue from "../processQueue";
 
 class _AuthController {
   async register(req: Request, res: Response) {
@@ -50,7 +50,12 @@ class _AuthController {
           : { ...body, profileImage },
       );
       if (body.email && body.email.length > 0) {
-        await sendEmail(body.email, "Welcome to Qalakar!", "SIGNUP");
+        await emailQueue.add({
+          receiverEmail: body.email,
+          subject: "Welcome to Qalakar!",
+          template: "SIGNUP",
+          variables: {},
+        });
       }
       const accessToken = await signJwt(created);
       return res.status(201).json({ messge: successMessages.CREATED, accessToken, user: created });
@@ -209,14 +214,13 @@ class _AuthController {
           verificationCodeSource: "EMAIL",
         },
       );
-      await sendEmail(
-        email,
-        `OTP to Reset your password | ${foundUser.username}`,
-        "FORGET_PASSWORD",
-        {
-          code,
-        },
-      );
+
+      await emailQueue.add({
+        receiverEmail: email,
+        subject: `OTP to Reset your password | ${foundUser.username}`,
+        template: "FORGET_PASSWORD",
+        variables: { code },
+      });
       return res.status(200).json({ message: successMessages.SUCCESS, email });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -246,14 +250,12 @@ class _AuthController {
           verificationCodeSource: "EMAIL",
         },
       );
-      await sendEmail(
-        email,
-        `OTP to Reset your password | ${foundUser.username}`,
-        "FORGET_PASSWORD",
-        {
-          code,
-        },
-      );
+      await emailQueue.add({
+        receiverEmail: email,
+        subject: `OTP to Reset your password | ${foundUser.username}`,
+        template: "FORGET_PASSWORD",
+        variables: { code },
+      });
       return res.status(200).json({ message: successMessages.SUCCESS, email });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -404,10 +406,14 @@ class _AuthController {
         foundUser = await UserService.createOneUser(user);
 
         if (email && email.length > 0) {
-          logger.info("sending email to: ", email);
-          await sendEmail(email, "Welcome to Qalakar!", "SIGNUP", {
-            firstName: given_name,
-            lastName: family_name,
+          await emailQueue.add({
+            receiverEmail: email,
+            subject: "Welcome to Qalakar!",
+            template: "SIGNUP",
+            variables: {
+              firstName: given_name,
+              lastName: family_name,
+            },
           });
         }
       } else {

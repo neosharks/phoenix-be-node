@@ -7,6 +7,7 @@ import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
 import sendEmail from "../core/email.core";
+import emailQueue from "../processQueue";
 class _UserController {
   async getUser(req: Request, res: Response) {
     try {
@@ -201,11 +202,12 @@ class _UserController {
         creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
-      // const emailSent = await sendEmail(
-      //   req.body.email,
-      //   "Creator Application Under Review",
-      //   "APPLY_CREATOR",
-      // );
+      // const emailSent = await emailQueue.add({
+      //   receiverEmail: req.body.email,
+      //   subject: "Creator Application Under Review",
+      //   template: "APPLY_CREATOR",
+      //   variables: {},
+      // });
       // if (!emailSent) {
       //   return res.status(500).send({ message: "Failed to send email" });
       // }
@@ -233,7 +235,13 @@ class _UserController {
   //         };
   //         await UserService.updateOneUser({ id: ele }, updatedBody);
   //         // if (foundUser.email)
-  //         //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+
+  // await emailQueue.add({
+  //   receiverEmail: foundUser.email,
+  //   subject: "Application Approval",
+  //   template: "APPROVE_CREATOR",
+  //   variables: {},
+  // });
   //       }
   //     }
   //     return res.status(201).send({ message: successMessages.SUCCESS });

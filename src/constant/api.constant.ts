@@ -23,6 +23,7 @@ export const errorMessage = {
   SMS_ISSUE: "SMS_ISSUE",
   CLASS_NOT_PAID: "CLASS_NOT_PAID",
   CLASS_NOT_FOUND: "CLASS_NOT_FOUND",
+  OTP_EXPIRED: "OTP_EXPIRED",
 };
 
 export const errorCode = {
