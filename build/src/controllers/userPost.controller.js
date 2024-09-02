@@ -8,15 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostController = void 0;
 const userPost_service_1 = require("../services/userPost.service");
 const user_service_1 = require("../services/user.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
-const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
 const helper_lib_1 = require("../lib/helper.lib");
 const userPost_validator_1 = require("../validators/userPost.validator");
@@ -111,96 +107,88 @@ class _UserPostController {
             }
         });
     }
-    likePostToggle(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { postId } = req.body;
-                const { id } = res.locals.user;
-                const validation = userPost_validator_1.userPostSchema.validate(req.body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
-                if (!postId) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
-                const foundPost = yield prisma_1.default.userPost.findUnique({
-                    where: { id: postId },
-                    include: {
-                        likedBy: true, // Include likedBy for easy manipulation
-                        author: true,
-                    },
-                });
-                if (!foundPost) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                }
-                const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
-                if (userIndex === -1) {
-                    yield prisma_1.default.userPost.update({
-                        where: { id: postId },
-                        data: { likedBy: { connect: { id: id } } },
-                    });
-                    yield notification_service_1.NotificationService.createOneNotification({
-                        aboutUserId: id,
-                        notifiedUserId: foundPost.authorId,
-                        message: ` have liked on your post`,
-                        link: postId.toString(), // Ensure link is stringified if necessary
-                        type: "NEW_LIKE",
-                    });
-                }
-                else {
-                    yield prisma_1.default.userPost.update({
-                        where: { id: postId },
-                        data: { likedBy: { disconnect: { id: id } } },
-                    });
-                }
-                res.status(201).send({ message: api_constant_1.successMessages.CREATED });
-            }
-            catch (error) {
-                console.log("Error: ", error);
-                return res
-                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
-            }
-        });
-    }
-    voteOnPoll(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { pollId, selectedId } = req.body;
-                const { id } = res.locals.user;
-                const validation = userPost_validator_1.userPostSchema.validate(req.body);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
-                }
-                if (!pollId || !selectedId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const foundPoll = yield userPost_service_1.UserPostService.getOnePoll({ id: pollId });
-                if (!foundPoll)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                const userIndex = foundPoll.selectedOptions.findIndex((user) => user.userId === id);
-                if (userIndex === -1) {
-                    yield prisma_1.default.poll.update({
-                        where: { id: pollId },
-                        data: { selectedOptions: [...foundPoll.selectedOptions, { userId: id, selectedId }] },
-                    });
-                }
-                else {
-                    foundPoll.selectedOptions[userIndex].selectedId = selectedId;
-                    yield prisma_1.default.poll.update({
-                        where: { id: pollId },
-                        data: { selectedOptions: [...foundPoll.selectedOptions] },
-                    });
-                }
-                res.status(201).send({ message: api_constant_1.successMessages.CREATED });
-            }
-            catch (error) {
-                console.log("Error: ", error);
-                return res
-                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
-            }
-        });
-    }
+    // async likePostToggle(req: any, res: Response) {
+    //   try {
+    //     const { postId } = req.body;
+    //     const { id } = res.locals.user;
+    //     const validation = userPostSchema.validate(req.body);
+    //     if (validation.error) {
+    //       return res.status(400).json({ error: validation.error.details[0].message });
+    //     }
+    //     if (!postId) {
+    //       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+    //     }
+    //     const foundPost = await prisma.userPost.findUnique({
+    //       where: { id: postId },
+    //       include: {
+    //         likedBy: true, // Include likedBy for easy manipulation
+    //         author: true,
+    //       },
+    //     });
+    //     if (!foundPost) {
+    //       return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+    //     }
+    //     const userIndex = foundPost.likedBy.findIndex((user: any) => user.id === id);
+    //     if (userIndex === -1) {
+    //       await prisma.userPost.update({
+    //         where: { id: postId },
+    //         data: { likedBy: { connect: { id: id } } },
+    //       });
+    //       await NotificationService.createOneNotification({
+    //         aboutUserId: id,
+    //         notifiedUserId: foundPost.authorId,
+    //         message: ` have liked on your post`,
+    //         link: postId.toString(), // Ensure link is stringified if necessary
+    //         type: "NEW_LIKE",
+    //       });
+    //     } else {
+    //       await prisma.userPost.update({
+    //         where: { id: postId },
+    //         data: { likedBy: { disconnect: { id: id } } },
+    //       });
+    //     }
+    //     res.status(201).send({ message: successMessages.CREATED });
+    //   } catch (error) {
+    //     console.log("Error: ", error);
+    //     return res
+    //       .status(errorCode.INTERNAL_SERVER)
+    //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    //   }
+    // }
+    // async voteOnPoll(req: any, res: Response) {
+    //   try {
+    //     const { pollId, selectedId } = req.body;
+    //     const { id } = res.locals.user;
+    //     const validation = userPostSchema.validate(req.body);
+    //     if (validation.error) {
+    //       return res.status(400).json({ error: validation.error.details[0].message });
+    //     }
+    //     if (!pollId || !selectedId)
+    //       return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+    //     const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
+    //     if (!foundPoll)
+    //       return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+    //     const userIndex = foundPoll.selectedOptions.findIndex((user: any) => user.userId === id);
+    //     if (userIndex === -1) {
+    //       await prisma.poll.update({
+    //         where: { id: pollId },
+    //         data: { selectedOptions: [...foundPoll.selectedOptions, { userId: id, selectedId }] },
+    //       });
+    //     } else {
+    //       foundPoll.selectedOptions[userIndex].selectedId = selectedId;
+    //       await prisma.poll.update({
+    //         where: { id: pollId },
+    //         data: { selectedOptions: [...foundPoll.selectedOptions] },
+    //       });
+    //     }
+    //     res.status(201).send({ message: successMessages.CREATED });
+    //   } catch (error) {
+    //     console.log("Error: ", error);
+    //     return res
+    //       .status(errorCode.INTERNAL_SERVER)
+    //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    //   }
+    // }
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

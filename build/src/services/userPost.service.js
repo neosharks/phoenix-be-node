@@ -13,60 +13,69 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const userPost_model_1 = __importDefault(require("../models/userPost.model"));
+const postComment_model_1 = __importDefault(require("../models/postComment.model"));
+const poll_model_1 = __importDefault(require("../models/poll.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
+const package_model_1 = __importDefault(require("../models/package.model"));
+const class_model_1 = __importDefault(require("../models/class.model"));
 class _UserPostService {
     getAllUserPostByUser(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.userPost.findMany({
+                return yield userPost_model_1.default.findAll({
                     where: query,
-                    include: {
-                        poll: true,
-                        packages: true,
-                        class: true,
-                        comments: {
-                            select: {
-                                description: true,
-                                createdAt: true,
-                                updatedAt: true,
-                                author: {
-                                    select: {
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        profileImage: true,
-                                        email: true,
-                                        username: true,
-                                        role: true,
-                                    },
-                                },
+                    include: [
+                        { model: poll_model_1.default },
+                        { model: package_model_1.default },
+                        { model: class_model_1.default },
+                        {
+                            model: postComment_model_1.default,
+                            as: "comments",
+                            attributes: ["description", "createdAt", "updatedAt"],
+                            include: {
+                                model: user_model_1.default,
+                                as: "author",
+                                attributes: [
+                                    "id",
+                                    "firstName",
+                                    "lastName",
+                                    "profileImage",
+                                    "email",
+                                    "username",
+                                    "role",
+                                ],
                             },
                         },
-                        likedBy: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                        {
+                            model: user_model_1.default,
+                            as: "likedBy",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                        author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                        {
+                            model: user_model_1.default,
+                            as: "author",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                    },
-                    skip,
-                    take,
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -77,26 +86,27 @@ class _UserPostService {
     getOneUserPost(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.userPost.findUnique({
+                return yield userPost_model_1.default.findOne({
                     where: query,
-                    include: {
-                        comments: {
+                    include: [
+                        {
+                            model: postComment_model_1.default,
+                            as: "comments",
                             include: {
-                                author: true,
+                                model: user_model_1.default,
+                                as: "author",
                             },
                         },
-                        author: true,
-                        likedBy: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                            },
+                        {
+                            model: user_model_1.default,
+                            as: "author",
                         },
-                    },
+                        {
+                            model: user_model_1.default,
+                            as: "likedBy",
+                            attributes: ["id", "firstName", "lastName", "profileImage", "email", "username"],
+                        },
+                    ],
                 });
             }
             catch (error) {
@@ -107,7 +117,7 @@ class _UserPostService {
     updateOneUserPost(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.userPost.update({ where: query, data: data });
+                return yield userPost_model_1.default.update(data, { where: query });
             }
             catch (error) {
                 throw error;
@@ -118,36 +128,46 @@ class _UserPostService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { description, authorId, title, type, image, visibility, allowComments, videoUrl, document, pollId, packages, } = dataValues;
-                const packagesToConnect = Array.isArray(packages) ? packages.map((id) => ({ id })) : [];
-                return yield prisma_1.default.userPost.create({
-                    data: {
-                        description,
-                        authorId,
-                        title,
-                        type,
-                        image,
-                        visibility,
-                        allowComments,
-                        videoUrl,
-                        document,
-                        pollId,
-                        packages: { connect: packagesToConnect },
-                    },
-                    include: {
-                        likedBy: true,
-                        comments: true,
-                        author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                const createdPost = yield userPost_model_1.default.create({
+                    description,
+                    authorId,
+                    title,
+                    type,
+                    image,
+                    visibility,
+                    allowComments,
+                    videoUrl,
+                    document,
+                    pollId,
+                });
+                if (Array.isArray(packages)) {
+                    yield createdPost.setPackages(packages);
+                }
+                return yield userPost_model_1.default.findOne({
+                    where: { id: createdPost.id },
+                    include: [
+                        {
+                            model: user_model_1.default,
+                            as: "likedBy",
                         },
-                    },
+                        {
+                            model: postComment_model_1.default,
+                            as: "comments",
+                        },
+                        {
+                            model: user_model_1.default,
+                            as: "author",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
+                        },
+                    ],
                 });
             }
             catch (error) {
@@ -157,23 +177,27 @@ class _UserPostService {
     }
     createOneComment(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { description, authorId, userPostId } = dataValues;
             try {
-                return yield prisma_1.default.postComment.create({
-                    data: { description, authorId, userPostId },
-                    include: {
-                        author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                const { description, authorId, userPostId } = dataValues;
+                return yield postComment_model_1.default.create({
+                    description,
+                    authorId,
+                    userPostId,
+                    include: [
+                        {
+                            model: user_model_1.default,
+                            as: "author",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                    },
+                    ],
                 });
             }
             catch (error) {
@@ -184,7 +208,7 @@ class _UserPostService {
     createPoll(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.poll.create({ data });
+                return yield poll_model_1.default.create(data);
             }
             catch (error) {
                 throw error;
@@ -194,7 +218,7 @@ class _UserPostService {
     getOnePoll(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.poll.findUnique({
+                return yield poll_model_1.default.findOne({
                     where: query,
                 });
             }
@@ -206,7 +230,7 @@ class _UserPostService {
     updateOnePoll(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.poll.update({ where: query, data: data });
+                return yield poll_model_1.default.update(data, { where: query });
             }
             catch (error) {
                 throw error;
@@ -216,8 +240,8 @@ class _UserPostService {
     delete(postId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield prisma_1.default.postComment.deleteMany({ where: { userPostId: postId } });
-                return yield prisma_1.default.userPost.delete({ where: { id: postId } });
+                yield postComment_model_1.default.destroy({ where: { userPostId: postId } });
+                return yield userPost_model_1.default.destroy({ where: { id: postId } });
             }
             catch (error) {
                 throw error;

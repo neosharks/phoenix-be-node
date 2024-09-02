@@ -122,7 +122,6 @@ class _AuthController {
                 }
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 if (foundUser) {
-                    //Fix this
                     const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
                     if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
                         const fiveMinutesAgo = new Date();
@@ -219,7 +218,6 @@ class _AuthController {
                 });
                 yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
                     code,
-                    name: `${foundUser.username}`,
                 });
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, email });
             }
@@ -235,9 +233,9 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email } = req.body;
-                const validation = auth_validator_1.forgetPasswordSchema.validate(email);
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
+                const { error } = auth_validator_1.forgetPasswordSchema.validate({ email });
+                if (error) {
+                    return res.status(400).json({ error: error.details[0].message });
                 }
                 if (!email)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -251,7 +249,6 @@ class _AuthController {
                 });
                 yield (0, email_core_1.default)(email, `OTP to Reset your password | ${foundUser.username}`, "FORGET_PASSWORD", {
                     code,
-                    name: `${foundUser.username}`,
                 });
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, email });
             }
@@ -267,26 +264,26 @@ class _AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email, code, password } = req.body;
-                console.log(email, code, password);
-                const validation = auth_validator_1.verifyForgetPasswordSchema.validate({ email, code, password });
-                if (validation.error) {
-                    return res.status(400).json({ error: validation.error.details[0].message });
+                const { error } = auth_validator_1.verifyForgetPasswordSchema.validate({ email, code, password });
+                if (error) {
+                    return res.status(400).json({ error: error.details[0].message });
                 }
                 if (!email || !code || !password)
                     return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const foundUser = yield user_service_1.UserService.getOneUser({ email });
+                const foundUser = yield user_service_1.UserService.getOneUser({
+                    email,
+                    verificationCode: code,
+                    verificationCodeSource: "EMAIL",
+                });
                 if (!foundUser)
                     return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
-                if (parseInt(foundUser.verificationCode) !== parseInt(code))
-                    return res.status(api_constant_1.errorCode.UNAUTHORISED).json({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 const saltRounds = 10;
                 const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
                 const hash = yield bcrypt_1.default.hashSync(password, salt);
-                yield user_service_1.UserService.updateOneUser({ email }, {
+                yield user_service_1.UserService.updateOneUser({ id: foundUser.id }, {
                     password: hash,
                     verificationCode: null,
                     verificationCodeSource: null,
-                    verificationCodeTimestamp: null,
                 });
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
@@ -306,27 +303,26 @@ class _AuthController {
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
-                const { password, id } = res.locals.user;
-                if (!oldPassword || !newPassword)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                if (!password)
-                    return res.status(403).json({ message: api_constant_1.errorMessage.WRONG_AUTH_METHOD });
-                let isMatch = false;
-                isMatch = yield bcrypt_1.default.compareSync(oldPassword, password);
-                if (!isMatch)
+                const { id } = res.locals.user; // Assuming the user ID is stored in the request object
+                const foundUser = yield user_service_1.UserService.getOneUser({ id: id });
+                if (!foundUser) {
+                    return res.status(404).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                }
+                const isMatch = yield bcrypt_1.default.compareSync(oldPassword, foundUser.password);
+                if (!isMatch) {
                     return res.status(403).json({ message: api_constant_1.errorMessage.INCORRECT_PASSWORD });
+                }
                 const saltRounds = 10;
                 const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
                 const hash = yield bcrypt_1.default.hashSync(newPassword, salt);
-                yield user_service_1.UserService.updateOneUser({ id }, { password: hash });
-                const accessToken = yield (0, jwt_core_1.signJwt)(res.locals.user);
-                return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS, accessToken });
+                yield user_service_1.UserService.updateOneUser({ id: id }, { password: hash });
+                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
                 console.log("ERROR: ", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }

@@ -13,12 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const allLinks_model_1 = __importDefault(require("../models/allLinks.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 class _UserService {
     getOneUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.user.findUnique({ where: query });
+                return yield user_model_1.default.findOne({ where: query });
             }
             catch (error) {
                 throw error;
@@ -28,9 +29,7 @@ class _UserService {
     getAllLinks(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.allLinks.findMany({
-                    where: query,
-                });
+                return yield allLinks_model_1.default.findAll({ where: query });
             }
             catch (error) {
                 throw error;
@@ -40,9 +39,7 @@ class _UserService {
     createLink(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.allLinks.create({
-                    data,
-                });
+                return yield allLinks_model_1.default.create(data);
             }
             catch (error) {
                 throw error;
@@ -52,21 +49,21 @@ class _UserService {
     getAllUserByParams(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.user.findMany({
+                return yield user_model_1.default.findAll({
                     where: query,
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        profileImage: true,
-                        email: true,
-                        username: true,
-                        role: true,
-                        industry: true,
-                        coverImage: true,
-                    },
-                    skip,
-                    take,
+                    attributes: [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "profileImage",
+                        "email",
+                        "username",
+                        "role",
+                        "industry",
+                        "coverImage",
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -77,19 +74,19 @@ class _UserService {
     getAllUser() {
         return __awaiter(this, arguments, void 0, function* (skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.user.findMany({
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        profileImage: true,
-                        email: true,
-                        username: true,
-                        phoneNumber: true,
-                        role: true,
-                    },
-                    skip,
-                    take,
+                return yield user_model_1.default.findAll({
+                    attributes: [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "profileImage",
+                        "email",
+                        "username",
+                        "phoneNumber",
+                        "role",
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -100,7 +97,7 @@ class _UserService {
     getAllTotalUser() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.user.findMany();
+                return yield user_model_1.default.findAll();
             }
             catch (error) {
                 throw error;
@@ -110,7 +107,7 @@ class _UserService {
     createOneUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.user.create({ data: data });
+                return yield user_model_1.default.create(data);
             }
             catch (error) {
                 throw error;
@@ -120,7 +117,7 @@ class _UserService {
     updateOneUser(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.user.update({ where: query, data: data });
+                return yield user_model_1.default.update(data, { where: query });
             }
             catch (error) {
                 throw error;
@@ -130,7 +127,7 @@ class _UserService {
     deleteOneUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.user.delete({ where: { id } });
+                return yield user_model_1.default.destroy({ where: { id } });
             }
             catch (error) {
                 throw error;

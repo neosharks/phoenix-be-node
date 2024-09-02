@@ -19,9 +19,9 @@ userPostRoutes.post(
   UserPostController.commentOnPostByUser,
 );
 
-userPostRoutes.post("/likePostToggle", checkRoleAuth(), UserPostController.likePostToggle);
+// userPostRoutes.post("/likePostToggle", checkRoleAuth(), UserPostController.likePostToggle);
 
-userPostRoutes.post("/voteOnPoll", checkRoleAuth(), UserPostController.voteOnPoll);
+// userPostRoutes.post("/voteOnPoll", checkRoleAuth(), UserPostController.voteOnPoll);
 
 userPostRoutes.post("/delete", checkRoleAuth(), UserPostController.delete);
 

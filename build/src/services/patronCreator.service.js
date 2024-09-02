@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PatronCreatorService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const patronCreator_model_1 = __importDefault(require("../models/patronCreator.model"));
 class _PatronCreatorService {
     getFirst(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.patronCreator.findFirst({ where: query });
+                return yield patronCreator_model_1.default.findOne({ where: query });
             }
             catch (error) {
                 throw error;
@@ -28,7 +28,9 @@ class _PatronCreatorService {
     getOne(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.patronCreator.findUnique({ where: query });
+                return yield patronCreator_model_1.default.findOne({
+                    where: query,
+                });
             }
             catch (error) {
                 throw error;
@@ -38,35 +40,42 @@ class _PatronCreatorService {
     getAll(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.patronCreator.findMany({
+                return yield patronCreator_model_1.default.findAll({
                     where: query,
-                    include: {
-                        package: true,
-                        creator: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                industry: true,
-                            },
+                    include: [
+                        {
+                            model: "Package",
+                            as: "package",
                         },
-                        patron: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                industry: true,
-                            },
+                        {
+                            model: "User",
+                            as: "creator",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "industry",
+                            ],
                         },
-                    },
-                    skip,
-                    take,
+                        {
+                            model: "User",
+                            as: "patron",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "industry",
+                            ],
+                        },
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {

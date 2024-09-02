@@ -8,25 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PackageService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const sequelize_1 = require("../models/sequelize");
+const { Package, Tier, PatronCreator } = sequelize_1.db;
 class _PackageService {
     getAllPackagesOfCreator(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.package.findMany({
+                return yield Package.findAll({
                     where: {
-                        creator: {
-                            username: query.username,
-                        },
+                        creator: { username: query.username },
                     },
-                    include: { tier: true },
-                    skip,
-                    take,
+                    include: [{ model: Tier }],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -38,7 +34,7 @@ class _PackageService {
     getOnePackage(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.package.findUnique({ where: query, include: { tier: true } });
+                return yield Package.findOne({ where: query, include: [{ model: Tier }] });
             }
             catch (error) {
                 console.error(error);
@@ -50,19 +46,16 @@ class _PackageService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { tier, name, price, description, creatorId } = dataValues;
-                return yield prisma_1.default.package.create({
-                    data: {
-                        name,
-                        price,
-                        description,
-                        creatorId,
-                        tier: {
-                            connect: tier.map((ele) => {
-                                return { id: ele };
-                            }),
-                        },
-                    },
+                const newPackage = yield Package.create({
+                    name,
+                    price,
+                    description,
+                    creatorId,
                 });
+                if (tier && tier.length > 0) {
+                    yield newPackage.setTiers(tier);
+                }
+                return newPackage;
             }
             catch (error) {
                 console.error(error);
@@ -73,7 +66,7 @@ class _PackageService {
     updatePackage(props, dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.package.update({ where: props, data: dataValues });
+                return yield Package.update(dataValues, { where: props });
             }
             catch (error) {
                 console.error(error);
@@ -81,13 +74,12 @@ class _PackageService {
             }
         });
     }
-    //------------------------
     getAllTiers() {
         return __awaiter(this, arguments, void 0, function* (skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.tier.findMany({
-                    skip,
-                    take,
+                return yield Tier.findAll({
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -99,7 +91,7 @@ class _PackageService {
     createOneTier(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.tier.create({ data: data });
+                return yield Tier.create(data);
             }
             catch (error) {
                 console.error(error);
@@ -113,7 +105,7 @@ class _PackageService {
                 const currentDate = new Date();
                 const expiryDate = new Date(currentDate);
                 expiryDate.setMonth(expiryDate.getMonth() + 1);
-                return yield prisma_1.default.patronCreator.create({
+                return yield PatronCreator.create({
                     data: {
                         patronId,
                         creatorId,
@@ -133,13 +125,14 @@ class _PackageService {
     getAllPurchasedByPatron(patronId, creatorId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.patronCreator.findMany({
+                return yield PatronCreator.findAll({
                     where: { patronId, creatorId },
-                    include: {
-                        package: {
-                            include: { tier: true },
+                    include: [
+                        {
+                            model: Package,
+                            include: [{ model: Tier }],
                         },
-                    },
+                    ],
                 });
             }
             catch (error) {

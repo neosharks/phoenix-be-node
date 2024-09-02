@@ -64,22 +64,23 @@ class _ClassController {
     createClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { id } = res.locals.user;
+                const { id } = res.locals.user; // Assuming res.locals.user contains the authenticated user's data
                 const { name, isPaid = false, price, paymentFrequency } = req.body;
-                if (!name)
+                if (!name) {
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                }
                 yield class_service_1.ClassService.createClass({
                     name,
                     creatorId: id,
                     isPaid,
-                    type: "NORMAL",
+                    type: "NORMAL", // Assuming "NORMAL" is a valid value for the `type` field
                     price: price || null,
                     paymentFrequency: paymentFrequency || null,
                 });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                console.error("ERROR: ", error); // Improved error logging
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
@@ -164,31 +165,6 @@ class _ClassController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
-            }
-        });
-    }
-    sendMessage(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
-            try {
-                const { classId, participantId, message } = req.body;
-                const image = (_a = req.body) === null || _a === void 0 ? void 0 : _a.image;
-                const video = (_b = req.body) === null || _b === void 0 ? void 0 : _b.video;
-                const document = (_c = req.body) === null || _c === void 0 ? void 0 : _c.document;
-                const { id } = res.locals.user;
-                const payload = { authorId: id };
-                if (!classId || !participantId || (!message && !image && !video && !document)) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
-                if (!message && !payload.image && !payload.video && !payload.document) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
-                yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
-                return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
-            }
-            catch (error) {
-                console.error("Error sending message:", error);
-                return res.status(500).json({ error: "Internal server error" });
             }
         });
     }

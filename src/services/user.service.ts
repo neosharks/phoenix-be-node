@@ -1,4 +1,3 @@
-import prisma from "../../prisma";
 import AllLinks from "../models/allLinks.model";
 import User from "../models/user.model";
 class _UserService {

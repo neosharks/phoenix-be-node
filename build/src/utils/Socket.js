@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
-const prisma = new client_1.PrismaClient();
+const user_model_1 = __importDefault(require("../models/user.model"));
+const classMessage_model_1 = __importDefault(require("../models/classMessage.model"));
+const class_model_1 = __importDefault(require("../models/class.model"));
 const socketIdToUserId = new Map();
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp({
@@ -41,35 +42,26 @@ const Socket = (io) => {
                     socket.emit("error", { message: "Invalid data received" });
                     return;
                 }
-                const findUser = yield prisma.user.findUnique({
-                    where: { id: data.userId },
-                });
+                const findUser = yield user_model_1.default.findByPk(data.userId);
                 if (!findUser) {
                     console.error("User not found:", data.userId);
                     socket.emit("error", { message: "User not found" });
                     return;
                 }
-                const classExists = yield prisma.class.findUnique({
-                    where: { id: data.classId },
-                });
+                const classExists = yield class_model_1.default.findByPk(data.classId);
                 if (!classExists) {
                     console.error("Class not found:", data.classId);
                     socket.emit("error", { message: "Class not found" });
                     return;
                 }
-                const createdMessage = yield prisma.classMessage.create({
-                    data: {
-                        classId: data.classId,
-                        userId: data.userId,
-                        message: data.message,
-                        image: data.image || null,
-                        video: data.video || null,
-                        document: data.document || null,
-                        repliedMessageId: data.repliedMessageId || null,
-                    },
-                    include: {
-                        repliedMessage: true,
-                    },
+                const createdMessage = yield classMessage_model_1.default.create({
+                    classId: data.classId,
+                    userId: data.userId,
+                    message: data.message,
+                    image: data.image || null,
+                    video: data.video || null,
+                    document: data.document || null,
+                    repliedMessageId: data.repliedMessageId || null,
                 });
                 io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
                 sendNotification(createdMessage);
@@ -81,14 +73,14 @@ const Socket = (io) => {
         }));
         socket.on("update_message", (data) => __awaiter(void 0, void 0, void 0, function* () {
             try {
-                const updatedMessage = yield prisma.classMessage.update({
-                    where: { id: data.messageId },
-                    data: { isPinned: data.isPinned },
-                });
-                io.to(updatedMessage.classId.toString()).emit("message_updated", {
-                    messageId: updatedMessage.id,
-                    isPinned: updatedMessage.isPinned,
-                });
+                const [affectedCount] = yield classMessage_model_1.default.update({ isPinned: data.isPinned }, { where: { id: data.messageId } });
+                if (affectedCount > 0) {
+                    const updatedMessage = yield classMessage_model_1.default.findByPk(data.messageId);
+                    io.to(updatedMessage.classId.toString()).emit("message_updated", {
+                        messageId: updatedMessage.id,
+                        isPinned: updatedMessage.isPinned,
+                    });
+                }
             }
             catch (error) {
                 console.error("Error updating message:", error);
@@ -98,10 +90,7 @@ const Socket = (io) => {
             console.log("Socket disconnected:", socket.id);
             const userId = socketIdToUserId.get(socket.id);
             if (userId) {
-                yield prisma.user.update({
-                    where: { id: userId },
-                    data: { online: false },
-                });
+                yield user_model_1.default.update({ online: false }, { where: { id: userId } });
                 socketIdToUserId.delete(socket.id);
                 io.emit("user_status_update", { userId, isOnline: false });
             }
@@ -115,21 +104,19 @@ const Socket = (io) => {
 exports.default = Socket;
 const sendNotification = (notificationData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const findUser = yield prisma.user.findUnique({
-            where: { id: notificationData.userId },
-        });
+        const findUser = yield user_model_1.default.findByPk(notificationData.userId);
         if (findUser === null || findUser === void 0 ? void 0 : findUser.fcmToken) {
             const notificationPayload = {
-                roomId: notificationData.chatId,
+                roomId: notificationData.classId,
                 roomName: findUser.username,
                 receiverIds: notificationData.userId,
-                type: notificationData.roomData.type,
+                type: notificationData.type,
             };
             const res = yield firebase_admin_1.default.messaging().send({
                 token: findUser.fcmToken,
                 notification: {
                     title: "New Message",
-                    body: notificationData.text,
+                    body: notificationData.message,
                 },
                 data: {
                     notification_type: "chat",

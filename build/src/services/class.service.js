@@ -13,63 +13,75 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClassService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const classParticipants_model_1 = __importDefault(require("../models/classParticipants.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
+const class_model_1 = __importDefault(require("../models/class.model"));
+const classMessage_model_1 = __importDefault(require("../models/classMessage.model"));
+const patronCreator_model_1 = __importDefault(require("../models/patronCreator.model"));
 class _ClassService {
     getOneClassByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.class.findUnique({
+                return yield class_model_1.default.findOne({
                     where: query,
-                    include: {
-                        ClassParticipants: true,
-                        creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                    include: [
+                        { model: classParticipants_model_1.default },
+                        {
+                            model: user_model_1.default,
+                            as: "creator",
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
                         },
-                    },
+                    ],
                 });
             }
             catch (error) {
                 console.error(error);
+                throw error;
             }
         });
     }
     getAllClassesByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.class.findMany({
+                return yield class_model_1.default.findAll({
                     where: query,
                 });
             }
             catch (error) {
                 console.error(error);
+                throw error;
             }
         });
     }
     getAllClassesByCreatorId(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.class.findMany({
+                return yield class_model_1.default.findAll({
                     where: { creatorId: parseInt(id) },
-                    include: {
-                        ClassParticipants: true,
-                        creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                    include: [
+                        {
+                            model: classParticipants_model_1.default,
                         },
-                    },
+                        {
+                            model: user_model_1.default,
+                            as: "creator",
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
+                        },
+                    ],
                 });
             }
             catch (error) {
@@ -80,9 +92,7 @@ class _ClassService {
     createClass(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.class.create({
-                    data: data,
-                });
+                return yield class_model_1.default.create({ data });
             }
             catch (error) {
                 console.error(error);
@@ -92,9 +102,7 @@ class _ClassService {
     addClassParticipant(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.classParticipants.create({
-                    data: data,
-                });
+                return yield classParticipants_model_1.default.create({ data });
             }
             catch (error) {
                 console.error(error);
@@ -104,10 +112,7 @@ class _ClassService {
     addMultipleParticipants(participantsData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.classParticipants.createMany({
-                    data: participantsData,
-                    skipDuplicates: true,
-                });
+                return yield classParticipants_model_1.default.bulkCreate(participantsData, { ignoreDuplicates: true });
             }
             catch (error) {
                 console.error(error);
@@ -118,78 +123,68 @@ class _ClassService {
     updateClassByProps(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.class.update({
+                return yield class_model_1.default.update(data, {
                     where: query,
-                    data: data,
                 });
             }
             catch (error) {
                 console.error(error);
+                throw error;
             }
         });
     }
     getAllParticipantOfClass(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.classParticipants.findMany({
+                return yield classParticipants_model_1.default.findAll({
                     where: { classId: id },
-                    include: {
-                        user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                    include: [
+                        {
+                            model: user_model_1.default,
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
                         },
-                    },
+                    ],
                 });
             }
             catch (error) {
                 console.error(error);
-            }
-        });
-    }
-    addMessage(dataValues) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { classId, userId, message, image, isPinned, video, document } = dataValues;
-                return yield prisma_1.default.classMessage.create({
-                    data: {
-                        classId,
-                        userId,
-                        message,
-                        isPinned,
-                        image,
-                        video,
-                        document,
-                    },
-                });
-            }
-            catch (error) {
-                console.error(error);
+                throw error;
             }
         });
     }
     getAllMessagesOfClass(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.classMessage.findMany({
+                return yield classMessage_model_1.default.findAll({
                     where: { classId: id },
-                    include: {
-                        user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
+                    include: [
+                        {
+                            model: classMessage_model_1.default,
+                            as: "repliedMessage",
+                            include: {
+                                model: user_model_1.default,
+                                attributes: ["firstName", "lastName", "profileImage", "username"],
                             },
                         },
-                    },
+                        {
+                            model: user_model_1.default,
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
+                        },
+                    ],
                 });
             }
             catch (error) {
@@ -200,9 +195,12 @@ class _ClassService {
     updateSendMessage(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.classMessage.update({ where: query, data: data });
+                return yield classMessage_model_1.default.update(data, {
+                    where: query,
+                });
             }
             catch (error) {
+                console.error(error);
                 throw error;
             }
         });
@@ -210,23 +208,31 @@ class _ClassService {
     getAvailableParticipants(classId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const allUsers = yield prisma_1.default.user.findMany({
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        profileImage: true,
-                        username: true,
-                        email: true,
-                        phoneNumber: true,
-                    },
+                const classData = yield class_model_1.default.findOne({
+                    where: { id: classId },
+                    attributes: ["creatorId"],
                 });
-                const participants = yield prisma_1.default.classParticipants.findMany({
+                if (!classData) {
+                    throw new Error("Class not found");
+                }
+                const creatorId = classData.creatorId;
+                const allUsers = yield user_model_1.default.findAll({
+                    attributes: [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "profileImage",
+                        "username",
+                        "email",
+                        "phoneNumber",
+                    ],
+                });
+                const participants = yield classParticipants_model_1.default.findAll({
                     where: { classId },
-                    select: { userId: true },
+                    attributes: ["userId"],
                 });
                 const participantIds = participants.map((p) => p.userId);
-                const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+                const availableParticipants = allUsers.filter((user) => user.id !== creatorId && !participantIds.includes(user.id));
                 return availableParticipants;
             }
             catch (error) {
@@ -238,43 +244,43 @@ class _ClassService {
     getAllClassesForUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const createdClasses = yield prisma_1.default.class.findMany({
+                const createdClasses = yield class_model_1.default.findAll({
                     where: { creatorId: id },
-                    include: {
-                        ClassParticipants: true,
-                        creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                    include: [
+                        { model: classParticipants_model_1.default },
+                        {
+                            model: user_model_1.default,
+                            as: "creator",
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
                         },
-                    },
+                    ],
                 });
-                const participatedClasses = yield prisma_1.default.class.findMany({
+                const participatedClasses = yield class_model_1.default.findAll({
                     where: {
-                        ClassParticipants: {
-                            some: {
-                                userId: id,
-                            },
-                        },
+                        "$ClassParticipants.userId$": id,
                     },
-                    include: {
-                        ClassParticipants: true,
-                        creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                    include: [
+                        { model: classParticipants_model_1.default },
+                        {
+                            model: user_model_1.default,
+                            as: "creator",
+                            attributes: [
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "username",
+                                "email",
+                                "phoneNumber",
+                            ],
                         },
-                    },
+                    ],
                 });
                 return { createdClasses, participatedClasses };
             }
@@ -286,13 +292,18 @@ class _ClassService {
     }
     getPatronCreatorSubscription(userId, creatorId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield prisma_1.default.patronCreator.findFirst({
-                where: {
-                    patronId: userId,
-                    creatorId: creatorId,
-                    status: "ACTIVE",
-                },
-            });
+            try {
+                return yield patronCreator_model_1.default.findOne({
+                    where: {
+                        patronId: userId,
+                        creatorId: creatorId,
+                        status: "ACTIVE",
+                    },
+                });
+            }
+            catch (error) {
+                console.error(error);
+            }
         });
     }
 }

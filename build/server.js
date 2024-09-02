@@ -8,7 +8,6 @@ const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const socket_io_1 = require("socket.io");
 const http_1 = __importDefault(require("http"));
-const sequelize_1 = require("./src/models/sequelize");
 //----------------------------------
 const index_route_1 = __importDefault(require("./src/routes/index.route"));
 //----------------------------------
@@ -16,6 +15,7 @@ const config_1 = __importDefault(require("./config"));
 const logger_core_1 = __importDefault(require("./src/core/logger.core"));
 const Socket_1 = __importDefault(require("./src/utils/Socket"));
 const path_1 = __importDefault(require("path"));
+require("./src/models/sequelize");
 process.on("uncaughtException", (e) => {
     console.log("-----uncaughtException-----", e);
     process.exit(1);
@@ -32,8 +32,6 @@ const io = new socket_io_1.Server(server, {
     },
 });
 (0, Socket_1.default)(io);
-// connection sequelize
-sequelize_1.sequelize;
 // MIDDLEWARES
 const corsUrl = config_1.default.main.corsUrl;
 app.use(express_1.default.json({ limit: "10mb" }));

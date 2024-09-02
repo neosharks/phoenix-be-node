@@ -8,43 +8,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const sequelize_1 = require("../models/sequelize");
 const api_constant_1 = require("../constant/api.constant");
+const { Chat, Message, User } = sequelize_1.db;
 class _ChatService {
     getOneChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const result = yield prisma_1.default.chat.findFirst({
+                const result = yield Chat.findOne({
                     where: query,
-                    include: {
-                        participantOne: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                    include: [
+                        {
+                            model: User,
+                            as: "participantOne",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                        participantTwo: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                        {
+                            model: User,
+                            as: "participantTwo",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                    },
+                    ],
                 });
                 console.log(result, "result");
                 return result;
@@ -58,34 +60,38 @@ class _ChatService {
     getAllChat(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.chat.findMany({
+                return yield Chat.findAll({
                     where: query,
-                    include: {
-                        participantOne: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                    include: [
+                        {
+                            model: User,
+                            as: "participantOne",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                        participantTwo: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                        {
+                            model: User,
+                            as: "participantTwo",
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "profileImage",
+                                "email",
+                                "username",
+                                "role",
+                            ],
                         },
-                    },
-                    skip,
-                    take,
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
@@ -97,12 +103,10 @@ class _ChatService {
     createOneChat(participants, allowed) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.chat.create({
-                    data: {
-                        participantOneId: participants[0],
-                        participantTwoId: participants[1],
-                        pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
-                    },
+                return yield Chat.create({
+                    participantOneId: participants[0],
+                    participantTwoId: participants[1],
+                    pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
                 });
             }
             catch (error) {
@@ -114,7 +118,7 @@ class _ChatService {
     getOneMessage(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.message.findUnique({ where: query });
+                return yield Message.findOne({ where: query });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -125,7 +129,7 @@ class _ChatService {
     updateOneChat(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.chat.update({ where: query, data });
+                return yield Chat.update(data, { where: query });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -136,9 +140,7 @@ class _ChatService {
     getAllMessageForChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.message.findMany({
-                    where: query,
-                });
+                return yield Message.findAll({ where: query });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -149,18 +151,7 @@ class _ChatService {
     createOneMessage(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.message.create({
-                    data: data,
-                    select: {
-                        id: true,
-                        chatId: true,
-                        message: true,
-                        contentType: true,
-                        senderId: true,
-                        createdAt: true,
-                        updatedAt: true,
-                    },
-                });
+                return yield Message.create(Object.assign({}, data));
             }
             catch (error) {
                 console.log("ERROR: ", error);

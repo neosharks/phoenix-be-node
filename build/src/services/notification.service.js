@@ -13,30 +13,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const notification_model_1 = __importDefault(require("../models/notification.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const api_constant_1 = require("../constant/api.constant");
+const logger_core_1 = __importDefault(require("../core/logger.core"));
 class _NotificationService {
     getAllNotificationOfUser(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.notification.findMany({
+                return yield notification_model_1.default.findAll({
                     where: query,
-                    include: {
-                        aboutUser: {
-                            select: {
-                                profileImage: true,
-                                firstName: true,
-                                lastName: true,
-                                username: true,
-                            },
+                    include: [
+                        {
+                            model: user_model_1.default,
+                            as: "aboutUser",
+                            attributes: ["profileImage", "firstName", "lastName", "username"],
                         },
-                    },
-                    skip,
-                    take,
+                    ],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -45,12 +44,17 @@ class _NotificationService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { aboutUserId, notifiedUserId, message, link, type } = dataValues;
-                return prisma_1.default.notification.create({
-                    data: { aboutUserId, notifiedUserId, message, read: false, link, type },
+                return yield notification_model_1.default.create({
+                    aboutUserId,
+                    notifiedUserId,
+                    message,
+                    read: false,
+                    link,
+                    type,
                 });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });
@@ -59,17 +63,14 @@ class _NotificationService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = dataValues;
-                return prisma_1.default.notification.updateMany({
+                return yield notification_model_1.default.update({ read: true }, {
                     where: {
                         notifiedUserId: id,
-                    },
-                    data: {
-                        read: true,
                     },
                 });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("ERROR: ", error);
                 throw new Error(api_constant_1.errorMessage.DB_ISSUE);
             }
         });

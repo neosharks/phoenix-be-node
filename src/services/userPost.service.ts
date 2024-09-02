@@ -1,4 +1,3 @@
-import prisma from "../../prisma";
 import UserPost from "../models/userPost.model";
 import PostComment from "../models/postComment.model";
 import Poll from "../models/poll.model";

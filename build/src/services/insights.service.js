@@ -13,20 +13,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InsightService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const patronCreator_model_1 = __importDefault(require("../models/patronCreator.model"));
 class _InsightService {
     getAllPackagesOfCreator(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
             try {
-                return yield prisma_1.default.patronCreator.findMany({
+                return yield patronCreator_model_1.default.findAll({
                     where: query,
-                    orderBy: [
-                        {
-                            createdAt: "asc",
-                        },
-                    ],
-                    skip,
-                    take,
+                    order: [["createdAt", "ASC"]],
+                    offset: skip,
+                    limit: take,
                 });
             }
             catch (error) {

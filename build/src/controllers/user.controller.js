@@ -14,11 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
+const logger_core_1 = __importDefault(require("../core/logger.core"));
 const api_constant_1 = require("../constant/api.constant");
+const user_model_1 = __importDefault(require("../models/user.model"));
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
-const user_models_1 = __importDefault(require("../models/user.models"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -26,14 +27,14 @@ class _UserController {
                 const id = res.locals.user.id;
                 const found = yield user_service_1.UserService.getOneUser({ id });
                 if (!found)
-                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in getUser:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -50,10 +51,10 @@ class _UserController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, allLinks });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in getAllLinks:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -63,15 +64,15 @@ class _UserController {
                 const { url, platform, highlight } = req.body;
                 const { id } = res.locals.user;
                 if (!url)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 yield user_service_1.UserService.createLink({ userId: id, url, platform, highlight });
-                return res.status(200).json({ message: api_constant_1.successMessages.CREATED });
+                return res.status(201).json({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in createLink:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -87,10 +88,10 @@ class _UserController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, user: found });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in getUserByUsername:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -107,47 +108,46 @@ class _UserController {
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: found });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in getAllCreator:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
     updateCoverImage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const image = req.body.image;
-                let update = {};
-                if (image)
-                    update.coverImage = image;
-                console.log(update, "sdfg");
+                const { image } = req.body;
+                if (!image)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const update = { coverImage: image };
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in updateCoverImage:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
     updateProfileImage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const image = req.body.image;
-                let update = {};
-                if (image)
-                    update.profileImage = image;
+                const { image } = req.body;
+                if (!image)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const update = { profileImage: image };
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in updateProfileImage:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -158,42 +158,41 @@ class _UserController {
                 if (validation.error) {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
-                const image = req.body.image;
-                if (image)
-                    req.body.profileImage = image;
-                yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, req.body);
+                const { image } = req.body;
+                const update = image ? Object.assign(Object.assign({}, req.body), { profileImage: image }) : req.body;
+                yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
                 return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in update:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
     joinForFree(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { user } = res.locals;
                 const { creatorId } = req.body;
                 if (!creatorId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const { user } = res.locals;
                 const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getFirst({
                     creatorId,
                     patronId: user.id,
                     type: "FREE",
                 });
                 if (foundPatronCreator)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
-                yield package_service_1.PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                yield package_service_1.PackageService.linkPatronCreator(user.id, creatorId, "FREE");
+                return res.status(201).json({ message: api_constant_1.successMessages.UPDATED });
             }
             catch (error) {
-                console.log("ERROR: ", error);
+                logger_core_1.default.error("Error in joinForFree:", error);
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error });
             }
         });
     }
@@ -238,32 +237,53 @@ class _UserController {
             }
         });
     }
+    // async approveCreatorOnboard(req: Request, res: Response) {
+    //   try {
+    //     const { users } = req.body;
+    //     for (let i = 0; i < users.length; i++) {
+    //       const ele = users[i];
+    //       const foundUser = await UserService.getOneUser({ id: ele });
+    //       if (foundUser && !foundUser.isCreator) {
+    //         const updatedBody = {
+    //           isCreator: true,
+    //           role: ["CREATOR", ...foundUser.role],
+    //           creatorApprovalStatus: "APPROVED",
+    //           creatorChangeTimeStamp: new Date(),
+    //         };
+    //         await UserService.updateOneUser({ id: ele }, updatedBody);
+    //         // if (foundUser.email)
+    //         //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+    //       }
+    //     }
+    //     return res.status(201).send({ message: successMessages.SUCCESS });
+    //   } catch (error) {
+    //     console.log("ERROR: ", error);
+    //     return res
+    //       .status(errorCode.INTERNAL_SERVER)
+    //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    //   }
+    // }
     approveCreatorOnboard(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { users } = req.body;
                 for (let i = 0; i < users.length; i++) {
-                    const ele = users[i];
-                    const foundUser = yield user_service_1.UserService.getOneUser({ id: ele });
+                    const userId = users[i];
+                    const foundUser = yield user_model_1.default.findByPk(userId);
                     if (foundUser && !foundUser.isCreator) {
-                        const updatedBody = {
+                        yield foundUser.update({
                             isCreator: true,
-                            role: ["CREATOR", ...foundUser.role],
+                            role: [...foundUser.role, "CREATOR"],
                             creatorApprovalStatus: "APPROVED",
                             creatorChangeTimeStamp: new Date(),
-                        };
-                        yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
-                        // if (foundUser.email)
-                        //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+                        });
                     }
                 }
-                return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
+                return res.status(201).send({ message: "User approval successful." });
             }
             catch (error) {
-                console.log("ERROR: ", error);
-                return res
-                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
-                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+                console.error("ERROR: ", error);
+                return res.status(500).json({ message: "Internal server error", error });
             }
         });
     }
@@ -295,29 +315,6 @@ class _UserController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
-            }
-        });
-    }
-    getAllUsers(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const users = yield user_models_1.default.findAll({});
-                res.json(users);
-            }
-            catch (err) {
-                res.status(500).json({ error: err.message });
-            }
-        });
-    }
-    createUser(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { name, email, password } = req.body;
-                const newUser = yield user_models_1.default.create({ name, email, password });
-                res.json(newUser);
-            }
-            catch (err) {
-                res.status(500).json({ error: err.message });
             }
         });
     }

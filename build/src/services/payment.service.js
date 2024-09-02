@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentService = void 0;
-const prisma_1 = __importDefault(require("../../prisma"));
+const payment_model_1 = __importDefault(require("../models/payment.model"));
 class _PaymentService {
     getAllPaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.payment.findMany({ where: query });
+                return yield payment_model_1.default.findAll({ where: query });
             }
             catch (error) {
                 throw error;
@@ -28,7 +28,7 @@ class _PaymentService {
     getOnePaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.payment.findUnique({ where: query });
+                return yield payment_model_1.default.findOne({ where: query });
             }
             catch (error) {
                 console.error(error);
@@ -40,14 +40,12 @@ class _PaymentService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userId, orderId, packageId, amount, currency } = dataValues;
-                return yield prisma_1.default.payment.create({
-                    data: {
-                        userId,
-                        orderId,
-                        packageId,
-                        amount,
-                        currency,
-                    },
+                return yield payment_model_1.default.create({
+                    userId,
+                    orderId,
+                    packageId,
+                    amount,
+                    currency,
                 });
             }
             catch (error) {
@@ -59,7 +57,7 @@ class _PaymentService {
     updateOneByProps(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.payment.update({ where: query, data: data });
+                return yield payment_model_1.default.update(data, { where: query });
             }
             catch (error) {
                 console.error(error);
