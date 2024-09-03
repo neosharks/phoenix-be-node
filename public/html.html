@@ -298,78 +298,72 @@
           }
         });
       
-        function addMessageToUI(message, isCurrentUser) {
-          const li = document.createElement("li");
-          li.classList.add(isCurrentUser ? "right" : "left");
-          li.classList.toggle("pinned", message.isPinned);
-          li.setAttribute("data-message-id", message.id);
-      
-          if (message.message) {
-            const text = document.createElement("p");
-            text.textContent = message.message;
-            li.appendChild(text);
-          }
-          if (message.image) {
-            const img = document.createElement("img");
-            img.src = message.image;
-            li.appendChild(img);
-          }
-          if (message.video) {
-            const video = document.createElement("video");
-            video.src = message.video;
-            video.controls = true;
-            li.appendChild(video);
-          }
-          if (message.document) {
-            const link = document.createElement("a");
-            link.href = message.document;
-            link.textContent = "View Document";
-            li.appendChild(link);
-          }
-      
-          if (message.repliedMessageId) {
-            const replyContainer = document.createElement("div");
-            replyContainer.classList.add("reply-container");
-      
-            // Display the reference to the replied message
-            const replyReference = document.createElement("p");
-            replyReference.classList.add("reply-reference");
-            replyReference.textContent = `Replying to message: ${message.repliedMessageId}`;
-            replyReference.addEventListener("click", () => {
-              const originalMessage = document.querySelector(
-                `[data-message-id="${message.repliedMessageId}"]`,
-              );
-              if (originalMessage) {
-                originalMessage.scrollIntoView({ behavior: "smooth" });
-              }
-            });
-            replyContainer.appendChild(replyReference);
-      
-            li.appendChild(replyContainer);
-          }
-      
-          const replyLink = document.createElement("a");
-          replyLink.href = "#";
-          replyLink.classList.add("reply-link");
-          replyLink.textContent = "Reply";
-          replyLink.addEventListener("click", () => handleReply(message.id));
-          li.appendChild(replyLink);
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = message.isPinned;
-          checkbox.classList.add("pin-checkbox");
-          checkbox.addEventListener("change", () => {
-            const isPinned = checkbox.checked;
-            socket.emit("update_message", {
-              messageId: message.id,
-              isPinned: isPinned,
-            });
-          });
-          li.appendChild(checkbox);
-      
-          messageList.appendChild(li);
-        }
-      
+     function addMessageToUI(message, isCurrentUser) {
+  const li = document.createElement("li");
+  li.classList.add(isCurrentUser ? "right" : "left");
+  li.classList.toggle("pinned", message.isPinned);
+  li.setAttribute("data-message-id", message.id);
+
+  if (message.message) {
+    const text = document.createElement("p");
+    text.textContent = message.message;
+    li.appendChild(text);
+  }
+  if (message.image) {
+    const img = document.createElement("img");
+    img.src = message.image;
+    li.appendChild(img);
+  }
+  if (message.video) {
+    const video = document.createElement("video");
+    video.src = message.video;
+    video.controls = true;
+    li.appendChild(video);
+  }
+  if (message.document) {
+    const link = document.createElement("a");
+    link.href = message.document;
+    link.textContent = "View Document";
+    li.appendChild(link);
+  }
+
+  // Display the replied message if available
+  if (message.repliedMessage) {
+    const replyContainer = document.createElement("div");
+    replyContainer.classList.add("reply-container");
+
+    // Display the reference to the replied message
+    const replyReference = document.createElement("p");
+    replyReference.classList.add("reply-reference");
+    replyReference.textContent = `Replying to: ${message.repliedMessage.message}`;
+    replyContainer.appendChild(replyReference);
+
+    li.appendChild(replyContainer);
+  }
+
+  const replyLink = document.createElement("a");
+  replyLink.href = "#";
+  replyLink.classList.add("reply-link");
+  replyLink.textContent = "Reply";
+  replyLink.addEventListener("click", () => handleReply(message.id));
+  li.appendChild(replyLink);
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = message.isPinned;
+  checkbox.classList.add("pin-checkbox");
+  checkbox.addEventListener("change", () => {
+    const isPinned = checkbox.checked;
+    socket.emit("update_message", {
+      messageId: message.id,
+      isPinned: isPinned,
+    });
+  });
+  li.appendChild(checkbox);
+
+  messageList.appendChild(li);
+}
+
         function updateMessageInUI(data) {
           const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
           if (messageElement) {

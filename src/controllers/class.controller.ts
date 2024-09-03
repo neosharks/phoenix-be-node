@@ -91,7 +91,6 @@ class _ClassController {
         classId: Number(classId),
         userId: Number(participantId),
       });
-      console.log(addMember, "addMember");
       return res.status(200).send({ message: successMessages.CREATED, data: addMember });
     } catch (error) {
       console.log("ERROR: ", error);
