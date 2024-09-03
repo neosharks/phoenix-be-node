@@ -179,6 +179,18 @@ class _ClassService {
                 return yield prisma_1.default.classMessage.findMany({
                     where: { classId: id },
                     include: {
+                        repliedMessage: {
+                            include: {
+                                user: {
+                                    select: {
+                                        firstName: true,
+                                        lastName: true,
+                                        profileImage: true,
+                                        username: true,
+                                    },
+                                },
+                            },
+                        },
                         user: {
                             select: {
                                 firstName: true,

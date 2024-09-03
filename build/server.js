@@ -30,7 +30,6 @@ const io = new socket_io_1.Server(server, {
         origin: "*",
         methods: ["GET", "POST"],
     },
-    maxHttpBufferSize: 1e8,
 });
 (0, Socket_1.default)(io);
 // connection sequelize
