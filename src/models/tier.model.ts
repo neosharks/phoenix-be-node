@@ -6,6 +6,7 @@ import {
   CreationOptional,
 } from "sequelize";
 import { sequelize } from "./sequelize";
+import Package from "./package.model";
 
 class Tier extends Model<InferAttributes<Tier>, InferCreationAttributes<Tier>> {
   declare id: CreationOptional<number>;
@@ -25,6 +26,7 @@ class Tier extends Model<InferAttributes<Tier>, InferCreationAttributes<Tier>> {
   declare description: string;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Tier.init(
@@ -71,5 +73,10 @@ Tier.init(
     modelName: "Tier",
   },
 );
+
+//Associate
+Tier.associate = (models: any) => {
+  Tier.hasMany(models.Package, { foreignKey: "tierId" });
+};
 
 export default Tier;

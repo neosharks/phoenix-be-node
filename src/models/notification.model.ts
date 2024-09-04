@@ -29,6 +29,7 @@ class Notification extends Model<
     | "CLASS";
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Notification.init(
@@ -99,7 +100,9 @@ Notification.init(
 );
 
 // Associations
-// Notification.belongsTo(User, { as: "aboutUser", foreignKey: "aboutUserId" });
-// Notification.belongsTo(User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+Notification.associate = (models: any) => {
+  Notification.belongsTo(models.User, { as: "aboutUser", foreignKey: "aboutUserId" });
+  Notification.belongsTo(models.User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+};
 
 export default Notification;

@@ -9,22 +9,18 @@ import {
 import { sequelize } from "./sequelize";
 import User from "./user.model";
 
-class ClickStream extends Model<
-  InferAttributes<ClickStream>,
-  InferCreationAttributes<ClickStream>
-> {
+class AllLinks extends Model<InferAttributes<AllLinks>, InferCreationAttributes<AllLinks>> {
   declare id: CreationOptional<number>;
   declare userId: ForeignKey<User["id"]>;
-  declare info?: object; // `object` type for JSON
-  declare type?: string;
-  declare url?: string;
-  declare ipAddress?: string;
+  declare url: ForeignKey<String>;
+  declare platform: ForeignKey<String>;
+  declare highlight: ForeignKey<Boolean>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   static associate: (models: any) => void;
 }
 
-ClickStream.init(
+AllLinks.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -33,26 +29,25 @@ ClickStream.init(
     },
     userId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: User,
+        model: "Users",
         key: "id",
       },
-    },
-    info: {
-      type: DataTypes.JSON,
-      allowNull: true, // Set allowNull to true if the column can be null
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: true, // Set allowNull to true if the column can be null
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     url: {
       type: DataTypes.STRING,
-      allowNull: true, // Set allowNull to true if the column can be null
+      allowNull: false,
     },
-    ipAddress: {
+    platform: {
       type: DataTypes.STRING,
-      allowNull: true, // Set allowNull to true if the column can be null
+      allowNull: true,
+    },
+    highlight: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -65,13 +60,14 @@ ClickStream.init(
   },
   {
     sequelize,
-    modelName: "ClickStream",
+    modelName: "allLinks",
   },
 );
 
-// Associations
-ClickStream.associate = (models: any) => {
-  ClickStream.belongsTo(models.User, { foreignKey: "userId" });
+//Associate
+
+AllLinks.associate = (models: any) => {
+  AllLinks.belongsTo(models.User, { foreignKey: "userId" });
 };
 
-export default ClickStream;
+export default AllLinks;

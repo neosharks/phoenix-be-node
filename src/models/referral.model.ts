@@ -18,6 +18,7 @@ class Referral extends Model<InferAttributes<Referral>, InferCreationAttributes<
   declare paymentId: CreationOptional<ForeignKey<Payment["id"]>>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Referral.init(
@@ -71,8 +72,10 @@ Referral.init(
 );
 
 // Associations
-// Referral.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-// Referral.belongsTo(User, { as: "user", foreignKey: "userId" });
-// Referral.belongsTo(Payment, { foreignKey: "paymentId" });
+Referral.associate = (models: any) => {
+  Referral.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+  Referral.belongsTo(models.User, { as: "user", foreignKey: "userId" });
+  Referral.belongsTo(models.Payment, { foreignKey: "paymentId" });
+};
 
 export default Referral;

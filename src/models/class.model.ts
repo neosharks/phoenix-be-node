@@ -11,14 +11,14 @@ import User from "./user.model";
 
 class Class extends Model<InferAttributes<Class>, InferCreationAttributes<Class>> {
   declare id: CreationOptional<number>;
-  declare creatorId: ForeignKey<User["id"]>;
+  declare title: string;
+  declare description: string;
   declare name: string;
   declare isPaid: boolean;
-  declare type?: string;
-  declare price?: number;
-  declare paymentFrequency?: "ONE_TIME" | "MONTHLY" | "YEARLY";
+  declare creatorId: ForeignKey<User["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Class.init(
@@ -28,13 +28,6 @@ Class.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    creatorId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: User,
-        key: "id",
-      },
-    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -43,17 +36,14 @@ Class.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    price: {
+    title: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    creatorId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    paymentFrequency: {
-      type: DataTypes.ENUM("ONE_TIME", "MONTHLY", "YEARLY"),
-      allowNull: true,
+      references: {
+        model: User,
+        key: "id",
+      },
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -70,7 +60,12 @@ Class.init(
   },
 );
 
-// Associations
-Class.belongsTo(User, { foreignKey: "creatorId" });
+// Associate
+Class.associate = (models: any) => {
+  Class.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+  Class.hasMany(models.ClassParticipants, { foreignKey: "classId" });
+  Class.hasMany(models.ClassMessage, { foreignKey: "classId" });
+  Class.hasMany(models.UserPost, { foreignKey: "classId" });
+};
 
 export default Class;

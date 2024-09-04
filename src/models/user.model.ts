@@ -7,18 +7,6 @@ import {
   ForeignKey,
 } from "sequelize";
 import { sequelize } from "./sequelize";
-import Notification from "./notification.model";
-import PatronCreator from "./patronCreator.model";
-import UserPost from "./userPost.model";
-import PostComment from "./postComment.model";
-import ClickStream from "./clickStream.model";
-import WalletTransactions from "./walletTransactions.model";
-import Class from "./class.model";
-import ClassMessage from "./classMessage.model";
-import ClassParticipants from "./classParticipants.model";
-import Referral from "./referral.model";
-import Payment from "./payment.model";
-import Chat from "./chat.model";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
@@ -65,6 +53,33 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare online: boolean;
   declare fcmToken: string;
   declare lastSeen: Date;
+  static associate(models: any) {
+    User.hasMany(models.Package, { foreignKey: "creatorId" });
+    User.hasMany(models.Message, { foreignKey: "senderId" });
+    User.hasMany(models.Chat, { as: "participantOne", foreignKey: "participantOneId" });
+    User.hasMany(models.Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
+    User.hasMany(models.Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
+    User.hasMany(models.Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+    User.hasMany(models.Poll, { foreignKey: "authorId" });
+    User.hasMany(models.PatronCreator, { as: "creatorId", foreignKey: "creatorId" });
+    User.hasMany(models.PatronCreator, { as: "patronId", foreignKey: "patronId" });
+    User.hasMany(models.PostComment, { foreignKey: "authorId" });
+    User.hasMany(models.UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
+    User.belongsToMany(models.UserPost, {
+      through: "UserPostLikes",
+      as: "likedByUser",
+      foreignKey: "userId",
+    });
+    User.hasMany(models.Payment, { foreignKey: "userId" });
+    User.hasMany(models.ClickStream, { foreignKey: "userId" });
+    User.hasMany(models.WalletTransactions, { foreignKey: "userId" });
+    User.hasMany(models.Referral, { as: "referralUser", foreignKey: "userId" });
+    User.hasMany(models.Referral, { as: "referralCreator", foreignKey: "creatorId" });
+    User.hasMany(models.AllLinks, { foreignKey: "userId" });
+    User.hasMany(models.ClassParticipants, { foreignKey: "userId" });
+    User.hasMany(models.ClassMessage, { foreignKey: "userId" });
+    User.hasMany(models.Class, { foreignKey: "creatorId" });
+  }
 }
 
 User.init(
@@ -204,38 +219,14 @@ User.init(
     fcmToken: DataTypes.STRING,
     lastSeen: DataTypes.DATE,
   },
-  { sequelize, modelName: "User", indexes: [{ fields: ["email", "username", "phoneNumber"] }] },
+  {
+    sequelize,
+    modelName: "User",
+    tableName: "User",
+    indexes: [{ fields: ["email", "username", "phoneNumber"] }],
+  },
 );
 
 // Associations
-
-User.hasMany(Chat, { as: "participantOne", foreignKey: "participantOneId" });
-User.hasMany(Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
-
-// User.hasMany(Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
-// User.hasMany(Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
-
-// User.hasMany(PatronCreator, { as: "creator", foreignKey: "creatorId" });
-// User.hasMany(PatronCreator, { as: "patron", foreignKey: "patronId" });
-
-// User.hasMany(PostComment, { foreignKey: "userId" });
-
-// User.hasMany(UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
-// User.hasMany(UserPost, { as: "likedByUser", foreignKey: "likedByUserId" });
-
-// User.hasMany(Payment, { foreignKey: "userId" });
-
-// User.hasMany(ClickStream, { foreignKey: "userId" });
-
-// User.hasMany(WalletTransactions, { foreignKey: "userId" });
-
-// User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
-// User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
-
-// User.hasMany(ClassParticipants, { foreignKey: "userId" });
-
-// User.hasMany(ClassMessage, { foreignKey: "userId" });
-
-// User.hasMany(Class, { foreignKey: "creatorId" });
 
 export default User;

@@ -53,10 +53,11 @@ const Socket = (io: any) => {
           classId: data.classId,
           userId: data.userId,
           message: data.message,
-          image: data.image || null,
-          video: data.video || null,
-          document: data.document || null,
+          image: data.image,
+          video: data.video,
+          document: data.document,
           repliedMessageId: data.repliedMessageId || null,
+          isPinned: data.isPinned || false,
         });
 
         io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
@@ -76,10 +77,14 @@ const Socket = (io: any) => {
 
         if (affectedCount > 0) {
           const updatedMessage = await ClassMessage.findByPk(data.messageId);
-          io.to(updatedMessage.classId.toString()).emit("message_updated", {
-            messageId: updatedMessage.id,
-            isPinned: updatedMessage.isPinned,
-          });
+          if (updatedMessage) {
+            io.to(updatedMessage.classId.toString()).emit("message_updated", {
+              messageId: updatedMessage.id,
+              isPinned: updatedMessage.isPinned,
+            });
+          } else {
+            console.log(updatedMessage, "updatedMessage not available");
+          }
         }
       } catch (error) {
         console.error("Error updating message:", error);

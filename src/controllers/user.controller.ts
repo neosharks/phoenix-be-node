@@ -256,6 +256,20 @@ class _UserController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+  async createLink(req: Request, res: Response) {
+    try {
+      const { url, platform, highlight } = req.body;
+      const { id } = res.locals.user;
+      if (!url) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      await UserService.createLink({ userId: id, url, platform, highlight });
+      return res.status(200).json({ message: successMessages.CREATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
 }
 
 export const UserController = new _UserController();

@@ -22,6 +22,7 @@ export class Payment extends Model<InferAttributes<Payment>, InferCreationAttrib
   declare packageId: CreationOptional<ForeignKey<Package["id"]>>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 // Initialize the model
@@ -74,15 +75,16 @@ Payment.init(
   {
     sequelize,
     modelName: "Payment",
+    tableName: "Payment",
   },
 );
 
 // Associations
-Payment.belongsTo(User, { foreignKey: "userId" });
-// Payment.belongsTo(Package, { foreignKey: "packageId" });
-// Referral.belongsTo(Payment, { foreignKey: "paymentId" });
-// WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
-// Payment.hasMany(WalletTransactions, { foreignKey: "paymentId" });
-// Payment.hasMany(Referral, { foreignKey: "paymentId" });
+Payment.associate = (models: any) => {
+  Payment.belongsTo(models.User, { foreignKey: "userId" });
+  Payment.belongsTo(models.Package, { foreignKey: "packageId" });
+  Payment.hasMany(models.WalletTransactions, { foreignKey: "paymentId" });
+  Payment.hasMany(models.Referral, { foreignKey: "paymentId" });
+};
 
 export default Payment;

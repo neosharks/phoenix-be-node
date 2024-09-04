@@ -21,6 +21,7 @@ class WalletTransactions extends Model<
   declare paymentId: ForeignKey<Payment["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 WalletTransactions.init(
@@ -68,7 +69,9 @@ WalletTransactions.init(
 );
 
 // Associations
-// WalletTransactions.belongsTo(User, { foreignKey: "userId" });
-// WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
+WalletTransactions.associate = (models: any) => {
+  WalletTransactions.belongsTo(models.User, { foreignKey: "userId" });
+  WalletTransactions.belongsTo(models.Payment, { foreignKey: "paymentId" });
+};
 
 export default WalletTransactions;

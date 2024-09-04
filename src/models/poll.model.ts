@@ -20,6 +20,7 @@ class Poll extends Model<InferAttributes<Poll>, InferCreationAttributes<Poll>> {
   declare description: string;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 // Initialize the model
@@ -74,9 +75,9 @@ Poll.init(
 );
 
 // Associations
-// Poll.belongsTo(User, { as: "author", foreignKey: "authorId" });
-// UserPost.belongsTo(Poll, { foreignKey: "pollId" });
-// User.hasMany(Poll, { as: "Polls", foreignKey: "authorId" });
-// Poll.hasMany(UserPost, { foreignKey: "pollId" });
+Poll.associate = (models: any) => {
+  Poll.belongsTo(models.User, { as: "author", foreignKey: "authorId" });
+  Poll.hasMany(models.UserPost, { foreignKey: "pollId" });
+};
 
 export default Poll;

@@ -8,17 +8,21 @@ import {
 } from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
-import Message from "./message.model";
 
+enum CONVERSATION_TYPE {
+  ONE_TO_ONE = "ONE_TO_ONE",
+  GROUP = "GROUP",
+}
 class Chat extends Model<InferAttributes<Chat>, InferCreationAttributes<Chat>> {
   declare id: CreationOptional<number>;
   declare participantOneId: ForeignKey<User["id"]>;
   declare participantTwoId: ForeignKey<User["id"]>;
-  declare type: "ONE_TO_ONE" | "GROUP";
-  declare unreadCount: number;
-  declare pendingAllowed: number;
+  declare type: CONVERSATION_TYPE;
+  declare unreadCount: CreationOptional<number>;
+  declare pendingAllowed: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Chat.init(
@@ -30,7 +34,6 @@ Chat.init(
     },
     participantOneId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
         model: User,
         key: "id",
@@ -38,15 +41,15 @@ Chat.init(
     },
     participantTwoId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
         model: User,
         key: "id",
       },
     },
     type: {
-      type: DataTypes.ENUM("ONE_TO_ONE", "GROUP"),
-      defaultValue: "ONE_TO_ONE",
+      type: DataTypes.ENUM,
+      values: Object.values(CONVERSATION_TYPE),
+      defaultValue: CONVERSATION_TYPE.ONE_TO_ONE,
     },
     unreadCount: {
       type: DataTypes.INTEGER,
@@ -71,9 +74,11 @@ Chat.init(
   },
 );
 
-// Associations
-Chat.belongsTo(User, { as: "participantOne", foreignKey: "participantOneId" });
-Chat.belongsTo(User, { as: "participantTwo", foreignKey: "participantTwoId" });
-Chat.hasMany(Message, { foreignKey: "chatId", onDelete: "CASCADE" });
+// Associate
+Chat.associate = (models: any) => {
+  Chat.belongsTo(models.User, { as: "participantOne", foreignKey: "participantOneId" });
+  Chat.belongsTo(models.User, { as: "participantTwo", foreignKey: "participantTwoId" });
+  Chat.hasMany(models.Message, { foreignKey: "chatId" });
+};
 
 export default Chat;

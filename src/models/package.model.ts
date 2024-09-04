@@ -22,6 +22,7 @@ class Package extends Model<InferAttributes<Package>, InferCreationAttributes<Pa
   declare userPostId: CreationOptional<ForeignKey<UserPost["id"]>>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Package.init(
@@ -75,19 +76,12 @@ Package.init(
 );
 
 // Associations
-// Package.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-// Package.belongsTo(UserPost, { foreignKey: "userPostId" });
-
-// User.hasMany(Package, { foreignKey: "creatorId" });
-// UserPost.hasMany(Package, { foreignKey: "userPostId" });
-
-// Package.hasMany(PatronCreator, { foreignKey: "packageId" });
-// Package.hasMany(Payment, { foreignKey: "packageId" });
-
-Package.hasMany(Tier, { foreignKey: "packageId" });
-
-// PatronCreator.belongsTo(Package, { foreignKey: "packageId" });
-// Payment.belongsTo(Package, { foreignKey: "packageId" });
-// Tier.belongsTo(Package, { foreignKey: "packageId" });
+Package.associate = (models: any) => {
+  Package.belongsTo(models.Tier, { foreignKey: "tierId" });
+  Package.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+  Package.hasMany(models.PatronCreator, { foreignKey: "packageId" });
+  Package.hasOne(models.UserPost, { foreignKey: "userPostId" });
+  Package.hasMany(models.Payment, { foreignKey: "packageId" });
+};
 
 export default Package;

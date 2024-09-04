@@ -20,6 +20,7 @@ class PostComment extends Model<
   declare userPostId: ForeignKey<UserPost["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 PostComment.init(
@@ -65,10 +66,9 @@ PostComment.init(
 );
 
 // Associations completed
-PostComment.belongsTo(User, { foreignKey: "authorId" });
-PostComment.belongsTo(UserPost, { foreignKey: "userPostId" });
-
-User.hasMany(PostComment, { foreignKey: "authorId" });
-UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
+PostComment.associate = (models: any) => {
+  PostComment.belongsTo(models.User, { foreignKey: "authorId" });
+  PostComment.belongsTo(models.UserPost, { foreignKey: "userPostId" });
+};
 
 export default PostComment;

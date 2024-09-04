@@ -23,6 +23,7 @@ class PatronCreator extends Model<
   declare status: "ACTIVE" | "EXPIRED" | "PENDING";
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 PatronCreator.init(
@@ -84,12 +85,10 @@ PatronCreator.init(
 );
 
 // Associations
-// PatronCreator.belongsTo(User, { as: "patron", foreignKey: "patronId" });
-// PatronCreator.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-// PatronCreator.belongsTo(Package, { foreignKey: "packageId" });
-
-// User.hasMany(PatronCreator, { as: "patronCreator", foreignKey: "patronId" });
-// User.hasMany(PatronCreator, { as: "creatorPatron", foreignKey: "creatorId" });
-// Package.hasMany(PatronCreator, { foreignKey: "packageId" });
+PatronCreator.associate = (models: any) => {
+  PatronCreator.belongsTo(models.User, { as: "patron", foreignKey: "patronId" });
+  PatronCreator.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+  PatronCreator.belongsTo(models.Package, { foreignKey: "packageId" });
+};
 
 export default PatronCreator;

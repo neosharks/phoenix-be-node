@@ -1,3 +1,4 @@
+import AllLinks from "../models/allLinks.model";
 import User from "../models/user.model";
 class _UserService {
   async getOneUser(query: any) {
@@ -26,6 +27,13 @@ class _UserService {
         offset: skip,
         limit: take,
       });
+    } catch (error) {
+      throw error;
+    }
+  }
+  async createLink(data: any) {
+    try {
+      return await AllLinks.create(data);
     } catch (error) {
       throw error;
     }

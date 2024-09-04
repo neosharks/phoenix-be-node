@@ -19,6 +19,7 @@ class ClassParticipants extends Model<
   declare userId: ForeignKey<User["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 ClassParticipants.init(
@@ -58,7 +59,9 @@ ClassParticipants.init(
 );
 
 // Associations
-// ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
-// ClassParticipants.belongsTo(User, { foreignKey: "userId" });
+ClassParticipants.associate = (models: any) => {
+  ClassParticipants.belongsTo(models.Class, { foreignKey: "classId" });
+  ClassParticipants.belongsTo(models.User, { foreignKey: "userId" });
+};
 
 export default ClassParticipants;

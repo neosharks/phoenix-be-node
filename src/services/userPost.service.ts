@@ -12,16 +12,14 @@ class _UserPostService {
         where: query,
         include: [
           { model: Poll },
-          { model: Package },
-          { model: Class },
+          { model: Package }, // Assuming Package is defined
+          { model: Class }, // Assuming Class is defined
           {
             model: PostComment,
-            as: "comments",
             attributes: ["description", "createdAt", "updatedAt"],
             include: [
               {
                 model: User,
-                as: "author",
                 attributes: [
                   "id",
                   "firstName",
@@ -32,33 +30,32 @@ class _UserPostService {
                   "role",
                 ],
               },
-              ,
-              {
-                model: User,
-                as: "likedBy",
-                attributes: [
-                  "id",
-                  "firstName",
-                  "lastName",
-                  "profileImage",
-                  "email",
-                  "username",
-                  "role",
-                ],
-              },
-              {
-                model: User,
-                as: "author",
-                attributes: [
-                  "id",
-                  "firstName",
-                  "lastName",
-                  "profileImage",
-                  "email",
-                  "username",
-                  "role",
-                ],
-              },
+            ],
+          },
+          {
+            model: User,
+            as: "likedBy",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
+            ],
+          },
+          {
+            model: User,
+            as: "author",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profileImage",
+              "email",
+              "username",
+              "role",
             ],
           },
         ],
@@ -77,16 +74,22 @@ class _UserPostService {
         include: [
           {
             model: PostComment,
-            as: "comments",
-            include: {
-              model: User,
-              as: "author",
-            },
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "firstName",
+                  "lastName",
+                  "profileImage",
+                  "email",
+                  "username",
+                  "role",
+                ],
+              },
+            ],
           },
-          {
-            model: User,
-            as: "author",
-          },
+          { model: User, as: "author" },
           {
             model: User,
             as: "likedBy",
@@ -101,7 +104,10 @@ class _UserPostService {
 
   async updateOneUserPost(query: any, data: any) {
     try {
-      return await UserPost.update(data, { where: query });
+      return await UserPost.update(data, {
+        where: query,
+        returning: true,
+      });
     } catch (error) {
       throw error;
     }
@@ -123,75 +129,78 @@ class _UserPostService {
         packages,
       } = dataValues;
 
-      const createdPost = await UserPost.create({
-        description,
-        authorId,
-        title,
-        type,
-        image,
-        visibility,
-        allowComments,
-        videoUrl,
-        document,
-        pollId,
-      });
+      const userPost = await UserPost.create(
+        {
+          description,
+          authorId,
+          title,
+          type,
+          image,
+          visibility,
+          allowComments,
+          videoUrl,
+          document,
+          pollId,
+        },
+        {
+          include: [
+            { model: User, as: "likedBy" },
+            { model: PostComment },
+            {
+              model: User,
+              as: "author",
+              attributes: [
+                "id",
+                "firstName",
+                "lastName",
+                "profileImage",
+                "email",
+                "username",
+                "role",
+              ],
+            },
+            { model: Package, as: "packages" },
+          ],
+        },
+      );
 
-      if (Array.isArray(packages)) await createdPost.setPackages(packages);
+      // Handle association separately if needed
+      if (packages && packages.length > 0) {
+        await userPost.setPackages(packages.map((id: any) => ({ id })));
+      }
 
-      return await UserPost.findOne({
-        where: { id: createdPost.id },
-        include: [
-          {
-            model: User,
-            as: "likedBy",
-          },
-          {
-            model: PostComment,
-            as: "comments",
-          },
-          {
-            model: User,
-            as: "author",
-            attributes: [
-              "id",
-              "firstName",
-              "lastName",
-              "profileImage",
-              "email",
-              "username",
-              "role",
-            ],
-          },
-        ],
-      });
+      return userPost;
     } catch (error) {
       throw error;
     }
   }
 
   async createOneComment(dataValues: any) {
+    const { description, authorId, userPostId } = dataValues;
     try {
-      const { description, authorId, userPostId } = dataValues;
-      return await PostComment.create({
-        description,
-        authorId,
-        userPostId,
-        include: [
-          {
-            model: User,
-            as: "author",
-            attributes: [
-              "id",
-              "firstName",
-              "lastName",
-              "profileImage",
-              "email",
-              "username",
-              "role",
-            ],
-          },
-        ],
-      });
+      return await PostComment.create(
+        {
+          description,
+          authorId,
+          userPostId,
+        },
+        {
+          include: [
+            {
+              model: User,
+              attributes: [
+                "id",
+                "firstName",
+                "lastName",
+                "profileImage",
+                "email",
+                "username",
+                "role",
+              ],
+            },
+          ],
+        },
+      );
     } catch (error) {
       throw error;
     }
@@ -217,7 +226,10 @@ class _UserPostService {
 
   async updateOnePoll(query: any, data: any) {
     try {
-      return await Poll.update(data, { where: query });
+      return await Poll.update(data, {
+        where: query,
+        returning: true,
+      });
     } catch (error) {
       throw error;
     }
@@ -232,4 +244,5 @@ class _UserPostService {
     }
   }
 }
+
 export const UserPostService = new _UserPostService();

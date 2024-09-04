@@ -8,11 +8,15 @@ import {
 } from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
-import PostComment from "./postComment.model";
 import Class from "./class.model";
 import Poll from "./poll.model";
+import PostComment from "./postComment.model"; // Ensure these models are correctly defined
+import Package from "./package.model"; // Ensure these models are correctly defined
 
 class UserPost extends Model<InferAttributes<UserPost>, InferCreationAttributes<UserPost>> {
+  setPackages(arg0: any) {
+    throw new Error("Method not implemented.");
+  }
   declare id: CreationOptional<number>;
   declare authorId: ForeignKey<User["id"]>;
   declare type: "TEXT" | "IMAGE" | "POLL" | "LINK" | "VIDEO" | "CLASS" | "DOCUMENT";
@@ -27,6 +31,7 @@ class UserPost extends Model<InferAttributes<UserPost>, InferCreationAttributes<
   declare classId: CreationOptional<ForeignKey<Class["id"]>>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 UserPost.init(
@@ -113,7 +118,17 @@ UserPost.init(
 );
 
 // Associations
-// UserPost.belongsTo(Class, { foreignKey: "classId" });
-// UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
+UserPost.associate = (models: any) => {
+  UserPost.belongsTo(models.User, { as: "author", foreignKey: "authorId" });
+  UserPost.belongsTo(models.Poll, { foreignKey: "pollId" });
+  UserPost.belongsTo(models.Class, { foreignKey: "classId" });
+  UserPost.belongsToMany(models.User, {
+    through: "UserPostLikes", // Ensure this join table is defined
+    as: "likedByUser",
+    foreignKey: "userPostId",
+  });
+  UserPost.hasMany(models.PostComment, { foreignKey: "userPostId" });
+  UserPost.hasMany(models.Package, { foreignKey: "userPostId" });
+};
 
 export default UserPost;

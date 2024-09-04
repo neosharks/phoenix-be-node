@@ -25,6 +25,7 @@ class ClassMessage extends Model<
   declare isPinned: boolean;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 ClassMessage.init(
@@ -91,8 +92,14 @@ ClassMessage.init(
 );
 
 // Associations
-ClassMessage.belongsTo(Class, { foreignKey: "classId" });
-ClassMessage.belongsTo(User, { foreignKey: "userId" });
-ClassMessage.belongsTo(ClassMessage, { as: "repliedMessage", foreignKey: "repliedMessageId" });
+ClassMessage.associate = (models: any) => {
+  ClassMessage.belongsTo(models.Class, { foreignKey: "classId" });
+  ClassMessage.belongsTo(models.User, { foreignKey: "userId" });
+  ClassMessage.belongsTo(models.ClassMessage, {
+    as: "repliedMessage",
+    foreignKey: "repliedMessageId",
+  });
+  ClassMessage.hasMany(models.ClassMessage, { as: "replies", foreignKey: "repliedMessageId" });
+};
 
 export default ClassMessage;

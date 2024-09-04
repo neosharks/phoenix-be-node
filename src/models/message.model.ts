@@ -18,6 +18,7 @@ class Message extends Model<InferAttributes<Message>, InferCreationAttributes<Me
   declare chatId: ForeignKey<Chat["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  static associate: (models: any) => void;
 }
 
 Message.init(
@@ -72,7 +73,9 @@ Message.init(
 );
 
 // Associations
-// Message.belongsTo(User, { foreignKey: "senderId" });
-// Message.belongsTo(Chat, { foreignKey: "chatId" });
+Message.associate = (models: any) => {
+  Message.belongsTo(models.Chat, { foreignKey: "chatId" });
+  Message.belongsTo(models.User, { as: "sender", foreignKey: "senderId" });
+};
 
 export default Message;
