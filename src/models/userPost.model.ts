@@ -1,11 +1,35 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
 import PostComment from "./postComment.model";
 import Class from "./class.model";
 import Poll from "./poll.model";
 
-const UserPost = sequelize.define(
-  "UserPost",
+class UserPost extends Model<InferAttributes<UserPost>, InferCreationAttributes<UserPost>> {
+  declare id: CreationOptional<number>;
+  declare authorId: ForeignKey<User["id"]>;
+  declare type: "TEXT" | "IMAGE" | "POLL" | "LINK" | "VIDEO" | "CLASS" | "DOCUMENT";
+  declare image: CreationOptional<string>;
+  declare title: CreationOptional<string>;
+  declare description: CreationOptional<string>;
+  declare videoUrl: CreationOptional<string>;
+  declare document: CreationOptional<string>;
+  declare visibility: "EVERYONE" | "FREE_MEMBER" | "PAID_MEMBER";
+  declare allowComments: CreationOptional<boolean>;
+  declare pollId: CreationOptional<ForeignKey<Poll["id"]>>;
+  declare classId: CreationOptional<ForeignKey<Class["id"]>>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+UserPost.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -16,7 +40,7 @@ const UserPost = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -56,7 +80,7 @@ const UserPost = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Poll",
+        model: Poll,
         key: "id",
       },
     },
@@ -64,7 +88,7 @@ const UserPost = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Class",
+        model: Class,
         key: "id",
       },
     },
@@ -88,8 +112,8 @@ const UserPost = sequelize.define(
   },
 );
 
-// Associations completed
-UserPost.belongsTo(Class, { foreignKey: "classId" });
-UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
+// Associations
+// UserPost.belongsTo(Class, { foreignKey: "classId" });
+// UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
 
 export default UserPost;

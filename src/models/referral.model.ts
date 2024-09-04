@@ -1,8 +1,26 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
+import Payment from "./payment.model";
 
-const Referral = sequelize.define(
-  "Referral",
+class Referral extends Model<InferAttributes<Referral>, InferCreationAttributes<Referral>> {
+  declare id: CreationOptional<number>;
+  declare creatorId: ForeignKey<User["id"]>;
+  declare userId: ForeignKey<User["id"]>;
+  declare amount: CreationOptional<number>;
+  declare paymentId: CreationOptional<ForeignKey<Payment["id"]>>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Referral.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,7 +31,7 @@ const Referral = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -21,15 +39,19 @@ const Referral = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
-    amount: DataTypes.INTEGER,
+    amount: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     paymentId: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
-        model: "Payment",
+        model: Payment,
         key: "id",
       },
     },
@@ -49,5 +71,8 @@ const Referral = sequelize.define(
 );
 
 // Associations
+// Referral.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
+// Referral.belongsTo(User, { as: "user", foreignKey: "userId" });
+// Referral.belongsTo(Payment, { foreignKey: "paymentId" });
 
 export default Referral;

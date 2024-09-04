@@ -18,44 +18,47 @@ class _UserPostService {
             model: PostComment,
             as: "comments",
             attributes: ["description", "createdAt", "updatedAt"],
-            include: {
-              model: User,
-              as: "author",
-              attributes: [
-                "id",
-                "firstName",
-                "lastName",
-                "profileImage",
-                "email",
-                "username",
-                "role",
-              ],
-            },
-          },
-          {
-            model: User,
-            as: "likedBy",
-            attributes: [
-              "id",
-              "firstName",
-              "lastName",
-              "profileImage",
-              "email",
-              "username",
-              "role",
-            ],
-          },
-          {
-            model: User,
-            as: "author",
-            attributes: [
-              "id",
-              "firstName",
-              "lastName",
-              "profileImage",
-              "email",
-              "username",
-              "role",
+            include: [
+              {
+                model: User,
+                as: "author",
+                attributes: [
+                  "id",
+                  "firstName",
+                  "lastName",
+                  "profileImage",
+                  "email",
+                  "username",
+                  "role",
+                ],
+              },
+              ,
+              {
+                model: User,
+                as: "likedBy",
+                attributes: [
+                  "id",
+                  "firstName",
+                  "lastName",
+                  "profileImage",
+                  "email",
+                  "username",
+                  "role",
+                ],
+              },
+              {
+                model: User,
+                as: "author",
+                attributes: [
+                  "id",
+                  "firstName",
+                  "lastName",
+                  "profileImage",
+                  "email",
+                  "username",
+                  "role",
+                ],
+              },
             ],
           },
         ],
@@ -133,9 +136,7 @@ class _UserPostService {
         pollId,
       });
 
-      if (Array.isArray(packages)) {
-        await createdPost.setPackages(packages);
-      }
+      if (Array.isArray(packages)) await createdPost.setPackages(packages);
 
       return await UserPost.findOne({
         where: { id: createdPost.id },

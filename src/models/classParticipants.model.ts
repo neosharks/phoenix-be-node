@@ -1,8 +1,27 @@
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import Class from "./class.model";
+import User from "./user.model";
 
-const ClassParticipants = sequelize.define(
-  "ClassParticipants",
+class ClassParticipants extends Model<
+  InferAttributes<ClassParticipants>,
+  InferCreationAttributes<ClassParticipants>
+> {
+  declare id: CreationOptional<number>;
+  declare classId: ForeignKey<Class["id"]>;
+  declare userId: ForeignKey<User["id"]>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+ClassParticipants.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,14 +31,14 @@ const ClassParticipants = sequelize.define(
     classId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "Class",
+        model: Class,
         key: "id",
       },
     },
     userId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -38,6 +57,8 @@ const ClassParticipants = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+// ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
+// ClassParticipants.belongsTo(User, { foreignKey: "userId" });
 
 export default ClassParticipants;

@@ -1,7 +1,7 @@
-import { db } from "../models/sequelize";
 import { errorMessage } from "../constant/api.constant";
-
-const { Chat, Message, User } = db;
+import Chat from "../models/chat.model";
+import User from "../models/user.model";
+import Message from "../models/message.model";
 
 class _ChatService {
   async getOneChat(query: any) {
@@ -86,15 +86,16 @@ class _ChatService {
     }
   }
 
-  async createOneChat(participants: any, allowed: any) {
+  async createOneChat(participants: [number, number], allowed: string) {
     try {
-      return await Chat.create({
-        participantOneId: participants[0],
-        participantTwoId: participants[1],
-        pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
-      });
+      return;
+      // await Chat.create({
+      //   participantOneId: participants[0],
+      //   participantTwoId: participants[1],
+      //   pendingAllowed: allowed === "UNLIMITED" ? 10000 : 1,
+      // });
     } catch (error) {
-      console.log("ERROR: ", error);
+      console.error("ERROR: ", error);
       throw new Error(errorMessage.DB_ISSUE);
     }
   }

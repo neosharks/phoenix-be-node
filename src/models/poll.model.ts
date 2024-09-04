@@ -1,10 +1,29 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
 import UserPost from "./userPost.model";
 
-const Poll = sequelize.define(
-  "Poll",
+class Poll extends Model<InferAttributes<Poll>, InferCreationAttributes<Poll>> {
+  declare id: CreationOptional<number>;
+  declare authorId: ForeignKey<User["id"]>;
+  declare options: Record<string, any>;
+  declare selectedOptions: Record<string, any>;
+  declare image: CreationOptional<string>;
+  declare title: CreationOptional<string>;
+  declare description: string;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+// Initialize the model
+Poll.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -15,7 +34,7 @@ const Poll = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -54,10 +73,10 @@ const Poll = sequelize.define(
   },
 );
 
-// Associations complete
-Poll.belongsTo(User, { as: "author", foreignKey: "authorId" });
-UserPost.belongsTo(Poll, { foreignKey: "pollId" });
-User.hasMany(Poll, { as: "Polls", foreignKey: "authorId" });
-Poll.hasMany(UserPost, { foreignKey: "pollId" });
+// Associations
+// Poll.belongsTo(User, { as: "author", foreignKey: "authorId" });
+// UserPost.belongsTo(Poll, { foreignKey: "pollId" });
+// User.hasMany(Poll, { as: "Polls", foreignKey: "authorId" });
+// Poll.hasMany(UserPost, { foreignKey: "pollId" });
 
 export default Poll;

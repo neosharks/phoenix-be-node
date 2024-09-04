@@ -45,7 +45,7 @@ class _ChatController {
         saveObj.id = ele.id;
         saveObj.unreadCount = ele.unreadCount;
         saveObj.pendingAllowed = ele.pendingAllowed;
-        saveObj.participants = [ele.participantOne, ele.participantTwo];
+        saveObj.participants = [ele.participantOneId, ele.participantTwoId];
         const foundMessages = await ChatService.getAllMessageForChat({
           chatId: ele.id,
         });
@@ -118,7 +118,7 @@ class _ChatController {
     try {
       const { id } = req.query;
       const foundChat = await ChatService.getOneChat({ id: id });
-      const participants = [foundChat?.participantOne, foundChat?.participantTwo];
+      const participants = [foundChat?.participantOneId, foundChat?.participantTwoId];
       const found = await ChatService.getAllMessageForChat({
         chatId: id,
       });

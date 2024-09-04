@@ -1,9 +1,33 @@
-// models/tier.model.js
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+} from "sequelize";
 import { sequelize } from "./sequelize";
 
-const Tier = sequelize.define(
-  "Tier",
+class Tier extends Model<InferAttributes<Tier>, InferCreationAttributes<Tier>> {
+  declare id: CreationOptional<number>;
+  declare tierType: CreationOptional<
+    | "GENERAL_SUPPORT"
+    | "EXCLUSIVE_POSTS"
+    | "BEHIND_THE_SCENES"
+    | "UNLIMITED_MESSAGE"
+    | "ONE_TIME_MESSAGE"
+    | "NAME_POST_DESCRIPTION"
+    | "NAME_POST_END"
+    | "EXCLUSIVE_POLLS"
+    | "MENTORSHIP"
+    | "COMMUNITY"
+  >;
+  declare name: string;
+  declare description: string;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Tier.init(
   {
     id: {
       type: DataTypes.INTEGER,

@@ -1,11 +1,31 @@
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
+import Package from "./package.model";
 import WalletTransactions from "./walletTransactions.model";
 import Referral from "./referral.model";
 
-const Payment = sequelize.define(
-  "Payment",
+export class Payment extends Model<InferAttributes<Payment>, InferCreationAttributes<Payment>> {
+  declare id: CreationOptional<number>;
+  declare orderId: string;
+  declare userId: CreationOptional<ForeignKey<User["id"]>>;
+  declare amount: CreationOptional<number>;
+  declare currency: "INR";
+  declare status: "CREATED" | "PAID" | "FAILED" | "PENDING";
+  declare packageId: CreationOptional<ForeignKey<Package["id"]>>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+// Initialize the model
+Payment.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -31,7 +51,14 @@ const Payment = sequelize.define(
     packageId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "Package",
+        model: Package,
+        key: "id",
+      },
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
         key: "id",
       },
     },
@@ -50,12 +77,12 @@ const Payment = sequelize.define(
   },
 );
 
-// Associations complete
-
+// Associations
 Payment.belongsTo(User, { foreignKey: "userId" });
-Referral.belongsTo(Payment, { foreignKey: "paymentId" });
-WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
-Payment.hasMany(WalletTransactions, { foreignKey: "paymentId" });
-Payment.hasMany(Referral, { foreignKey: "paymentId" });
+// Payment.belongsTo(Package, { foreignKey: "packageId" });
+// Referral.belongsTo(Payment, { foreignKey: "paymentId" });
+// WalletTransactions.belongsTo(Payment, { foreignKey: "paymentId" });
+// Payment.hasMany(WalletTransactions, { foreignKey: "paymentId" });
+// Payment.hasMany(Referral, { foreignKey: "paymentId" });
 
 export default Payment;

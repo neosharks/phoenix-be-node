@@ -11,9 +11,7 @@ RUN yarn build
 
 ENV NODE_ENV production
 
-RUN yarn global add prisma pm2
-
-RUN prisma generate
+RUN yarn global add pm2
 
 RUN mkdir -p /usr/src/app/logs && chown -R node:node /usr/src/app/logs
 

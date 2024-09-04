@@ -1,4 +1,6 @@
+import Package from "../models/package.model";
 import PatronCreator from "../models/patronCreator.model";
+import User from "../models/user.model";
 class _PatronCreatorService {
   async getFirst(query: any) {
     try {
@@ -24,11 +26,11 @@ class _PatronCreatorService {
         where: query,
         include: [
           {
-            model: "Package",
+            model: Package,
             as: "package",
           },
           {
-            model: "User",
+            model: User,
             as: "creator",
             attributes: [
               "id",
@@ -41,7 +43,7 @@ class _PatronCreatorService {
             ],
           },
           {
-            model: "User",
+            model: User,
             as: "patron",
             attributes: [
               "id",

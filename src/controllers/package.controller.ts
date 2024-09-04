@@ -213,7 +213,7 @@ class _PackageController {
         return res
           .status(errorCode.NOT_FOUND)
           .send({ message: errorMessage.NOT_FOUND, info: "Package not found" });
-      const { tier, creatorId } = foundPackage;
+      const { creatorId } = foundPackage;
       const tierUserPackage = await PackageService.getOnePackage({
         id: packageId,
         creatorId: user.id,
@@ -250,38 +250,38 @@ class _PackageController {
             .send({ message: errorMessage.DATA_MISMATCH, info: "Data mismatch for the purchase" });
       }
 
-      tier &&
-        tier.length > 0 &&
-        tier.map(async (ele: any) => {
-          if (ele.tierType === "ONE_TIME_MESSAGE") {
-            const foundChat = await ChatService.getOneChat({
-              OR: [
-                { participantOneId: user.id, participantTwoId: creatorId },
-                { participantOneId: creatorId, participantTwoId: user.id },
-              ],
-            });
-            if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "LIMITED");
-            else
-              await ChatService.updateOneChat(
-                { id: foundChat.id },
-                { pendingAllowed: foundChat.pendingAllowed + 1 },
-              );
-          }
-          if (ele.tierType === "UNLIMITED_MESSAGE") {
-            const foundChat = await ChatService.getOneChat({
-              OR: [
-                { participantOneId: user.id, participantTwoId: creatorId },
-                { participantOneId: creatorId, participantTwoId: user.id },
-              ],
-            });
-            if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "UNLIMITED");
-            else
-              await ChatService.updateOneChat(
-                { id: foundChat.id },
-                { pendingAllowed: foundChat.pendingAllowed + 1000 },
-              );
-          }
-        });
+      // tier &&
+      //   tier.length > 0 &&
+      //   tier.map(async (ele: any) => {
+      //     if (ele.tierType === "ONE_TIME_MESSAGE") {
+      //       const foundChat = await ChatService.getOneChat({
+      //         OR: [
+      //           { participantOneId: user.id, participantTwoId: creatorId },
+      //           { participantOneId: creatorId, participantTwoId: user.id },
+      //         ],
+      //       });
+      //       if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "LIMITED");
+      //       else
+      //         await ChatService.updateOneChat(
+      //           { id: foundChat.id },
+      //           { pendingAllowed: foundChat.pendingAllowed + 1 },
+      //         );
+      //     }
+      //     if (ele.tierType === "UNLIMITED_MESSAGE") {
+      //       const foundChat = await ChatService.getOneChat({
+      //         OR: [
+      //           { participantOneId: user.id, participantTwoId: creatorId },
+      //           { participantOneId: creatorId, participantTwoId: user.id },
+      //         ],
+      //       });
+      //       if (!foundChat) await ChatService.createOneChat([user.id, creatorId], "UNLIMITED");
+      //       else
+      //         await ChatService.updateOneChat(
+      //           { id: foundChat.id },
+      //           { pendingAllowed: foundChat.pendingAllowed + 1000 },
+      //         );
+      //     }
+      //   });
       await PackageService.linkPatronCreator(user.id, foundPackage.creatorId, "PAID", packageId);
 
       return res.status(201).send({ message: successMessages.SUCCESS });

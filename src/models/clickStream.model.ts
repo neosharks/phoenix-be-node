@@ -1,8 +1,29 @@
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
 
-const ClickStream = sequelize.define(
-  "ClickStream",
+class ClickStream extends Model<
+  InferAttributes<ClickStream>,
+  InferCreationAttributes<ClickStream>
+> {
+  declare id: CreationOptional<number>;
+  declare userId: ForeignKey<User["id"]>;
+  declare info?: object; // `object` type for JSON
+  declare type?: string;
+  declare url?: string;
+  declare ipAddress?: string;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+ClickStream.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,14 +33,26 @@ const ClickStream = sequelize.define(
     userId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
-    info: DataTypes.JSON,
-    type: DataTypes.STRING,
-    url: DataTypes.STRING,
-    ipAddress: DataTypes.STRING,
+    info: {
+      type: DataTypes.JSON,
+      allowNull: true, // Set allowNull to true if the column can be null
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: true, // Set allowNull to true if the column can be null
+    },
+    url: {
+      type: DataTypes.STRING,
+      allowNull: true, // Set allowNull to true if the column can be null
+    },
+    ipAddress: {
+      type: DataTypes.STRING,
+      allowNull: true, // Set allowNull to true if the column can be null
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -35,6 +68,7 @@ const ClickStream = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+// ClickStream.belongsTo(User, { foreignKey: "userId" });
 
 export default ClickStream;

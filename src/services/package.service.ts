@@ -1,12 +1,13 @@
-import { db } from "../models/sequelize";
-const { Package, Tier, PatronCreator } = db;
+import Package from "../models/package.model";
+import PatronCreator from "../models/patronCreator.model";
+import Tier from "../models/tier.model";
 
 class _PackageService {
   async getAllPackagesOfCreator(query: any, skip: number = 0, take: number = 10) {
     try {
       return await Package.findAll({
         where: {
-          creator: { username: query.username },
+          creatorId: { username: query.username },
         },
         include: [{ model: Tier }],
         offset: skip,
@@ -36,9 +37,9 @@ class _PackageService {
         description,
         creatorId,
       });
-      if (tier && tier.length > 0) {
-        await newPackage.setTiers(tier);
-      }
+      // if (tier && tier.length > 0) {
+      //   await newPackage.setTiers(tier);
+      // }
       return newPackage;
     } catch (error) {
       console.error(error);
@@ -78,19 +79,13 @@ class _PackageService {
 
   async linkPatronCreator(patronId: any, creatorId: any, type: any, packageId?: any) {
     try {
-      const currentDate = new Date();
-      const expiryDate = new Date(currentDate);
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
-
       return await PatronCreator.create({
-        data: {
-          patronId,
-          creatorId,
-          packageId,
-          status: "ACTIVE",
-          type,
-          expiry: type !== "FREE" ? expiryDate : null,
-        },
+        patronId,
+        creatorId,
+        packageId,
+        status: "ACTIVE",
+        type,
+        expiry: new Date(),
       });
     } catch (error) {
       console.error(error);

@@ -71,7 +71,7 @@ class _ClassService {
 
   async createClass(data: any) {
     try {
-      return await Class.create({ data });
+      return await Class.create(data);
     } catch (error) {
       console.error(error);
     }
@@ -79,7 +79,7 @@ class _ClassService {
 
   async addClassParticipant(data: any) {
     try {
-      return await ClassParticipants.create({ data });
+      return await ClassParticipants.create(data);
     } catch (error) {
       console.error(error);
     }
@@ -137,10 +137,12 @@ class _ClassService {
           {
             model: ClassMessage,
             as: "repliedMessage",
-            include: {
-              model: User,
-              attributes: ["firstName", "lastName", "profileImage", "username"],
-            },
+            include: [
+              {
+                model: User,
+                attributes: ["firstName", "lastName", "profileImage", "username"],
+              },
+            ],
           },
           {
             model: User,

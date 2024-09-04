@@ -1,9 +1,27 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
 
-const Class = sequelize.define(
-  "Class",
+class Class extends Model<InferAttributes<Class>, InferCreationAttributes<Class>> {
+  declare id: CreationOptional<number>;
+  declare creatorId: ForeignKey<User["id"]>;
+  declare name: string;
+  declare isPaid: boolean;
+  declare type?: string;
+  declare price?: number;
+  declare paymentFrequency?: "ONE_TIME" | "MONTHLY" | "YEARLY";
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Class.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -17,7 +35,10 @@ const Class = sequelize.define(
         key: "id",
       },
     },
-    name: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     isPaid: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -49,6 +70,7 @@ const Class = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+Class.belongsTo(User, { foreignKey: "creatorId" });
 
 export default Class;

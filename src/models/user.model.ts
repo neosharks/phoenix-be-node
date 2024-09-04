@@ -1,7 +1,12 @@
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
-import Message from "./message.model";
-import Chat from "./chat.model";
 import Notification from "./notification.model";
 import PatronCreator from "./patronCreator.model";
 import UserPost from "./userPost.model";
@@ -12,9 +17,57 @@ import Class from "./class.model";
 import ClassMessage from "./classMessage.model";
 import ClassParticipants from "./classParticipants.model";
 import Referral from "./referral.model";
+import Payment from "./payment.model";
+import Chat from "./chat.model";
 
-const User = sequelize.define(
-  "User",
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id: CreationOptional<number>;
+  declare firstName: string;
+  declare lastName: string;
+  declare email: string;
+  declare username: string;
+  declare phoneNumber: string;
+  declare whatsappNumber: string;
+  declare countryCode: string;
+  declare profileImage: string;
+  declare coverImage: string;
+  declare isCreator: boolean;
+  declare gender: "MALE" | "FEMALE" | "OTHER";
+  declare role: Array<"PATRON" | "CREATOR" | "ADMIN">;
+  declare bio: string;
+  declare country: "INDIA" | "NEPAL" | "SRI_LANKA" | "BHUTAN" | "PAKISTAN";
+  declare dob: Date;
+  declare industry: string;
+  declare onBoardingComplete: boolean;
+  declare onBoardingCompletePercentage: number;
+  declare pageName: string;
+  declare youtubeHandle: string;
+  declare facebookHandle: string;
+  declare twitterHandle: string;
+  declare instagramHandle: string;
+  declare creatorApprovalStatus: "PENDING" | "APPROVED" | "DENIED" | "UNINITIATED";
+  declare creatorChangeTimeStamp: Date;
+  declare status: "ACTIVE" | "INACTIVE" | "DELETED" | "BLOCKED";
+  declare password: string;
+  declare referralUserId: ForeignKey<User["id"]>;
+  declare referralTimeStamp: Date;
+  declare referralDevice: string;
+  declare emailVerified: boolean;
+  declare phoneVerified: boolean;
+  declare googleAuthId: string;
+  declare facebookAuthId: string;
+  declare verificationCode: number;
+  declare verificationCodeTimestamp: Date;
+  declare verificationCodeAttempts: number;
+  declare verificationCodeSource: "WHATSAPP" | "SMS" | "EMAIL";
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+  declare online: boolean;
+  declare fcmToken: string;
+  declare lastSeen: Date;
+}
+
+User.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -139,131 +192,50 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    googleAuthId: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
-    facebookAuthId: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
+    googleAuthId: { type: DataTypes.STRING, unique: true },
+    facebookAuthId: { type: DataTypes.STRING, unique: true },
     verificationCode: DataTypes.INTEGER,
-    verificationCodeTimestamp: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    verificationCodeAttempts: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-    verificationCodeSource: {
-      type: DataTypes.ENUM("WHATSAPP", "SMS", "EMAIL"),
-      allowNull: true,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
+    verificationCodeTimestamp: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    verificationCodeAttempts: { type: DataTypes.INTEGER, defaultValue: 0 },
+    verificationCodeSource: { type: DataTypes.ENUM("WHATSAPP", "SMS", "EMAIL"), allowNull: true },
+    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updatedAt: DataTypes.DATE,
-    online: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
+    online: { type: DataTypes.BOOLEAN, defaultValue: false },
     fcmToken: DataTypes.STRING,
     lastSeen: DataTypes.DATE,
   },
-  {
-    sequelize,
-    modelName: "User",
-    indexes: [
-      {
-        fields: ["email", "username", "phoneNumber"],
-      },
-    ],
-  },
+  { sequelize, modelName: "User", indexes: [{ fields: ["email", "username", "phoneNumber"] }] },
 );
 
-// // Define associations
+// Associations
+
 User.hasMany(Chat, { as: "participantOne", foreignKey: "participantOneId" });
 User.hasMany(Chat, { as: "participantTwo", foreignKey: "participantTwoId" });
-User.hasMany(Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
-User.hasMany(Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
-User.hasMany(UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
-User.hasMany(UserPost, { as: "likedByUser", foreignKey: "authorId" });
-User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
-User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
-User.hasMany(PostComment);
-User.hasMany(ClassMessage);
-User.hasMany(Class);
-User.hasMany(ClassParticipants);
-ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
-Class.hasMany(ClassParticipants, { foreignKey: "classId" });
-ClassParticipants.belongsTo(User, { foreignKey: "userId" });
-User.hasMany(ClassParticipants, { foreignKey: "userId" });
 
-//ClickStream associate
-ClickStream.belongsTo(User, { foreignKey: "userId" });
-User.hasMany(ClickStream);
+// User.hasMany(Notification, { as: "aboutUser", foreignKey: "aboutUserId" });
+// User.hasMany(Notification, { as: "notifiedUser", foreignKey: "notifiedUserId" });
 
-// Class Associate
-User.hasMany(Class, { foreignKey: "creatorId" });
-User.hasMany(Class, {
-  foreignKey: "creatorId",
-  as: "classes",
-});
-Class.belongsTo(User, {
-  foreignKey: "creatorId",
-  as: "creator",
-});
-Class.belongsTo(User, { foreignKey: "creatorId" });
+// User.hasMany(PatronCreator, { as: "creator", foreignKey: "creatorId" });
+// User.hasMany(PatronCreator, { as: "patron", foreignKey: "patronId" });
 
-User.hasMany(ClassParticipants, { foreignKey: "userId" });
-Class.hasMany(ClassParticipants, { foreignKey: "classId" });
-Class.hasMany(ClassParticipants, { foreignKey: "classId", as: "participants" });
-Class.hasMany(ClassMessage, { foreignKey: "classId", as: "messages" });
-Class.hasMany(UserPost, { foreignKey: "classId", as: "posts" });
+// User.hasMany(PostComment, { foreignKey: "userId" });
 
-// ClassParticipants associate
-ClassParticipants.belongsTo(Class, { foreignKey: "classId" });
-ClassParticipants.belongsTo(User, { foreignKey: "userId" });
+// User.hasMany(UserPost, { as: "userPostAuthor", foreignKey: "authorId" });
+// User.hasMany(UserPost, { as: "likedByUser", foreignKey: "likedByUserId" });
 
-//Chat associate
-Chat.belongsTo(User, { as: "participantOne", foreignKey: "participantOneId" });
-Chat.belongsTo(User, { as: "participantTwo", foreignKey: "participantTwoId" });
-Chat.hasMany(Message, { foreignKey: "chatId", onDelete: "CASCADE" });
+// User.hasMany(Payment, { foreignKey: "userId" });
 
-// ClassMessage associate
-ClassMessage.belongsTo(Class, { foreignKey: "classId" });
-ClassMessage.belongsTo(User, { foreignKey: "userId" });
-ClassMessage.belongsTo(ClassMessage, { as: "repliedMessage", foreignKey: "repliedMessageId" });
-ClassMessage.hasMany(ClassMessage, { as: "replies", foreignKey: "repliedMessageId" });
+// User.hasMany(ClickStream, { foreignKey: "userId" });
 
-//Message associate
-User.hasMany(Message);
-Message.belongsTo(Chat, { foreignKey: "chatId" });
-Message.belongsTo(User, { as: "sender", foreignKey: "senderId" });
+// User.hasMany(WalletTransactions, { foreignKey: "userId" });
 
-//Notification associate
-Notification.belongsTo(User, { as: "aboutUser", foreignKey: "aboutUserId" });
-Notification.belongsTo(User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
+// User.hasMany(Referral, { as: "referralUser", foreignKey: "userId" });
+// User.hasMany(Referral, { as: "referralCreator", foreignKey: "creatorId" });
 
-//PatronCreator associate
-PatronCreator.belongsTo(User, { as: "patron", foreignKey: "patronId" });
-PatronCreator.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-User.hasMany(PatronCreator, { as: "creatorId", foreignKey: "creatorId" });
-User.hasMany(PatronCreator, { as: "patronId", foreignKey: "patronId" });
+// User.hasMany(ClassParticipants, { foreignKey: "userId" });
 
-//PostComment associate
-PostComment.belongsTo(User, { as: "author", foreignKey: "authorId" });
-PostComment.belongsTo(UserPost, { foreignKey: "userPostId" });
+// User.hasMany(ClassMessage, { foreignKey: "userId" });
 
-//Referral associate
-Referral.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
-Referral.belongsTo(User, { as: "user", foreignKey: "userId" });
-
-UserPost.belongsTo(User, { as: "author", foreignKey: "authorId" });
-UserPost.belongsToMany(User, { through: "LikedBy", as: "likedBy" });
-
-WalletTransactions.belongsTo(User, { foreignKey: "userId" });
+// User.hasMany(Class, { foreignKey: "creatorId" });
 
 export default User;

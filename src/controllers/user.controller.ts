@@ -22,42 +22,6 @@ class _UserController {
     }
   }
 
-  async getAllLinks(req: Request, res: Response) {
-    try {
-      const { username } = req.params;
-      if (!username || typeof username !== "string")
-        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-
-      const found = await UserService.getOneUser({ username });
-      if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-
-      const allLinks = await UserService.getAllLinks({ id: found.id });
-      return res.status(200).send({ message: successMessages.SUCCESS, allLinks });
-    } catch (error) {
-      logger.error("Error in getAllLinks:", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
-    }
-  }
-
-  async createLink(req: Request, res: Response) {
-    try {
-      const { url, platform, highlight } = req.body;
-      const { id } = res.locals.user;
-
-      if (!url) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
-
-      await UserService.createLink({ userId: id, url, platform, highlight });
-      return res.status(201).json({ message: successMessages.CREATED });
-    } catch (error) {
-      logger.error("Error in createLink:", error);
-      return res
-        .status(errorCode.INTERNAL_SERVER)
-        .json({ message: errorMessage.INTERNAL_SERVER, error });
-    }
-  }
-
   async getUserByUsername(req: Request, res: Response) {
     try {
       const { username } = req.params;

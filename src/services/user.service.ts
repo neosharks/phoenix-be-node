@@ -1,25 +1,8 @@
-import AllLinks from "../models/allLinks.model";
 import User from "../models/user.model";
 class _UserService {
   async getOneUser(query: any) {
     try {
       return await User.findOne({ where: query });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getAllLinks(query: any) {
-    try {
-      return await AllLinks.findAll({ where: query });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async createLink(data: any) {
-    try {
-      return await AllLinks.create(data);
     } catch (error) {
       throw error;
     }

@@ -10,7 +10,7 @@ import config from "./config";
 import Logger from "./src/core/logger.core";
 import chatSocket from "./src/utils/Socket";
 import path from "path";
-require("./src/models/sequelize");
+import "./src/models/sequelize";
 
 process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
@@ -44,7 +44,6 @@ app.use(
   morgan((tokens, req, res) => {
     const user = res.locals.user;
     const userId = user ? user.id : "N/A";
-    const ipAddress = req.ip;
     const msg = {
       status: tokens.status(req, res),
       method: tokens.method(req, res),

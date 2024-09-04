@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build-local": "cp .env ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
-    "build-prod": "cp .env.production ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
+    "build-local": "mkdir -p build && cp .env ./build/.env && mkdir -p build/src/mailTemplates && cp -r ./src/mailTemplates/. ./build/src/mailTemplates && tsc",
+    "build-prod": "mkdir -p build && cp .env.production ./build/.env && mkdir -p build/src/mailTemplates && cp -r ./src/mailTemplates/. ./build/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
     "start": "npm run build-local && pm2 restart ./build/index.js",
-    "dev": "nodemon --exec ts-node -r dotenv/config index.ts",
+    "dev": "nodemon",
     "start-prod": "cross-env NODE_ENV=production npm run build-prod && pm2 restart ./build/index.js",
     "pretty": "prettier --write \"src/**/*.ts\""
   },
@@ -41,7 +41,6 @@
     "pg-hstore": "^2.3.4",
     "pm2": "^5.3.0",
     "sequelize": "^6.37.3",
-    "sequelize-cli": "^6.6.2",
     "serialize-error": "^11.0.3",
     "sharp": "^0.33.3",
     "socket.io": "^4.7.5",
@@ -52,24 +51,27 @@
     "yarn": "^1.22.22"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.7",
-    "@types/morgan": "^1.9.4",
     "@types/bcrypt": "^5.0.0",
     "@types/config": "^3.3.0",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.13",
     "@types/ejs": "^3.1.5",
     "@types/express": "^4.17.17",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/lodash": "^4.14.195",
+    "@types/morgan": "^1.9.4",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.4.4",
     "@types/node-fetch": "^2.6.11",
     "@types/nodemailer": "^6.4.9",
+    "@types/sequelize": "^4.28.20",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.0.1",
+    "sequelize-cli": "^6.6.2",
     "sequelize-typescript": "^2.1.6",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.6"
   }
 }

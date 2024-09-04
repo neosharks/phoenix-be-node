@@ -1,8 +1,26 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
+import Chat from "./chat.model";
 
-const Message = sequelize.define(
-  "Message",
+class Message extends Model<InferAttributes<Message>, InferCreationAttributes<Message>> {
+  declare id: CreationOptional<number>;
+  declare message: string;
+  declare senderId: ForeignKey<User["id"]>;
+  declare contentType: "TEXT" | "IMAGE" | "AUDIO";
+  declare chatId: ForeignKey<Chat["id"]>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Message.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -17,7 +35,7 @@ const Message = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -29,7 +47,7 @@ const Message = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "Chat",
+        model: Chat,
         key: "id",
       },
     },
@@ -53,6 +71,8 @@ const Message = sequelize.define(
   },
 );
 
-// Associations completed
+// Associations
+// Message.belongsTo(User, { foreignKey: "senderId" });
+// Message.belongsTo(Chat, { foreignKey: "chatId" });
 
 export default Message;

@@ -1,8 +1,37 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
 
-const Notification = sequelize.define(
-  "Notification",
+class Notification extends Model<
+  InferAttributes<Notification>,
+  InferCreationAttributes<Notification>
+> {
+  declare id: CreationOptional<number>;
+  declare aboutUserId: CreationOptional<ForeignKey<User["id"]>>;
+  declare notifiedUserId: ForeignKey<User["id"]>;
+  declare message: string;
+  declare read: boolean;
+  declare link: CreationOptional<string>;
+  declare type:
+    | "NEW_POST"
+    | "MESSAGE"
+    | "POLL"
+    | "MENTIONED"
+    | "NEW_COMMENT"
+    | "NEW_LIKE"
+    | "CLASS";
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Notification.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,7 +42,7 @@ const Notification = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -21,7 +50,7 @@ const Notification = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -69,6 +98,8 @@ const Notification = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+// Notification.belongsTo(User, { as: "aboutUser", foreignKey: "aboutUserId" });
+// Notification.belongsTo(User, { as: "notifiedUser", foreignKey: "notifiedUserId" });
 
 export default Notification;

@@ -1,8 +1,31 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
+import Package from "./package.model";
 
-const PatronCreator = sequelize.define(
-  "PatronCreator",
+class PatronCreator extends Model<
+  InferAttributes<PatronCreator>,
+  InferCreationAttributes<PatronCreator>
+> {
+  declare id: CreationOptional<number>;
+  declare patronId: ForeignKey<User["id"]>;
+  declare creatorId: ForeignKey<User["id"]>;
+  declare packageId: CreationOptional<ForeignKey<Package["id"]>>;
+  declare type: "FREE" | "PAID";
+  declare expiry: CreationOptional<Date>;
+  declare status: "ACTIVE" | "EXPIRED" | "PENDING";
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+PatronCreator.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,7 +36,7 @@ const PatronCreator = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -21,7 +44,7 @@ const PatronCreator = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -29,7 +52,7 @@ const PatronCreator = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Package",
+        model: Package,
         key: "id",
       },
     },
@@ -60,6 +83,13 @@ const PatronCreator = sequelize.define(
   },
 );
 
-// Associations completed
+// Associations
+// PatronCreator.belongsTo(User, { as: "patron", foreignKey: "patronId" });
+// PatronCreator.belongsTo(User, { as: "creator", foreignKey: "creatorId" });
+// PatronCreator.belongsTo(Package, { foreignKey: "packageId" });
+
+// User.hasMany(PatronCreator, { as: "patronCreator", foreignKey: "patronId" });
+// User.hasMany(PatronCreator, { as: "creatorPatron", foreignKey: "creatorId" });
+// Package.hasMany(PatronCreator, { foreignKey: "packageId" });
 
 export default PatronCreator;

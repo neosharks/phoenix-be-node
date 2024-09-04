@@ -1,8 +1,27 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
+import Message from "./message.model";
 
-const Chat = sequelize.define(
-  "Chat",
+class Chat extends Model<InferAttributes<Chat>, InferCreationAttributes<Chat>> {
+  declare id: CreationOptional<number>;
+  declare participantOneId: ForeignKey<User["id"]>;
+  declare participantTwoId: ForeignKey<User["id"]>;
+  declare type: "ONE_TO_ONE" | "GROUP";
+  declare unreadCount: number;
+  declare pendingAllowed: number;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+Chat.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,7 +32,7 @@ const Chat = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -21,12 +40,12 @@ const Chat = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
     type: {
-      type: DataTypes.ENUM("ONE_TO_ONE"),
+      type: DataTypes.ENUM("ONE_TO_ONE", "GROUP"),
       defaultValue: "ONE_TO_ONE",
     },
     unreadCount: {
@@ -52,6 +71,9 @@ const Chat = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+Chat.belongsTo(User, { as: "participantOne", foreignKey: "participantOneId" });
+Chat.belongsTo(User, { as: "participantTwo", foreignKey: "participantTwoId" });
+Chat.hasMany(Message, { foreignKey: "chatId", onDelete: "CASCADE" });
 
 export default Chat;

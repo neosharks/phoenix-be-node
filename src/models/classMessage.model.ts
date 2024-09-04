@@ -1,8 +1,33 @@
-import { DataTypes, Model } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import Class from "./class.model";
+import User from "./user.model";
 
-const ClassMessage = sequelize.define(
-  "ClassMessage",
+class ClassMessage extends Model<
+  InferAttributes<ClassMessage>,
+  InferCreationAttributes<ClassMessage>
+> {
+  declare id: CreationOptional<number>;
+  declare classId: ForeignKey<Class["id"]>;
+  declare userId: ForeignKey<User["id"]>;
+  declare message?: string;
+  declare image?: string;
+  declare video?: string;
+  declare document?: string;
+  declare repliedMessageId?: ForeignKey<ClassMessage["id"]>;
+  declare isPinned: boolean;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+ClassMessage.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,14 +37,14 @@ const ClassMessage = sequelize.define(
     classId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "Class",
+        model: Class,
         key: "id",
       },
     },
     userId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -42,7 +67,7 @@ const ClassMessage = sequelize.define(
     repliedMessageId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "ClassMessage",
+        model: ClassMessage,
         key: "id",
       },
     },
@@ -65,6 +90,9 @@ const ClassMessage = sequelize.define(
   },
 );
 
-// Associations complete
+// Associations
+ClassMessage.belongsTo(Class, { foreignKey: "classId" });
+ClassMessage.belongsTo(User, { foreignKey: "userId" });
+ClassMessage.belongsTo(ClassMessage, { as: "repliedMessage", foreignKey: "repliedMessageId" });
 
 export default ClassMessage;

@@ -1,47 +1,57 @@
-const { Sequelize, DataTypes, Model } = require("sequelize");
-import dotenv from "dotenv";
+import { Sequelize, DataTypes, ModelStatic, Model } from "sequelize";
+import fs from "fs";
+import path from "path";
+import config from "../../config";
 
-dotenv.config();
-
-const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
+const sequelize = new Sequelize(config.database.dbURI as string, {
   dialect: "postgres",
 });
 
-try {
-  sequelize.authenticate();
-  console.log("Connection has been established successfully.");
-} catch (error: any) {
-  console.error("Unable to connect to the database:", error);
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+})();
+
+interface DbInterface {
+  sequelize: Sequelize;
+  Sequelize: typeof Sequelize;
+  [key: string]: ModelStatic<Model> | Sequelize | typeof Sequelize;
 }
 
-const db: any = {};
-db.Sequelize = Sequelize;
-db.sequelize = sequelize;
+const db: DbInterface = {
+  Sequelize,
+  sequelize,
+};
 
-db.user = require("./user.model");
-db.chat = require("./chat.model");
-db.message = require("./message.model");
-db.package = require("./package.model");
-db.classMessage = require("./classMessage.model");
-db.class = require("./class.model");
-db.allLinks = require("./allLinks.model");
-db.walletTransactions = require("./walletTransactions.model");
-db.clickStream = require("./clickStream.model");
-db.payment = require("./payment.model");
-db.poll = require("./poll.model");
-db.postComment = require("./postComment.model");
-db.userPost = require("./userPost.model");
-db.patronCreator = require("./patronCreator.model");
-db.notification = require("./notification.model");
-db.classParticipants = require("./classParticipants.model");
-db.referral = require("./referral.model");
+const basename = path.basename(__filename);
 
-db.sequelize
+fs.readdirSync(__dirname)
+  .filter((file) => {
+    return file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".ts";
+  })
+  .forEach((file) => {
+    const modelModule = require(path.join(__dirname, file));
+    const model =
+      typeof modelModule === "function" ? modelModule(sequelize, DataTypes) : modelModule;
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName] && (db[modelName] as any).associate) {
+    (db[modelName] as any).associate(db);
+  }
+});
+
+sequelize
   .sync({ force: false })
   .then(() => {
     console.log("Tables created successfully");
   })
-  .catch((error: any) => {
+  .catch((error) => {
     console.error("Error creating tables:", error);
   });
 

@@ -1,8 +1,28 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  ForeignKey,
+} from "sequelize";
 import { sequelize } from "./sequelize";
+import User from "./user.model";
+import UserPost from "./userPost.model";
 
-const PostComment = sequelize.define(
-  "PostComment",
+class PostComment extends Model<
+  InferAttributes<PostComment>,
+  InferCreationAttributes<PostComment>
+> {
+  declare id: CreationOptional<number>;
+  declare authorId: ForeignKey<User["id"]>;
+  declare description: string;
+  declare userPostId: ForeignKey<UserPost["id"]>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+PostComment.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,7 +33,7 @@ const PostComment = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "User",
+        model: User,
         key: "id",
       },
     },
@@ -25,7 +45,7 @@ const PostComment = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "UserPost",
+        model: UserPost,
         key: "id",
       },
     },
@@ -45,5 +65,10 @@ const PostComment = sequelize.define(
 );
 
 // Associations completed
+PostComment.belongsTo(User, { foreignKey: "authorId" });
+PostComment.belongsTo(UserPost, { foreignKey: "userPostId" });
+
+User.hasMany(PostComment, { foreignKey: "authorId" });
+UserPost.hasMany(PostComment, { foreignKey: "userPostId" });
 
 export default PostComment;

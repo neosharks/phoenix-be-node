@@ -19,14 +19,7 @@ class _PaymentService {
 
   async createOnePayment(dataValues: any) {
     try {
-      const { userId, orderId, packageId, amount, currency } = dataValues;
-      return await Payment.create({
-        userId,
-        orderId,
-        packageId,
-        amount,
-        currency,
-      });
+      return await Payment.create(dataValues);
     } catch (error) {
       console.error(error);
       throw error;

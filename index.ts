@@ -20,5 +20,3 @@ if (res.length < 1) {
   });
   chatSocket(io);
 } else logger.info(`SERVER STOPPED DUE TO UNSET ENV VARS: ${res}`);
-
-// temp commit

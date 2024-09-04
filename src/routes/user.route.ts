@@ -7,8 +7,6 @@ const userRoutes = express.Router();
 
 userRoutes.get("/get", checkRoleAuth(), UserController.getUser);
 
-userRoutes.get("/getAllLinks/:username", UserController.getAllLinks);
-
 userRoutes.post("/createLink", checkRoleAuth([userRole.CREATOR]), UserController.createLink);
 
 userRoutes.get("/getByUsername/:username", UserController.getUserByUsername);
