@@ -70,6 +70,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
       as: "likedByUser",
       foreignKey: "userId",
     });
+    User.hasMany(models.Class, { foreignKey: "creatorId" });
     User.hasMany(models.Payment, { foreignKey: "userId" });
     User.hasMany(models.ClickStream, { foreignKey: "userId" });
     User.hasMany(models.WalletTransactions, { foreignKey: "userId" });
@@ -78,7 +79,6 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     User.hasMany(models.AllLinks, { foreignKey: "userId" });
     User.hasMany(models.ClassParticipants, { foreignKey: "userId" });
     User.hasMany(models.ClassMessage, { foreignKey: "userId" });
-    User.hasMany(models.Class, { foreignKey: "creatorId" });
   }
 }
 
@@ -114,7 +114,10 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    gender: DataTypes.ENUM("MALE", "FEMALE", "OTHER"),
+    gender: {
+      type: DataTypes.ENUM("MALE", "FEMALE", "OTHER"),
+      allowNull: true,
+    },
     role: {
       type: DataTypes.ARRAY(DataTypes.ENUM("PATRON", "CREATOR", "ADMIN")),
       defaultValue: ["PATRON"],

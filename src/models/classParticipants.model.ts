@@ -32,14 +32,14 @@ ClassParticipants.init(
     classId: {
       type: DataTypes.INTEGER,
       references: {
-        model: Class,
+        model: "Class",
         key: "id",
       },
     },
     userId: {
       type: DataTypes.INTEGER,
       references: {
-        model: User,
+        model: "User",
         key: "id",
       },
     },
@@ -58,7 +58,6 @@ ClassParticipants.init(
   },
 );
 
-// Associations
 ClassParticipants.associate = (models: any) => {
   ClassParticipants.belongsTo(models.Class, { foreignKey: "classId" });
   ClassParticipants.belongsTo(models.User, { foreignKey: "userId" });

@@ -8,7 +8,6 @@ import {
 } from "sequelize";
 import { sequelize } from "./sequelize";
 import User from "./user.model";
-
 class Class extends Model<InferAttributes<Class>, InferCreationAttributes<Class>> {
   declare id: CreationOptional<number>;
   declare title: string;
@@ -41,7 +40,7 @@ Class.init(
     creatorId: {
       type: DataTypes.INTEGER,
       references: {
-        model: User,
+        model: "User",
         key: "id",
       },
     },
@@ -60,7 +59,6 @@ Class.init(
   },
 );
 
-// Associate
 Class.associate = (models: any) => {
   Class.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
   Class.hasMany(models.ClassParticipants, { foreignKey: "classId" });
