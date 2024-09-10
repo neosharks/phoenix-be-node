@@ -202,15 +202,48 @@ class _UserController {
         creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
-      // const emailSent = await emailQueue.add({
-      //   receiverEmail: req.body.email,
-      //   subject: "Creator Application Under Review",
-      //   template: "APPLY_CREATOR",
-      //   variables: {},
-      // });
-      // if (!emailSent) {
-      //   return res.status(500).send({ message: "Failed to send email" });
-      // }
+      const emailSent = await emailQueue.add({
+        receiverEmail: req.body.email,
+        subject: "Creator Application Under Review",
+        template: "APPLY_CREATOR",
+        variables: {},
+      });
+      if (!emailSent) {
+        return res.status(500).send({ message: "Failed to send email" });
+      }
+      return res.status(201).send({ message: successMessages.SUCCESS });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async approveCreatorOnboard(req: Request, res: Response) {
+    try {
+      const { users } = req.body;
+      for (let i = 0; i < users.length; i++) {
+        const ele = users[i];
+        const foundUser = await UserService.getOneUser({ id: ele });
+        if (foundUser && !foundUser.isCreator) {
+          const updatedBody = {
+            isCreator: true,
+            role: ["CREATOR", ...foundUser.role],
+            creatorApprovalStatus: "APPROVED",
+            creatorChangeTimeStamp: new Date(),
+          };
+          await UserService.updateOneUser({ id: ele }, updatedBody);
+          // if (foundUser.email)
+
+          await emailQueue.add({
+            receiverEmail: foundUser.email,
+            subject: "Application Approval",
+            template: "APPROVE_CREATOR",
+            variables: {},
+          });
+        }
+      }
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -224,56 +257,23 @@ class _UserController {
   //   try {
   //     const { users } = req.body;
   //     for (let i = 0; i < users.length; i++) {
-  //       const ele = users[i];
-  //       const foundUser = await UserService.getOneUser({ id: ele });
+  //       const userId = users[i];
+  //       const foundUser = await User.findByPk(userId);
   //       if (foundUser && !foundUser.isCreator) {
-  //         const updatedBody = {
+  //         await foundUser.update({
   //           isCreator: true,
-  //           role: ["CREATOR", ...foundUser.role],
+  //           role: [...foundUser.role, "CREATOR"],
   //           creatorApprovalStatus: "APPROVED",
   //           creatorChangeTimeStamp: new Date(),
-  //         };
-  //         await UserService.updateOneUser({ id: ele }, updatedBody);
-  //         // if (foundUser.email)
-
-  // await emailQueue.add({
-  //   receiverEmail: foundUser.email,
-  //   subject: "Application Approval",
-  //   template: "APPROVE_CREATOR",
-  //   variables: {},
-  // });
+  //         });
   //       }
   //     }
-  //     return res.status(201).send({ message: successMessages.SUCCESS });
+  //     return res.status(201).send({ message: "User approval successful." });
   //   } catch (error) {
-  //     console.log("ERROR: ", error);
-  //     return res
-  //       .status(errorCode.INTERNAL_SERVER)
-  //       .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+  //     console.error("ERROR: ", error);
+  //     return res.status(500).json({ message: "Internal server error", error });
   //   }
   // }
-
-  async approveCreatorOnboard(req: Request, res: Response) {
-    try {
-      const { users } = req.body;
-      for (let i = 0; i < users.length; i++) {
-        const userId = users[i];
-        const foundUser = await User.findByPk(userId);
-        if (foundUser && !foundUser.isCreator) {
-          await foundUser.update({
-            isCreator: true,
-            role: [...foundUser.role, "CREATOR"],
-            creatorApprovalStatus: "APPROVED",
-            creatorChangeTimeStamp: new Date(),
-          });
-        }
-      }
-      return res.status(201).send({ message: "User approval successful." });
-    } catch (error) {
-      console.error("ERROR: ", error);
-      return res.status(500).json({ message: "Internal server error", error });
-    }
-  }
 
   async delete(req: Request, res: Response) {
     try {
