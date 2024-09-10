@@ -222,6 +222,18 @@ class _ClassService {
     getAvailableParticipants(classId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const classData = yield prisma_1.default.class.findUnique({
+                    where: {
+                        id: classId,
+                    },
+                    select: {
+                        creatorId: true,
+                    },
+                });
+                if (!classData) {
+                    throw new Error("Class not found");
+                }
+                const creatorId = classData.creatorId;
                 const allUsers = yield prisma_1.default.user.findMany({
                     select: {
                         id: true,
@@ -238,7 +250,7 @@ class _ClassService {
                     select: { userId: true },
                 });
                 const participantIds = participants.map((p) => p.userId);
-                const availableParticipants = allUsers.filter((user) => !participantIds.includes(user.id));
+                const availableParticipants = allUsers.filter((user) => user.id !== creatorId && !participantIds.includes(user.id));
                 return availableParticipants;
             }
             catch (error) {
