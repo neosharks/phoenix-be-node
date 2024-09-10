@@ -38,22 +38,35 @@ const Socket = (io) => {
                     !data.userId ||
                     (!data.message && !data.image && !data.video && !data.document)) {
                     console.error("Invalid data received:", data);
+                    socket.emit("error", { message: "Invalid data received" });
                     return;
                 }
-                // Prepare the base data for creating a message
-                const messageCreateInput = {
-                    classId: data.classId,
-                    userId: data.userId,
-                    message: data.message,
-                    image: data.image || null,
-                    video: data.video || null,
-                    document: data.document || null,
-                };
-                if (data.replyToMessageId) {
-                    messageCreateInput.repliedMessageId = data.replyToMessageId;
+                const findUser = yield prisma.user.findUnique({
+                    where: { id: data.userId },
+                });
+                if (!findUser) {
+                    console.error("User not found:", data.userId);
+                    socket.emit("error", { message: "User not found" });
+                    return;
+                }
+                const classExists = yield prisma.class.findUnique({
+                    where: { id: data.classId },
+                });
+                if (!classExists) {
+                    console.error("Class not found:", data.classId);
+                    socket.emit("error", { message: "Class not found" });
+                    return;
                 }
                 const createdMessage = yield prisma.classMessage.create({
-                    data: messageCreateInput,
+                    data: {
+                        classId: data.classId,
+                        userId: data.userId,
+                        message: data.message,
+                        image: data.image || null,
+                        video: data.video || null,
+                        document: data.document || null,
+                        repliedMessageId: data.repliedMessageId || null,
+                    },
                     include: {
                         repliedMessage: true,
                     },
@@ -63,6 +76,7 @@ const Socket = (io) => {
             }
             catch (error) {
                 console.error("Error handling send_class_message event:", error);
+                socket.emit("error", { message: "An error occurred while sending the message" });
             }
         }));
         socket.on("update_message", (data) => __awaiter(void 0, void 0, void 0, function* () {

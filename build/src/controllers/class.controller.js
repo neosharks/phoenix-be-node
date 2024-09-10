@@ -73,8 +73,8 @@ class _ClassController {
                     creatorId: id,
                     isPaid,
                     type: "NORMAL",
-                    price,
-                    paymentFrequency,
+                    price: price || null,
+                    paymentFrequency: paymentFrequency || null,
                 });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
