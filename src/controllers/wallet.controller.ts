@@ -16,6 +16,23 @@ class _WalletController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+
+  async withdraw(req: Request, res: Response) {
+    try {
+      const { id } = res.locals.user;
+      const allTransactions = await WalletService.getAllWalletByProps({ userId: id });
+      // calculate total earned - total refunded
+      // if total left <  withdraw request -> throw error
+
+      await WalletService.createOneWalletTransactions({ state: "PROCESSING", cashflow: "DEBIT" });
+      return res.status(200).send({ message: successMessages.CREATED });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
 }
 
 export const WalletController = new _WalletController();
