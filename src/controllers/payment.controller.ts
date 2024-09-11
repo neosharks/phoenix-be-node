@@ -60,7 +60,6 @@ class _PaymentController {
       let response;
       try {
         response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
-        console.log("response ", response);
       } catch (error) {
         console.error(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
@@ -123,7 +122,6 @@ class _PaymentController {
       let response;
       try {
         response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
-        console.log("response ", response);
       } catch (error) {
         console.error(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });

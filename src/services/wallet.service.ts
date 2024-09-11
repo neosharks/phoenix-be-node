@@ -20,10 +20,10 @@ class _WalletService {
 
   async createOneWalletTransactions(dataValues: any) {
     try {
-      const { userId, source, paymentId, amount, currency, cashFlow, state } = dataValues;
+      const { receiverId, source, paymentId, amount, currency, cashFlow, state } = dataValues;
       return await prisma.walletTransactions.create({
         data: {
-          userId,
+          receiverId,
           source,
           paymentId,
           amount,

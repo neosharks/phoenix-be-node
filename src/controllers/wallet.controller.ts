@@ -7,7 +7,7 @@ class _WalletController {
   async getAll(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const allTransactions = await WalletService.getAllWalletByProps({ userId: id });
+      const allTransactions = await WalletService.getAllWalletByProps({ receiverId: id });
       return res.status(200).send({ message: successMessages.FETCHED, data: allTransactions });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -20,10 +20,31 @@ class _WalletController {
   async withdraw(req: Request, res: Response) {
     try {
       const { id } = res.locals.user;
-      const allTransactions = await WalletService.getAllWalletByProps({ userId: id });
-      // calculate total earned - total refunded
-      // if total left <  withdraw request -> throw error
+      const { withdrawAmount } = req.body;
+      const allTransactions = await WalletService.getAllWalletByProps({ receiverId: id });
+      const totalEarned = allTransactions
+        .filter((tx) => tx.cashFlow === "CREDIT")
+        .reduce((sum, tx) => sum + tx.amount, 0);
 
+      const totalRefunded = allTransactions
+        .filter((tx) => tx.cashFlow === "DEBIT")
+        .reduce((sum, tx) => sum + tx.amount, 0);
+
+      const availableBalance = totalEarned - totalRefunded;
+      console.log(availableBalance, "availableBalance");
+      console.log(totalEarned, "totalEarned");
+      console.log(totalRefunded, "totalRefunded");
+
+      if (availableBalance < withdrawAmount) {
+        return res.status(400).json({ message: "Insufficient balance for withdrawal." });
+      }
+
+      await WalletService.createOneWalletTransactions({
+        recieverId: id,
+        amount: withdrawAmount,
+        state: "PROCESSING",
+        cashFlow: "DEBIT",
+      });
       await WalletService.createOneWalletTransactions({ state: "PROCESSING", cashflow: "DEBIT" });
       return res.status(200).send({ message: successMessages.CREATED });
     } catch (error) {
