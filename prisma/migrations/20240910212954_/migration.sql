@@ -1,4 +1,13 @@
 -- CreateEnum
+CREATE TYPE "WALLET_STATE" AS ENUM ('PROCESSING', 'DEBITED', 'CREDITED', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "CASHFLOW" AS ENUM ('DEBIT', 'CREDIT');
+
+-- CreateEnum
+CREATE TYPE "PAYMENT_FOR" AS ENUM ('CLASS', 'OTHERS');
+
+-- CreateEnum
 CREATE TYPE "WALLET_SOURCE" AS ENUM ('REFERRAL', 'PURCHASE');
 
 -- CreateEnum
@@ -109,19 +118,6 @@ CREATE TABLE "User" (
     "lastSeen" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Referral" (
-    "id" SERIAL NOT NULL,
-    "creatorId" INTEGER NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "amount" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "paymentId" INTEGER,
-
-    CONSTRAINT "Referral_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -262,9 +258,11 @@ CREATE TABLE "Payment" (
     "amount" INTEGER NOT NULL DEFAULT 0,
     "currency" "CURRENCY" NOT NULL DEFAULT 'INR',
     "status" "PAYMENT_STATUS" NOT NULL DEFAULT 'CREATED',
-    "packageId" INTEGER NOT NULL,
+    "classId" INTEGER,
+    "paymentFor" "PAYMENT_FOR" NOT NULL DEFAULT 'CLASS',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "packageId" INTEGER,
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
@@ -287,9 +285,12 @@ CREATE TABLE "ClickStream" (
 CREATE TABLE "WalletTransactions" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
-    "source" "WALLET_SOURCE" NOT NULL,
+    "source" "WALLET_SOURCE" NOT NULL DEFAULT 'PURCHASE',
     "amount" INTEGER NOT NULL,
+    "currency" "CURRENCY" NOT NULL DEFAULT 'INR',
+    "cashFlow" "CASHFLOW" NOT NULL,
     "paymentId" INTEGER,
+    "state" "WALLET_STATE" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -317,7 +318,7 @@ CREATE TABLE "Class" (
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "type" TEXT,
     "price" INTEGER,
-    "paymentFrequency" "PAYMENT_FREQUENCY" NOT NULL DEFAULT 'ONE_TIME',
+    "paymentFrequency" "PAYMENT_FREQUENCY" DEFAULT 'ONE_TIME',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -413,15 +414,6 @@ CREATE UNIQUE INDEX "_PackageToTier_AB_unique" ON "_PackageToTier"("A", "B");
 CREATE INDEX "_PackageToTier_B_index" ON "_PackageToTier"("B");
 
 -- AddForeignKey
-ALTER TABLE "Referral" ADD CONSTRAINT "Referral_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Referral" ADD CONSTRAINT "Referral_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Referral" ADD CONSTRAINT "Referral_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Package" ADD CONSTRAINT "Package_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -476,7 +468,10 @@ ALTER TABLE "Poll" ADD CONSTRAINT "Poll_authorId_fkey" FOREIGN KEY ("authorId") 
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ClickStream" ADD CONSTRAINT "ClickStream_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -21,6 +21,8 @@ const config_1 = __importDefault(require("../../config"));
 const axios_1 = __importDefault(require("axios"));
 const payment_service_1 = require("../services/payment.service");
 const package_controller_1 = require("./package.controller");
+const class_service_1 = require("../services/class.service");
+const wallet_service_1 = require("../services/wallet.service");
 cashfree_pg_1.Cashfree.XClientId = config_1.default.payment.cashfree.clientId;
 cashfree_pg_1.Cashfree.XClientSecret = config_1.default.payment.cashfree.clientSecret;
 cashfree_pg_1.Cashfree.XEnvironment =
@@ -35,24 +37,20 @@ function generateOrderId() {
     return orderId.substr(0, 12);
 }
 class _PaymentController {
-    order(req, res) {
+    buyClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { packageId } = req.body;
-            if (!packageId)
-                return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-            const user = res.locals.user;
-            if (!packageId)
-                return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+            const { classId } = req.body;
+            if (!classId) {
+                return res
+                    .status(api_constant_1.errorCode.GENERIC)
+                    .json({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide classId" });
+            }
             const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
             try {
-                const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
-                if (!foundPackage)
+                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: classId });
+                if (!foundClass)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                const { price } = foundPackage;
-                if (price === 0) {
-                    yield (0, package_controller_1.AssignTierAndLink)(foundPackage, user);
-                    return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
-                }
+                const { price } = foundClass;
                 if (!price)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 const order_id = yield generateOrderId();
@@ -76,8 +74,67 @@ class _PaymentController {
                     console.error(error);
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
                 }
-                yield payment_service_1.PaymentService.createOnePayment({
+                yield payment_service_1.PaymentService.createOneClassPayment({
                     userId: id,
+                    classId,
+                    orderId: order_id,
+                    amount: price,
+                    currency: "INR",
+                });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: response === null || response === void 0 ? void 0 : response.data });
+            }
+            catch (error) {
+                console.error(error);
+                return res.status(api_constant_1.errorCode.INTERNAL_SERVER).json({ message: api_constant_1.errorMessage.INTERNAL_SERVER });
+            }
+        });
+    }
+    buyPackage(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { packageId } = req.body;
+            if (!packageId) {
+                return res
+                    .status(api_constant_1.errorCode.GENERIC)
+                    .json({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide packageId" });
+            }
+            const user = res.locals.user;
+            try {
+                const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
+                if (!foundPackage) {
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                }
+                const { price } = foundPackage;
+                if (price === 0) {
+                    yield (0, package_controller_1.AssignTierAndLink)(foundPackage, user);
+                    return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
+                }
+                if (!price) {
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
+                }
+                const order_id = yield generateOrderId();
+                const request = {
+                    order_amount: price,
+                    order_currency: "INR",
+                    order_id,
+                    customer_details: {
+                        customer_id: user.username,
+                        customer_phone: user.phoneNumber || "8174901463",
+                        customer_name: `${user.firstName} ${user.lastName}`,
+                        customer_email: user.email,
+                    },
+                };
+                let response;
+                try {
+                    response = yield cashfree_pg_1.Cashfree.PGCreateOrder(config_1.default.payment.cashfree.version, request);
+                    console.log("response ", response);
+                }
+                catch (error) {
+                    console.error(error);
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
+                }
+                // fix this
+                yield payment_service_1.PaymentService.createOneClassPayment({
+                    userId: user.id,
                     packageId,
                     orderId: order_id,
                     amount: price,
@@ -93,11 +150,16 @@ class _PaymentController {
     }
     verify(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
+            var _a, _b, _c;
             try {
                 const { orderId } = req.body;
                 if (!orderId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ orderId });
+                if (!foundPayment)
+                    return res
+                        .status(api_constant_1.errorCode.NOT_FOUND)
+                        .json({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Payment not found" });
                 const url = `${config_1.default.payment.cashfree.url}/orders/${orderId}`;
                 const headers = {
                     accept: "application/json",
@@ -107,7 +169,17 @@ class _PaymentController {
                 };
                 const response = yield axios_1.default.get(url, { headers });
                 yield payment_service_1.PaymentService.updateOneByProps({ orderId }, { status: ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.order_status) || "FAILED" });
-                return res.status(200).json({ status: (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.order_status });
+                if (((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.order_status) === "PAID")
+                    yield wallet_service_1.WalletService.createOneWalletTransactions({
+                        userId: foundPayment.userId,
+                        source: "PURCHASE",
+                        paymentId: foundPayment.id,
+                        amount: foundPayment.amount,
+                        currency: foundPayment.currency,
+                        cashFlow: "CREDIT",
+                        state: "CREDITED",
+                    });
+                return res.status(200).json({ status: (_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.order_status });
             }
             catch (error) {
                 console.error(error);

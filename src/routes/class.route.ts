@@ -9,15 +9,12 @@ const classRoutes = express.Router();
 classRoutes.get("/getAllClasses", checkRoleAuth(), ClassController.getAllClasses);
 
 classRoutes.get("/getOneClass", checkRoleAuth(), ClassController.getOneClass);
+
 classRoutes.post("/updateClass", checkRoleAuth(), ClassController.updateClass);
 
 classRoutes.post("/create", checkRoleAuth([userRole.CREATOR]), ClassController.createClass);
 
-classRoutes.post(
-  "/addOneParticipant",
-  checkRoleAuth([userRole.CREATOR]),
-  ClassController.addOneParticipant,
-);
+classRoutes.post("/addOneParticipant", checkRoleAuth(), ClassController.addOneParticipant);
 
 classRoutes.post(
   "/addMultipleParticipants",

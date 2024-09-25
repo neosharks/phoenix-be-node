@@ -23,6 +23,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClassController = void 0;
 const api_constant_1 = require("../constant/api.constant");
 const class_service_1 = require("../services/class.service");
+const payment_service_1 = require("../services/payment.service");
 class _ClassController {
     getOneClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -68,13 +69,17 @@ class _ClassController {
                 const { name, isPaid = false, price, paymentFrequency } = req.body;
                 if (!name)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                if (isPaid && !price)
+                    return res
+                        .status(api_constant_1.errorCode.FORBIDDEN)
+                        .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Provide price for paid class" });
                 yield class_service_1.ClassService.createClass({
                     name,
                     creatorId: id,
                     isPaid,
                     type: "NORMAL",
-                    price,
-                    paymentFrequency,
+                    price: price || null,
+                    paymentFrequency: paymentFrequency || null,
                 });
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -114,11 +119,23 @@ class _ClassController {
                 const { classId, participantId } = req.body;
                 if (!classId || !participantId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: classId });
+                if (!foundClass)
+                    return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (foundClass.isPaid) {
+                    const foundPaidEntry = yield payment_service_1.PaymentService.getOnePaymentByProps({
+                        classId,
+                        userId: participantId,
+                    });
+                    if (!foundPaidEntry || foundPaidEntry.status !== "PAID")
+                        return res
+                            .status(api_constant_1.errorCode.FORBIDDEN)
+                            .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Class is paid" });
+                }
                 const addMember = yield class_service_1.ClassService.addClassParticipant({
                     classId: Number(classId),
                     userId: Number(participantId),
                 });
-                console.log(addMember, "addMember");
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED, data: addMember });
             }
             catch (error) {

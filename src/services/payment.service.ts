@@ -10,23 +10,24 @@ class _PaymentService {
 
   async getOnePaymentByProps(query: any) {
     try {
-      return await prisma.payment.findUnique({ where: query });
+      return await prisma.payment.findFirst({ where: query });
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async createOnePayment(dataValues: any) {
+  async createOneClassPayment(dataValues: any) {
     try {
-      const { userId, orderId, packageId, amount, currency } = dataValues;
+      const { userId, orderId, classId, amount, currency, paymentFor } = dataValues;
       return await prisma.payment.create({
         data: {
           userId,
           orderId,
-          packageId,
+          classId,
           amount,
           currency,
+          paymentFor,
         },
       });
     } catch (error) {

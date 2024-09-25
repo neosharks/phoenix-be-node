@@ -12,7 +12,7 @@ classRoutes.get("/getAllClasses", (0, checkRoleAuth_middleware_1.checkRoleAuth)(
 classRoutes.get("/getOneClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getOneClass);
 classRoutes.post("/updateClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.updateClass);
 classRoutes.post("/create", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.createClass);
-classRoutes.post("/addOneParticipant", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.addOneParticipant);
+classRoutes.post("/addOneParticipant", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.addOneParticipant);
 classRoutes.post("/addMultipleParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.addMultipleParticipants);
 classRoutes.get("/getAllParticipantOfClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.getAllParticipantOfClass);
 classRoutes.post("/sendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.sendMessage);

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
 import { ClassService } from "../services/class.service";
 import { number } from "joi";
+import { PaymentService } from "../services/payment.service";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -42,6 +43,10 @@ class _ClassController {
       const { name, isPaid = false, price, paymentFrequency } = req.body;
       if (!name)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (isPaid && !price)
+        return res
+          .status(errorCode.FORBIDDEN)
+          .send({ message: errorMessage.NOT_ALLOWED, info: "Provide price for paid class" });
       await ClassService.createClass({
         name,
         creatorId: id,
@@ -87,6 +92,19 @@ class _ClassController {
       const { classId, participantId } = req.body;
       if (!classId || !participantId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundClass = await ClassService.getOneClassByProps({ id: classId });
+      if (!foundClass)
+        return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
+      if (foundClass.isPaid) {
+        const foundPaidEntry = await PaymentService.getOnePaymentByProps({
+          classId,
+          userId: participantId,
+        });
+        if (!foundPaidEntry || foundPaidEntry.status !== "PAID")
+          return res
+            .status(errorCode.FORBIDDEN)
+            .send({ message: errorMessage.NOT_ALLOWED, info: "Class is paid" });
+      }
       const addMember = await ClassService.addClassParticipant({
         classId: Number(classId),
         userId: Number(participantId),

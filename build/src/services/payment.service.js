@@ -28,7 +28,7 @@ class _PaymentService {
     getOnePaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.payment.findUnique({ where: query });
+                return yield prisma_1.default.payment.findFirst({ where: query });
             }
             catch (error) {
                 console.error(error);
@@ -36,17 +36,18 @@ class _PaymentService {
             }
         });
     }
-    createOnePayment(dataValues) {
+    createOneClassPayment(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId, orderId, packageId, amount, currency } = dataValues;
+                const { userId, orderId, classId, amount, currency, paymentFor } = dataValues;
                 return yield prisma_1.default.payment.create({
                     data: {
                         userId,
                         orderId,
-                        packageId,
+                        classId,
                         amount,
                         currency,
+                        paymentFor,
                     },
                 });
             }
