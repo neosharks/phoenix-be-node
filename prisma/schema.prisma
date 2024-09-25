@@ -60,27 +60,28 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Message            Message[]
-  participantOne     Chat[]               @relation("participantOne")
-  participantTwo     Chat[]               @relation("participantTwo")
-  aboutUser          Notification[]       @relation("aboutUser")
-  notifiedUser       Notification[]       @relation("notifiedUser")
-  Poll               Poll[]
-  creatorId          PatronCreator[]      @relation("creatorId")
-  patronId           PatronCreator[]      @relation("patronId")
-  Comment            PostComment[]
-  UserPostAuthor     UserPost[]           @relation("userPostAuthor")
-  likedByUser        UserPost[]           @relation("likedByUser")
-  Payment            Payment[]
-  ClickStream        ClickStream[]
-  WalletTransactions WalletTransactions[]
-  AllLinks           AllLinks[]
-  ClassParticipants  ClassParticipants[]
-  ClassMessages      ClassMessage[]
-  Class              Class[]
-  online             Boolean              @default(false)
-  fcmToken           String?
-  lastSeen           DateTime?
+  Message              Message[]
+  participantOne       Chat[]               @relation("participantOne")
+  participantTwo       Chat[]               @relation("participantTwo")
+  aboutUser            Notification[]       @relation("aboutUser")
+  notifiedUser         Notification[]       @relation("notifiedUser")
+  Poll                 Poll[]
+  creatorId            PatronCreator[]      @relation("creatorId")
+  patronId             PatronCreator[]      @relation("patronId")
+  Comment              PostComment[]
+  UserPostAuthor       UserPost[]           @relation("userPostAuthor")
+  likedByUser          UserPost[]           @relation("likedByUser")
+  receivedTransactions WalletTransactions[] @relation("ReceiverTransactions")
+  sentTransactions     WalletTransactions[] @relation("SenderTransactions")
+  Payment              Payment[]
+  ClickStream          ClickStream[]
+  AllLinks             AllLinks[]
+  ClassParticipants    ClassParticipants[]
+  ClassMessages        ClassMessage[]
+  Class                Class[]
+  online               Boolean              @default(false)
+  fcmToken             String?
+  lastSeen             DateTime?
 
   @@index([email, username, phoneNumber])
 }
@@ -253,18 +254,20 @@ model ClickStream {
 }
 
 model WalletTransactions {
-  id        Int           @id @default(autoincrement())
-  user      User          @relation(fields: [userId], references: [id])
-  userId    Int
-  source    WALLET_SOURCE @default(PURCHASE)
-  amount    Int
-  currency  CURRENCY      @default(INR)
-  cashFlow  CASHFLOW
-  Payment   Payment?      @relation(fields: [paymentId], references: [id])
-  paymentId Int?
-  state     WALLET_STATE
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id         Int           @id @default(autoincrement())
+  receiver   User          @relation(name: "ReceiverTransactions", fields: [receiverId], references: [id])
+  receiverId Int
+  sender     User?         @relation(name: "SenderTransactions", fields: [senderId], references: [id])
+  senderId   Int?
+  source     WALLET_SOURCE @default(PURCHASE)
+  amount     Int
+  currency   CURRENCY      @default(INR)
+  cashFlow   CASHFLOW
+  Payment    Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId  Int?
+  state      WALLET_STATE
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 }
 
 model AllLinks {
