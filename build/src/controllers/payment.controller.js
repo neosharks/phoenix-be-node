@@ -68,7 +68,6 @@ class _PaymentController {
                 let response;
                 try {
                     response = yield cashfree_pg_1.Cashfree.PGCreateOrder(config_1.default.payment.cashfree.version, request);
-                    console.log("response ", response);
                 }
                 catch (error) {
                     console.error(error);
@@ -126,7 +125,6 @@ class _PaymentController {
                 let response;
                 try {
                     response = yield cashfree_pg_1.Cashfree.PGCreateOrder(config_1.default.payment.cashfree.version, request);
-                    console.log("response ", response);
                 }
                 catch (error) {
                     console.error(error);

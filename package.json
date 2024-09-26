@@ -24,6 +24,7 @@
     "@types/morgan": "^1.9.4",
     "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
+    "bull": "^4.16.3",
     "cashfree-pg": "^4.1.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -51,8 +52,6 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "socketio-file-upload": "^0.7.3",
-    "twilio": "^4.14.0",
-    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.4.0",
     "winston": "^3.11.0",
     "yarn": "^1.22.22"
   },

@@ -216,11 +216,12 @@ class _UserController {
                 }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
-                // const emailSent = await sendEmail(
-                //   req.body.email,
-                //   "Creator Application Under Review",
-                //   "APPLY_CREATOR",
-                // );
+                // const emailSent = await emailQueue.add({
+                //   receiverEmail: req.body.email,
+                //   subject: "Creator Application Under Review",
+                //   template: "APPLY_CREATOR",
+                //   variables: {},
+                // });
                 // if (!emailSent) {
                 //   return res.status(500).send({ message: "Failed to send email" });
                 // }
@@ -249,8 +250,12 @@ class _UserController {
                             creatorChangeTimeStamp: new Date(),
                         };
                         yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
-                        // if (foundUser.email)
-                        //   await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+                        // await emailQueue.add({
+                        //   receiverEmail: foundUser.email,
+                        //   subject: "Application Approval",
+                        //   template: "APPROVE_CREATOR",
+                        //   variables: {},
+                        // });
                     }
                 }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });

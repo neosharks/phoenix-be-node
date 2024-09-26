@@ -16,7 +16,7 @@ const emailQueue = new Queue("emailQueue", {
 });
 
 // Queue processing
-emailQueue.process(async (job, done) => {
+emailQueue.process(async (job: any, done: any) => {
   const { receiverEmail, subject, template, variables } = job.data;
   try {
     logger.info(`Sending email to: ${receiverEmail}`);
