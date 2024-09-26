@@ -323,6 +323,20 @@ class _UserPostController {
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
     }
   }
+
+  async getAllPost(req: Request, res: Response) {
+    try {
+      const allPosts = await UserPostService.getAllPost();
+      if (!allPosts || allPosts.length === 0) {
+        return res.status(404).send({ message: errorMessage.POST_NOT_FOUND, data: [] });
+      }
+
+      return res.status(200).send({ message: successMessages.SUCCESS, data: allPosts });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).send({ message: "Internal server error", error });
+    }
+  }
 }
 
 export const UserPostController = new _UserPostController();

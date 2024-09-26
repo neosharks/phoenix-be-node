@@ -204,6 +204,60 @@ class _UserPostService {
       throw error;
     }
   }
+
+  async getAllPost() {
+    try {
+      return await prisma.userPost.findMany({
+        include: {
+          poll: true,
+          packages: true,
+          class: true,
+          comments: {
+            select: {
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profileImage: true,
+                  email: true,
+                  username: true,
+                  role: true,
+                },
+              },
+            },
+          },
+          likedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch posts");
+    }
+  }
 }
 
 export const UserPostService = new _UserPostService();

@@ -35,4 +35,6 @@ userPostRoutes.get("/getSingleUserPost", checkRoleAuth(), UserPostController.get
 
 userPostRoutes.get("/getSingleUserPostUA", UserPostController.getSingleUserPost);
 
+userPostRoutes.get("/getAllPost", UserPostController.getAllPost);
+
 export default userPostRoutes;
