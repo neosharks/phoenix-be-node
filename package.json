@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "relic": "NEW_RELIC_APP_NAME=Qalakar NEW_RELIC_LICENSE_KEY=31844d21b218e7353887bea6a6e15a20FFFFNRAL pm2 start ./build/index.js",
     "build-local": "cp .env ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "build-prod": "cp .env.production ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
-    "start": "npm run build-local && pm2 restart ./build/index.js",
+    "start": "npm run build-local && npm run relic",
     "dev": "nodemon --exec ts-node -r dotenv/config index.ts",
-    "start-prod": "cross-env NODE_ENV=production npm run build-prod && pm2 restart ./build/index.js",
+    "start-prod": "cross-env NODE_ENV=production npm run build-prod && npm run relic",
     "pretty": "prettier --write \"src/**/*.ts\""
   },
   "keywords": [],
@@ -40,6 +41,7 @@
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "newrelic": "^12.5.1",
     "nodemailer": "^6.9.4",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",

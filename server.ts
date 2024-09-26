@@ -3,21 +3,20 @@ import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import http from "http";
-import { connection } from "./sequelize";
+import path from "path";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
+import { connection } from "./sequelize";
 import config from "./config";
 import Logger from "./src/core/logger.core";
 import chatSocket from "./src/utils/Socket";
-import path from "path";
-
-process.on("uncaughtException", (e) => {
-  console.log("-----uncaughtException-----", e);
-  process.exit(1);
-});
+import logger from "./src/core/logger.core";
+import sendEmail from "./src/core/email.core";
+import { errorCode } from "./src/constant/api.constant";
 
 var SocketIOFileUpload = require("socketio-file-upload");
+
 const app = express()
   .use(express.static(__dirname + "/"))
   .use(SocketIOFileUpload.router);
@@ -46,13 +45,12 @@ app.use(
   morgan((tokens, req, res) => {
     const user = res.locals.user;
     const userId = user ? user.id : "N/A";
-    const ipAddress = req.ip;
     const msg = {
       status: tokens.status(req, res),
       method: tokens.method(req, res),
       url: tokens.url(req, res),
       responseTime: tokens["response-time"](req, res) + "ms",
-      userId: userId, // Separate key for user ID
+      userId: userId,
     };
     Logger.http(msg);
     return null;
@@ -63,7 +61,20 @@ app.use(
 app.get("/socket", (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, "public", "html.html"));
 });
+
 app.use("/", routes);
+
 app.use((req, res, next) => res.status(404).json({ message: "Route not found" }));
+
+app.use(async (err: any, req: Request, res: Response, next: any) => {
+  logger.error(err.message, { stack: err.stack });
+  try {
+    if (config.main.environment === "PRODUCTION")
+      await sendEmail("thakursatyam9415@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+  } catch (emailError: any) {
+    logger.error("Failed to send error email notification:", { stack: emailError.stack });
+  }
+  res.status(errorCode.INTERNAL_SERVER).send({ message: errorCode.INTERNAL_SERVER });
+});
 
 export default app;

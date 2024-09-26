@@ -19,6 +19,8 @@ const logger_core_1 = __importDefault(require("./logger.core"));
 const config_1 = __importDefault(require("../../config"));
 const extractTemplate = (template) => {
     switch (template) {
+        case "SERVER_ERROR":
+            return "serverError.mail.html";
         case "SIGNUP":
             return "signup.mail.html";
         case "FORGET_PASSWORD":

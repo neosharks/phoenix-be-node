@@ -6,6 +6,8 @@ import config from "../../config";
 
 const extractTemplate = (template: string) => {
   switch (template) {
+    case "SERVER_ERROR":
+      return "serverError.mail.html";
     case "SIGNUP":
       return "signup.mail.html";
     case "FORGET_PASSWORD":
