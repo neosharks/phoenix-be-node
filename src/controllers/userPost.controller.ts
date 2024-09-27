@@ -330,10 +330,8 @@ class _UserPostController {
       const take = Number(req.query.per_page) || 10;
 
       const allPosts = await UserPostService.getAllPost(skip, take);
-      if (!allPosts || allPosts.length === 0) {
+      if (!allPosts || allPosts.length === 0)
         return res.status(404).send({ message: errorMessage.POST_NOT_FOUND, data: [] });
-      }
-
       return res.status(200).send({ message: successMessages.SUCCESS, data: allPosts });
     } catch (error) {
       console.error("Error:", error);
