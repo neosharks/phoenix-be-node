@@ -21,6 +21,7 @@ export const errorMessage = {
   NO_PAYMENT: "NO_PAYMENT",
   DATA_MISMATCH: "DATA_MISMATCH",
   SMS_ISSUE: "SMS_ISSUE",
+  POST_NOT_FOUND: "POST NOT FOUND",
 };
 
 export const errorCode = {
