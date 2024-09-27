@@ -326,7 +326,10 @@ class _UserPostController {
 
   async getAllPost(req: Request, res: Response) {
     try {
-      const allPosts = await UserPostService.getAllPost();
+      const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+      const take = Number(req.query.per_page) || 10;
+
+      const allPosts = await UserPostService.getAllPost(skip, take);
       if (!allPosts || allPosts.length === 0) {
         return res.status(404).send({ message: errorMessage.POST_NOT_FOUND, data: [] });
       }

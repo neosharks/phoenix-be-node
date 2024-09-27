@@ -205,7 +205,7 @@ class _UserPostService {
     }
   }
 
-  async getAllPost() {
+  async getAllPost(skip: number = 0, take: number = 10) {
     try {
       return await prisma.userPost.findMany({
         include: {
@@ -253,6 +253,8 @@ class _UserPostService {
             },
           },
         },
+        skip,
+        take,
       });
     } catch (error) {
       throw new Error("Failed to fetch posts");
