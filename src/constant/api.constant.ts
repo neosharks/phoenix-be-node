@@ -37,4 +37,5 @@ export const successMessages = {
   SUCCESS: "SUCCESS",
   FETCHED: "FETCHED",
   UPDATED: "UPDATED",
+  DELETE: "DELETE",
 };

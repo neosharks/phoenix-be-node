@@ -153,6 +153,30 @@ class _ClassController {
     }
   }
 
+  async LeavingOneClass(req: Request, res: Response) {
+    try {
+      let { classId, userId } = req.body;
+      if (!classId || !userId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const allClasses = await ClassService.leaveClass(parseInt(classId), parseInt(userId));
+      if (allClasses) {
+        return res
+          .status(200)
+          .send({ message: successMessages.FETCHED, data: successMessages.DELETE });
+      }
+      {
+        res
+          .status(errorCode.NOT_FOUND)
+          .json({ message: errorMessage.INTERNAL_SERVER, error: errorMessage.NOT_FOUND });
+      }
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async sendMessage(req: Request, res: Response) {
     try {
       const { classId, participantId, message } = req.body;
@@ -252,6 +276,26 @@ class _ClassController {
       return res
         .status(errorCode.INTERNAL_SERVER)
         .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
+  async requestNewClass(req: Request, res: Response) {
+    try {
+      const { creatorId, message } = req.body;
+      const { id } = res.locals.user;
+
+      if (!creatorId || !message) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      }
+
+      const newRequest = await ClassService.createClassRequest(id, creatorId, message);
+      return res.status(201).send({ message: successMessages.CREATED, data: newRequest });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      if (error) {
+        return res.status(409).send({ message: error });
+      }
+      return res.status(500).json({ message: "Internal Server Error", error });
     }
   }
 }

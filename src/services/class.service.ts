@@ -276,6 +276,55 @@ class _ClassService {
       throw error;
     }
   }
+
+  async leaveClass(classId: number, userId: number) {
+    try {
+      const classParticipant = await prisma.classParticipants.findFirst({
+        where: {
+          classId: classId,
+          userId: userId,
+        },
+      });
+
+      if (!classParticipant) {
+        console.log("No class participant found");
+        return false;
+      }
+
+      const removedData = await prisma.classParticipants.delete({
+        where: {
+          id: classParticipant.id, // Delete by the unique ID
+        },
+      });
+
+      console.log(removedData, "removedData");
+      return true;
+    } catch (error) {
+      console.error("Error while leaving the class:", error);
+      return false;
+    }
+  }
+
+  async createClassRequest(userId: number, creatorId: number, message: string) {
+    const existingRequest = await prisma.classRequest.findFirst({
+      where: {
+        userId,
+        creatorId,
+      },
+    });
+
+    if (existingRequest) {
+      throw new Error("You have already requested a class from this creator.");
+    }
+
+    return await prisma.classRequest.create({
+      data: {
+        userId,
+        creatorId,
+        message,
+      },
+    });
+  }
 }
 
 export const ClassService = new _ClassService();
