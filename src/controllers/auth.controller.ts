@@ -42,6 +42,8 @@ class _AuthController {
       }
       body.password = hash;
       body.username = body.email.split("@")[0];
+      body.language = body.language;
+      body.theme = body.theme;
       const randomNum = (Math.random() * 25) | 1;
       const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
       const created = await UserService.createOneUser(
@@ -127,6 +129,8 @@ class _AuthController {
           if (referralUser) {
             commonProps.referralTimeStamp = new Date();
             commonProps.referralUserId = referralUser.id;
+            commonProps.language = referralUser.language;
+            commonProps.theme = referralUser.theme;
           }
         }
         const username = generateRandomUsername();
@@ -389,7 +393,7 @@ class _AuthController {
           Authorization: `Bearer ${googleAccessToken}`,
         },
       });
-      const { email, picture, family_name, given_name, sub } = FetchResponse.data;
+      const { email, picture, family_name, given_name, sub, language, theme } = FetchResponse.data;
       let foundUser = await UserService.getOneUser({ email });
       if (!foundUser) {
         const randomNum = (Math.random() * 25) | 1;
@@ -401,6 +405,8 @@ class _AuthController {
           lastName: family_name,
           profileImage: picture ? picture : profileImage,
           username: email.split("@")[0],
+          language: language,
+          theme: theme,
           emailVerified: true,
         };
         foundUser = await UserService.createOneUser(user);

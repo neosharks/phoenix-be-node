@@ -5,6 +5,8 @@ export const registerSchema = Joi.object({
   lastName: Joi.string().min(1),
   email: Joi.string().email().lowercase().required(),
   password: Joi.string().min(4).required(),
+  theme: Joi.string(),
+  language: Joi.string(),
 });
 
 export const loginSchema = Joi.object({
