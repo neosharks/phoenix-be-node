@@ -286,18 +286,13 @@ class _ClassService {
         },
       });
 
-      if (!classParticipant) {
-        console.log("No class participant found");
-        return false;
-      }
+      if (!classParticipant) return false;
 
-      const removedData = await prisma.classParticipants.delete({
+      await prisma.classParticipants.delete({
         where: {
-          id: classParticipant.id, // Delete by the unique ID
+          id: classParticipant.id,
         },
       });
-
-      console.log(removedData, "removedData");
       return true;
     } catch (error) {
       console.error("Error while leaving the class:", error);
@@ -313,9 +308,7 @@ class _ClassService {
       },
     });
 
-    if (existingRequest) {
-      throw new Error("You have already requested a class from this creator.");
-    }
+    if (existingRequest) return null;
 
     return await prisma.classRequest.create({
       data: {
