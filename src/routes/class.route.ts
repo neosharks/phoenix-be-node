@@ -41,7 +41,7 @@ classRoutes.get(
 
 classRoutes.get("/getAllClassesForUser", checkRoleAuth(), ClassController.getAllClassesForUser);
 
-classRoutes.post("/LeavingOneClass", checkRoleAuth(), ClassController.LeavingOneClass);
+classRoutes.post("/leaveOneClass", checkRoleAuth(), ClassController.leaveOneClass);
 classRoutes.post("/requestClass", checkRoleAuth(), ClassController.requestNewClass);
 
 export default classRoutes;

@@ -153,21 +153,19 @@ class _ClassController {
     }
   }
 
-  async LeavingOneClass(req: Request, res: Response) {
+  async leaveOneClass(req: Request, res: Response) {
     try {
       let { classId, userId } = req.body;
       if (!classId || !userId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.leaveClass(parseInt(classId), parseInt(userId));
+      console.log(allClasses, "sdfsd");
       if (allClasses) {
         return res
           .status(200)
           .send({ message: successMessages.FETCHED, data: successMessages.DELETE });
-      }
-      {
-        res
-          .status(errorCode.NOT_FOUND)
-          .json({ message: errorMessage.INTERNAL_SERVER, error: errorMessage.NOT_FOUND });
+      } else {
+        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.ALREADY_DELETED });
       }
     } catch (error) {
       console.log("ERROR: ", error);
@@ -289,6 +287,9 @@ class _ClassController {
       }
 
       const newRequest = await ClassService.createClassRequest(id, creatorId, message);
+      if (!newRequest) {
+        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.REQUEST_ALREADY });
+      }
       return res.status(201).send({ message: successMessages.CREATED, data: newRequest });
     } catch (error) {
       console.error("ERROR: ", error);
