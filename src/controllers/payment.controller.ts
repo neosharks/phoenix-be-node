@@ -7,6 +7,8 @@ import config from "../../config";
 import axios from "axios";
 import { PaymentService } from "../services/payment.service";
 import { AssignTierAndLink } from "./package.controller";
+import { ClassService } from "../services/class.service";
+import { WalletService } from "../services/wallet.service";
 
 Cashfree.XClientId = config.payment.cashfree.clientId;
 Cashfree.XClientSecret = config.payment.cashfree.clientSecret;
@@ -24,26 +26,24 @@ function generateOrderId() {
 }
 
 class _PaymentController {
-  async order(req: Request, res: Response) {
-    const { packageId } = req.body;
+  async buyClass(req: Request, res: Response) {
+    const { classId } = req.body;
+    if (!classId) {
+      return res
+        .status(errorCode.GENERIC)
+        .json({ message: errorMessage.MISSING_PARAMS, info: "Provide classId" });
+    }
 
-    if (!packageId)
-      return res.status(errorCode.GENERIC).json({ message: errorMessage.MISSING_PARAMS });
-    const user = res.locals.user;
-    if (!packageId)
-      return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
     const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
+
     try {
-      const foundPackage = await PackageService.getOnePackage({ id: packageId });
-      if (!foundPackage)
+      const foundClass = await ClassService.getOneClassByProps({ id: classId });
+      if (!foundClass)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      const { price } = foundPackage;
-      if (price === 0) {
-        await AssignTierAndLink(foundPackage, user);
-        return res.status(200).send({ message: successMessages.SUCCESS });
-      }
+      const { price } = foundClass;
       if (!price)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.INCORRECT_DATA });
+
       const order_id = await generateOrderId();
       const request = {
         order_amount: price,
@@ -56,21 +56,85 @@ class _PaymentController {
           customer_email: email,
         },
       };
+
       let response;
       try {
         response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
-        console.log("response ", response);
       } catch (error) {
         console.error(error);
         return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
       }
-      await PaymentService.createOnePayment({
+
+      await PaymentService.createOneClassPayment({
         userId: id,
+        classId,
+        orderId: order_id,
+        amount: price,
+        currency: "INR",
+      });
+
+      return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(errorCode.INTERNAL_SERVER).json({ message: errorMessage.INTERNAL_SERVER });
+    }
+  }
+
+  async buyPackage(req: Request, res: Response) {
+    const { packageId } = req.body;
+    if (!packageId) {
+      return res
+        .status(errorCode.GENERIC)
+        .json({ message: errorMessage.MISSING_PARAMS, info: "Provide packageId" });
+    }
+
+    const user = res.locals.user;
+
+    try {
+      const foundPackage = await PackageService.getOnePackage({ id: packageId });
+      if (!foundPackage) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      }
+
+      const { price } = foundPackage;
+      if (price === 0) {
+        await AssignTierAndLink(foundPackage, user);
+        return res.status(200).send({ message: successMessages.SUCCESS });
+      }
+
+      if (!price) {
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.INCORRECT_DATA });
+      }
+
+      const order_id = await generateOrderId();
+      const request = {
+        order_amount: price,
+        order_currency: "INR",
+        order_id,
+        customer_details: {
+          customer_id: user.username,
+          customer_phone: user.phoneNumber || "8174901463",
+          customer_name: `${user.firstName} ${user.lastName}`,
+          customer_email: user.email,
+        },
+      };
+
+      let response;
+      try {
+        response = await Cashfree.PGCreateOrder(config.payment.cashfree.version, request);
+      } catch (error) {
+        console.error(error);
+        return res.status(errorCode.GENERIC).send({ message: "Payment failed" });
+      }
+      // fix this
+      await PaymentService.createOneClassPayment({
+        userId: user.id,
         packageId,
         orderId: order_id,
         amount: price,
         currency: "INR",
       });
+
       return res.status(200).send({ message: successMessages.SUCCESS, data: response?.data });
     } catch (error: any) {
       console.error(error);
@@ -83,6 +147,11 @@ class _PaymentController {
       const { orderId } = req.body;
       if (!orderId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      const foundPayment = await PaymentService.getOnePaymentByProps({ orderId });
+      if (!foundPayment)
+        return res
+          .status(errorCode.NOT_FOUND)
+          .json({ message: errorMessage.NOT_FOUND, info: "Payment not found" });
       const url = `${config.payment.cashfree.url}/orders/${orderId}`;
       const headers = {
         accept: "application/json",
@@ -95,6 +164,16 @@ class _PaymentController {
         { orderId },
         { status: response?.data?.order_status || "FAILED" },
       );
+      if (response?.data?.order_status === "PAID")
+        await WalletService.createOneWalletTransactions({
+          userId: foundPayment.userId,
+          source: "PURCHASE",
+          paymentId: foundPayment.id,
+          amount: foundPayment.amount,
+          currency: foundPayment.currency,
+          cashFlow: "CREDIT",
+          state: "CREDITED",
+        });
       return res.status(200).json({ status: response?.data?.order_status });
     } catch (error: any) {
       console.error(error);

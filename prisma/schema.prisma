@@ -18,6 +18,8 @@ model User {
   countryCode                  String    @default("+91")
   profileImage                 String?
   coverImage                   String?
+  language                     String?
+  theme                        String?
   isCreator                    Boolean   @default(false)
   gender                       GENDER?
   role                         ROLE[]    @default([PATRON])
@@ -60,41 +62,30 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Message            Message[]
-  participantOne     Chat[]               @relation("participantOne")
-  participantTwo     Chat[]               @relation("participantTwo")
-  aboutUser          Notification[]       @relation("aboutUser")
-  notifiedUser       Notification[]       @relation("notifiedUser")
-  Poll               Poll[]
-  creatorId          PatronCreator[]      @relation("creatorId")
-  patronId           PatronCreator[]      @relation("patronId")
-  Comment            PostComment[]
-  UserPostAuthor     UserPost[]           @relation("userPostAuthor")
-  likedByUser        UserPost[]           @relation("likedByUser")
-  Payment            Payment[]
-  ClickStream        ClickStream[]
-  WalletTransactions WalletTransactions[]
-  referralUser       Referral[]           @relation("referralUser")
-  referralCreator    Referral[]           @relation("referralCreator")
-  AllLinks           AllLinks[]
-  ClassParticipants  ClassParticipants[]
-  ClassMessages      ClassMessage[]
-  Class              Class[]
+  Message              Message[]
+  participantOne       Chat[]               @relation("participantOne")
+  participantTwo       Chat[]               @relation("participantTwo")
+  aboutUser            Notification[]       @relation("aboutUser")
+  notifiedUser         Notification[]       @relation("notifiedUser")
+  Poll                 Poll[]
+  creatorId            PatronCreator[]      @relation("creatorId")
+  patronId             PatronCreator[]      @relation("patronId")
+  Comment              PostComment[]
+  UserPostAuthor       UserPost[]           @relation("userPostAuthor")
+  likedByUser          UserPost[]           @relation("likedByUser")
+  receivedTransactions WalletTransactions[] @relation("ReceiverTransactions")
+  sentTransactions     WalletTransactions[] @relation("SenderTransactions")
+  Payment              Payment[]
+  ClickStream          ClickStream[]
+  AllLinks             AllLinks[]
+  ClassParticipants    ClassParticipants[]
+  ClassMessages        ClassMessage[]
+  Class                Class[]
+  online               Boolean              @default(false)
+  fcmToken             String?
+  lastSeen             DateTime?
 
   @@index([email, username, phoneNumber])
-}
-
-model Referral {
-  id        Int      @id @default(autoincrement())
-  creator   User     @relation("referralCreator", fields: [creatorId], references: [id])
-  creatorId Int
-  user      User     @relation("referralUser", fields: [userId], references: [id])
-  userId    Int
-  amount    Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Payment   Payment? @relation(fields: [paymentId], references: [id])
-  paymentId Int?
 }
 
 model Tier {
@@ -193,6 +184,7 @@ model UserPost {
   title         String?
   description   String?
   videoUrl      String?
+  document      String?
   visibility    VISIBILITY     @default(EVERYONE)
   packages      Package[]
   allowComments Boolean        @default(true)
@@ -239,12 +231,14 @@ model Payment {
   amount             Int                  @default(0)
   currency           CURRENCY             @default(INR)
   status             PAYMENT_STATUS       @default(CREATED)
-  package            Package              @relation(fields: [packageId], references: [id])
-  packageId          Int
+  class              Class?               @relation(fields: [classId], references: [id])
+  classId            Int?
+  paymentFor         PAYMENT_FOR          @default(CLASS)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   WalletTransactions WalletTransactions[]
-  Referral           Referral[]
+  Package            Package?             @relation(fields: [packageId], references: [id])
+  packageId          Int?
 
   @@index([orderId])
 }
@@ -262,15 +256,20 @@ model ClickStream {
 }
 
 model WalletTransactions {
-  id        Int           @id @default(autoincrement())
-  user      User          @relation(fields: [userId], references: [id])
-  userId    Int
-  source    WALLET_SOURCE
-  amount    Int
-  Payment   Payment?      @relation(fields: [paymentId], references: [id])
-  paymentId Int?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id         Int           @id @default(autoincrement())
+  receiver   User          @relation(name: "ReceiverTransactions", fields: [receiverId], references: [id])
+  receiverId Int
+  sender     User?         @relation(name: "SenderTransactions", fields: [senderId], references: [id])
+  senderId   Int?
+  source     WALLET_SOURCE @default(PURCHASE)
+  amount     Int
+  currency   CURRENCY      @default(INR)
+  cashFlow   CASHFLOW
+  Payment    Payment?      @relation(fields: [paymentId], references: [id])
+  paymentId  Int?
+  state      WALLET_STATE
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 }
 
 model AllLinks {
@@ -291,23 +290,32 @@ model Class {
   name              String
   isPaid            Boolean             @default(false)
   type              String?
+  price             Int?
+  paymentFrequency  PAYMENT_FREQUENCY?  @default(ONE_TIME)
   ClassParticipants ClassParticipants[]
   ClassMessage      ClassMessage[]
+  UserPost          UserPost[]
+  Payment           Payment[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  UserPost          UserPost[]
 }
 
 model ClassMessage {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  message   String
-  isPinned  Boolean  @default(false)
-  class     Class    @relation(fields: [classId], references: [id])
-  classId   Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int            @id @default(autoincrement())
+  classId          Int
+  userId           Int
+  message          String?
+  image            String?
+  video            String?
+  document         String?
+  repliedMessageId Int?
+  isPinned         Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  class            Class          @relation(fields: [classId], references: [id])
+  user             User           @relation(fields: [userId], references: [id])
+  repliedMessage   ClassMessage?  @relation("MessageReplies", fields: [repliedMessageId], references: [id])
+  replies          ClassMessage[] @relation("MessageReplies")
 }
 
 model ClassParticipants {
@@ -320,6 +328,34 @@ model ClassParticipants {
   updatedAt DateTime @updatedAt
 
   @@unique([classId, userId])
+}
+
+model ClassRequest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  creatorId Int
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, creatorId])
+}
+
+enum WALLET_STATE {
+  PROCESSING
+  DEBITED
+  CREDITED
+  FAILED
+}
+
+enum CASHFLOW {
+  DEBIT
+  CREDIT
+}
+
+enum PAYMENT_FOR {
+  CLASS
+  OTHERS
 }
 
 enum WALLET_SOURCE {
@@ -480,6 +516,7 @@ enum USER_POST_TYPE {
   LINK
   VIDEO
   CLASS
+  DOCUMENT
 }
 
 enum VISIBILITY {
@@ -498,4 +535,10 @@ enum PAYMENT_STATUS {
   PAID
   FAILED
   PENDING
+}
+
+enum PAYMENT_FREQUENCY {
+  ONE_TIME
+  MONTHLY
+  YEARLY
 }

@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
 import logger from "../core/logger.core";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { GetUploadedFile, getObjectSignedUrl } from "../core/s3upload.core";
 
 import { PackageService } from "../services/package.service";
 import { PatronCreatorService } from "../services/patronCreator.service";
 import { userUpdateSchema } from "../validators/user.validator";
 import sendEmail from "../core/email.core";
+import emailQueue from "../queueEmail/emailQueue";
 
 class _UserController {
   async getUser(req: Request, res: Response) {
@@ -15,8 +15,6 @@ class _UserController {
       const id = res.locals.user.id;
       const found = await UserService.getOneUser({ id });
       if (!found) return res.status(400).send({ message: errorMessage.NOT_FOUND });
-      if (found.profileImage) found.profileImage = await getObjectSignedUrl(found.profileImage);
-      if (found.coverImage) found.coverImage = await getObjectSignedUrl(found.coverImage);
       return res.status(201).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -65,8 +63,6 @@ class _UserController {
         return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await UserService.getOneUser({ username });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
-      if (found.coverImage) found.coverImage = await getObjectSignedUrl(found.coverImage);
-      if (found.profileImage) found.profileImage = await getObjectSignedUrl(found.profileImage);
       return res.status(200).send({ message: successMessages.SUCCESS, user: found });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -84,17 +80,6 @@ class _UserController {
       let found = await UserService.getAllUserByParams({ isCreator: true }, skip, take);
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       found = found.filter((ele) => ele.id !== id);
-      if (found.length > 0) {
-        found = await Promise.all(
-          found.map(async (ele: any) => {
-            if (ele?.profileImage?.length > 0)
-              ele.profileImage = await getObjectSignedUrl(ele.profileImage);
-            if (ele?.coverImage?.length > 0)
-              ele.coverImage = await getObjectSignedUrl(ele.coverImage);
-            return ele;
-          }),
-        );
-      }
       return res.status(200).send({ message: successMessages.SUCCESS, data: found });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -106,9 +91,10 @@ class _UserController {
 
   async updateCoverImage(req: Request, res: Response) {
     try {
-      const image = req.file;
+      const image = req.body.image;
       let update: any = {};
-      if (image) update.coverImage = await GetUploadedFile(image);
+      if (image) update.coverImage = image;
+      console.log(update, "sdfg");
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
@@ -121,9 +107,9 @@ class _UserController {
 
   async updateProfileImage(req: Request, res: Response) {
     try {
-      const image = req.file;
+      const image = req.body.image;
       let update: any = {};
-      if (image) update.profileImage = await GetUploadedFile(image);
+      if (image) update.profileImage = image;
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
@@ -140,8 +126,8 @@ class _UserController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      const image = req.file;
-      if (image) req.body.profileImage = await GetUploadedFile(image);
+      const image = req.body.image;
+      if (image) req.body.profileImage = image;
       await UserService.updateOneUser({ id: res.locals.user.id }, req.body);
       return res.status(200).json({ message: successMessages.UPDATED });
     } catch (error) {
@@ -203,14 +189,15 @@ class _UserController {
         creatorApprovalStatus: "PENDING",
       };
       await UserService.updateOneUser({ id }, updatedBody);
-      const emailSent = await sendEmail(
-        req.body.email,
-        "Creator Application Under Review",
-        "APPLY_CREATOR",
-      );
-      if (!emailSent) {
-        return res.status(500).send({ message: "Failed to send email" });
-      }
+      // const emailSent = await emailQueue.add({
+      //   receiverEmail: req.body.email,
+      //   subject: "Creator Application Under Review",
+      //   template: "APPLY_CREATOR",
+      //   variables: {},
+      // });
+      // if (!emailSent) {
+      //   return res.status(500).send({ message: "Failed to send email" });
+      // }
       return res.status(201).send({ message: successMessages.SUCCESS });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -234,8 +221,12 @@ class _UserController {
             creatorChangeTimeStamp: new Date(),
           };
           await UserService.updateOneUser({ id: ele }, updatedBody);
-          if (foundUser.email)
-            await sendEmail(foundUser.email, "Application Approval", "APPROVE_CREATOR");
+          // await emailQueue.add({
+          //   receiverEmail: foundUser.email,
+          //   subject: "Application Approval",
+          //   template: "APPROVE_CREATOR",
+          //   variables: {},
+          // });
         }
       }
       return res.status(201).send({ message: successMessages.SUCCESS });

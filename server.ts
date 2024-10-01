@@ -1,20 +1,40 @@
-import express, { Request, Response, response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import morgan from "morgan";
+import { Server } from "socket.io";
+import http from "http";
+import { connection } from "./sequelize";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
 import config from "./config";
 import Logger from "./src/core/logger.core";
-import { CommonService } from "./src/services/common.service";
+import chatSocket from "./src/utils/Socket";
+import path from "path";
 
 process.on("uncaughtException", (e) => {
   console.log("-----uncaughtException-----", e);
   process.exit(1);
 });
 
-const app = express();
+var SocketIOFileUpload = require("socketio-file-upload");
+const app = express()
+  .use(express.static(__dirname + "/"))
+  .use(SocketIOFileUpload.router);
 
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+chatSocket(io);
+
+// connection sequelize
+connection();
 // MIDDLEWARES
 const corsUrl = config.main.corsUrl;
 
@@ -31,10 +51,8 @@ app.use(
       status: tokens.status(req, res),
       method: tokens.method(req, res),
       url: tokens.url(req, res),
-      contentLength: tokens.res(req, res, "content-length"),
       responseTime: tokens["response-time"](req, res) + "ms",
       userId: userId, // Separate key for user ID
-      ipAddress: ipAddress, // Separate key for IP address
     };
     Logger.http(msg);
     return null;
@@ -42,6 +60,9 @@ app.use(
 );
 
 // Routes
+app.get("/socket", (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, "public", "html.html"));
+});
 app.use("/", routes);
 app.use((req, res, next) => res.status(404).json({ message: "Route not found" }));
 

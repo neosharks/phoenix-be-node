@@ -9,7 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import crypto from "crypto";
 import config from "../../config";
-import logger from "./logger.core";
 
 const bucketName = config.aws.bucketName;
 const region = config.aws.region;
@@ -19,6 +18,12 @@ const secretAccessKey = config.aws.accessSecret;
 const storage = multer.memoryStorage();
 
 export const uploadFileMiddleware = multer({ storage: storage });
+
+export const uploadAllFileMiddleware = multer({ storage: storage }).fields([
+  { name: "image", maxCount: 1 },
+  { name: "video", maxCount: 1 },
+  { name: "document", maxCount: 1 },
+]);
 
 export const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
 
@@ -56,7 +61,7 @@ export async function getObjectSignedUrl(key: string) {
     Key: key,
   };
   const command = new GetObjectCommand(params);
-  const seconds = 60;
+  const seconds = 180;
   const url = await getSignedUrl(s3Client, command, { expiresIn: seconds });
 
   return url;
@@ -74,6 +79,34 @@ export async function GetUploadedFile(image: any) {
     return imageName;
   } catch (err) {
     console.log("Error in image upload", err);
+    throw err;
+  }
+}
+
+export async function GetUploadedVideo(video: any) {
+  try {
+    if (!video || !video.buffer || !video.mimetype) {
+      throw new Error("Invalid video file provided or unsupported format.");
+    }
+    const videoName = generateFileName();
+    await uploadFile(video.buffer, videoName, video.mimetype);
+    return videoName;
+  } catch (err) {
+    console.log("Error in video upload", err);
+    throw err;
+  }
+}
+
+export async function GetUploadedDocument(document: any) {
+  try {
+    if (!document || !document.buffer || !document.mimetype) {
+      throw new Error("Invalid document data provided.");
+    }
+    const documentName = generateFileName();
+    await uploadFile(document.buffer, documentName, document.mimetype);
+    return documentName;
+  } catch (err) {
+    console.log("Error in document upload", err);
     throw err;
   }
 }

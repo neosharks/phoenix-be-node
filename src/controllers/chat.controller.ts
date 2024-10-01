@@ -1,21 +1,13 @@
 import { Request, Response } from "express";
 import { ChatService } from "../services/chat.service";
-import Logger from "../core/logger.core";
 import { UserService } from "../services/user.service";
 import { NotificationService } from "../services/notification.service";
 import { errorCode, errorMessage, successMessages } from "../constant/api.constant";
-import { chatSchema } from "../validators/chat.validator";
-import logger from "../core/logger.core";
-import { PackageService } from "../services/package.service";
 
 class _ChatController {
   async createChat(req: Request, res: Response) {
     try {
       const { participants } = req.body;
-      const validation = chatSchema.validate(req.body);
-      if (validation.error) {
-        return res.status(400).json({ error: validation.error.details[0].message });
-      }
       const foundChat = await ChatService.getOneChat({
         OR: [
           { participantOneId: participants[0], participantTwoId: participants[1] },

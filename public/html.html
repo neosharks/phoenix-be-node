@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket Chat App</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      h2 {
+        font-weight: 100;
+      }
+      nav {
+        text-align: center;
+        background-color: blueviolet;
+        padding: 10px;
+        color: white;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 100px auto 50px;
+        padding: 20px;
+        display: flex;
+      }
+      .sidebar {
+        width: 150px;
+        margin-right: 20px;
+      }
+      .chat-container {
+        flex: 1;
+      }
+      .chatbox {
+        height: 500px;
+        list-style: none;
+        display: flex;
+        flex-flow: column;
+        background: #eee;
+        border-radius: 6px;
+        box-shadow: 1px 0px 10px #eee;
+      }
+      #messagelist {
+        flex: 1;
+        overflow-y: scroll;
+      }
+      #messagelist .private {
+        background: #015e4b;
+        color: #fff;
+        margin-left: auto;
+      }
+      #messagelist li {
+        list-style: none;
+        background: white;
+        max-width: 400px;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 5px;
+        position: relative;
+      }
+      #messagelist li.right {
+        background: #d1f7c4;
+        align-self: flex-end;
+      }
+      #messagelist li.left {
+        background: #f1f1f1;
+        align-self: flex-start;
+      }
+      #messagelist li.pinned {
+        border: 2px solid gold;
+      }
+      form.Input {
+        display: flex;
+      }
+      form.Input input {
+        flex: 10;
+        padding: 14px 10px;
+        border: none;
+      }
+      form.Input button {
+        padding: 4px;
+        background: teal;
+        border: none;
+        flex: 1;
+        color: white;
+        cursor: pointer;
+      }
+      #users {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        height: 100px;
+        overflow-y: scroll;
+        flex-flow: row;
+        padding-top: 20px;
+      }
+      #users li {
+        min-width: 100px;
+        max-height: 20px;
+        border-radius: 10px;
+        background: white;
+        text-align: center;
+        box-shadow: 0px 2px 10px #eee;
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+      }
+      .sidebar li {
+        padding: 10px;
+        background-color: #eee;
+        margin-bottom: 5px;
+        cursor: pointer;
+      }
+      .sidebar li.active {
+        background-color: blueviolet;
+        color: white;
+      }
+      .pin-checkbox {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+      }
+      .chatbox img {
+        max-width: 100%;
+        height: auto;
+      }
+      .replying-to {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #e3f2fd;
+        border-radius: 5px;
+        display: none; /* Hidden by default */
+      }
+      .replying-to p {
+        margin: 0;
+      }
+      .reply-btn {
+        color: #1e88e5; /* Blue color */
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .replying-to .reply-msg {
+        color: #0d47a1;
+      }
+      .reply-link {
+        display: block;
+        color: blue;
+        cursor: pointer;
+        margin-top: 5px;
+        font-size: 0.9em;
+      }
+      .reply-container {
+        padding: 5px;
+        border-left: 2px solid #ddd;
+        margin-top: 10px;
+        background-color: #f9f9f9;
+      }
+
+      .reply-container p {
+    margin: 0;
+    color: #555;
+  }
+
+  .reply-reference {
+    font-size: 0.85em;
+    color: #007bff; /* Blue color for reference */
+    cursor: pointer;
+    text-decoration: underline;
+  }
+    </style>
+  </head>
+  <body>
+    <h1>Socket Chat App</h1>
+    <div class="container">
+      <div class="sidebar">
+        <h2>Select Class</h2>
+        <ul id="classList">
+          <li data-class="1">Class 1</li>
+          <li data-class="2">Class 2</li>
+        </ul>
+      </div>
+      <div class="chat-container">
+        <div class="replying-to" id="replyingTo">
+          <p><strong>Replying to:</strong> <span id="replyMessageText" class="reply-msg"></span></p>
+          <button id="cancelReply">Cancel</button>
+        </div>
+        <div class="chatbox">
+          <ul id="messagelist"></ul>
+          <form class="Input" enctype="multipart/form-data">
+            <input type="text" id="messageInput" placeholder="Type your message ..." />
+            <input type="file" id="siofu_input" multiple />
+            <button type="submit">Send</button>
+          </form>
+        </div>
+        <br />
+        <div class="activeusers">
+          <h2>Active Users</h2>
+          <ul id="users"></ul>
+        </div>
+      </div>
+      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+      <script>
+        const messageForm = document.querySelector(".chatbox form");
+        const messageList = document.querySelector("#messagelist");
+        const classList = document.querySelector("#classList");
+        const fileInput = document.querySelector("#siofu_input");
+        const messageInput = document.querySelector("#messageInput");
+        const replySection = document.querySelector("#replyingTo");
+        const replyMessageText = document.querySelector("#replyMessageText");
+        const cancelReplyButton = document.querySelector("#cancelReply");
+        // const socket = io("http://localhost:3000");
+        // const socket = io("https://theprimeweb.in");
+        const socket = io("https://qalakar.lol");
+
+        let currentClassId = "";
+        let replyMessageId = null;
+        const userId = localStorage.getItem("userId") || 1;
+      
+        socket.on("connect", () => {
+          console.log("connected", socket.id);
+        });
+      
+        socket.on("receive_class_message", (data) => {
+          addMessageToUI(data, data.userId === parseInt(userId));
+        });
+      
+        socket.on("message_updated", (data) => {
+          updateMessageInUI(data);
+        });
+      
+        classList.addEventListener("click", (e) => {
+          if (e.target.tagName === "LI") {
+            const classId = e.target.getAttribute("data-class");
+            if (classId && classId !== currentClassId) {
+              if (currentClassId) {
+                socket.emit("leave_room", parseInt(currentClassId, 10));
+              }
+              socket.emit("join_room", parseInt(classId, 10));
+      
+              currentClassId = classId;
+      
+              document.querySelector(".sidebar li.active")?.classList.remove("active");
+              e.target.classList.add("active");
+            }
+          }
+        });
+      
+        let replyToMessageId = null;
+      
+        function handleReply(messageId) {
+          replyToMessageId = messageId;
+          messageInput.placeholder = "Type your reply ...";
+        }
+      
+        messageForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const message = messageInput.value;
+          if (message && currentClassId) {
+            const files = fileInput.files;
+            if (files.length > 0) {
+              for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const fileData = reader.result.split(",")[1];
+                  const fileName = file.name;
+                  const mimetype = file.type;
+      
+                  socket.emit("send_class_message", {
+                    classId: parseInt(currentClassId, 10),
+                    userId: parseInt(userId),
+                    message: message,
+                    repliedMessageId: replyToMessageId,
+                    file: fileData,
+                    fileName: fileName,
+                    mimetype: mimetype,
+                  });
+      
+                  messageInput.value = "";
+                  fileInput.value = "";
+                  replyToMessageId = null; // Reset after sending
+                  messageInput.placeholder = "Type your message ...";
+                };
+                reader.readAsDataURL(file);
+              }
+            } else {
+              socket.emit("send_class_message", {
+                classId: parseInt(currentClassId, 10),
+                userId: parseInt(userId),
+                message: message,
+                repliedMessageId: replyToMessageId,
+              });
+              messageInput.value = "";
+              replyToMessageId = null; // Reset after sending
+              messageInput.placeholder = "Type your message ...";
+            }
+          }
+        });
+      
+     function addMessageToUI(message, isCurrentUser) {
+  const li = document.createElement("li");
+  li.classList.add(isCurrentUser ? "right" : "left");
+  li.classList.toggle("pinned", message.isPinned);
+  li.setAttribute("data-message-id", message.id);
+
+  if (message.message) {
+    const text = document.createElement("p");
+    text.textContent = message.message;
+    li.appendChild(text);
+  }
+  if (message.image) {
+    const img = document.createElement("img");
+    img.src = message.image;
+    li.appendChild(img);
+  }
+  if (message.video) {
+    const video = document.createElement("video");
+    video.src = message.video;
+    video.controls = true;
+    li.appendChild(video);
+  }
+  if (message.document) {
+    const link = document.createElement("a");
+    link.href = message.document;
+    link.textContent = "View Document";
+    li.appendChild(link);
+  }
+
+  // Display the replied message if available
+  if (message.repliedMessage) {
+    const replyContainer = document.createElement("div");
+    replyContainer.classList.add("reply-container");
+
+    // Display the reference to the replied message
+    const replyReference = document.createElement("p");
+    replyReference.classList.add("reply-reference");
+    replyReference.textContent = `Replying to: ${message.repliedMessage.message}`;
+    replyContainer.appendChild(replyReference);
+
+    li.appendChild(replyContainer);
+  }
+
+  const replyLink = document.createElement("a");
+  replyLink.href = "#";
+  replyLink.classList.add("reply-link");
+  replyLink.textContent = "Reply";
+  replyLink.addEventListener("click", () => handleReply(message.id));
+  li.appendChild(replyLink);
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = message.isPinned;
+  checkbox.classList.add("pin-checkbox");
+  checkbox.addEventListener("change", () => {
+    const isPinned = checkbox.checked;
+    socket.emit("update_message", {
+      messageId: message.id,
+      isPinned: isPinned,
+    });
+  });
+  li.appendChild(checkbox);
+
+  messageList.appendChild(li);
+}
+
+        function updateMessageInUI(data) {
+          const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+          if (messageElement) {
+            messageElement.classList.toggle("pinned", data.isPinned);
+            const checkbox = messageElement.querySelector(".pin-checkbox");
+            if (checkbox) {
+              checkbox.checked = data.isPinned;
+            }
+          }
+        }
+      
+        cancelReplyButton.addEventListener("click", () => {
+          replyMessageId = null;
+          replySection.style.display = "none";
+        });
+      </script>
+  </body>
+</html>

@@ -105,6 +105,7 @@ class _UserPostService {
         visibility,
         allowComments,
         videoUrl,
+        document,
         pollId,
         packages,
       } = dataValues;
@@ -120,6 +121,7 @@ class _UserPostService {
           visibility,
           allowComments,
           videoUrl,
+          document,
           pollId,
           packages: { connect: packagesToConnect },
         },
@@ -200,6 +202,62 @@ class _UserPostService {
       return await prisma.userPost.delete({ where: { id: postId } });
     } catch (error) {
       throw error;
+    }
+  }
+
+  async getAllPost(skip: number = 0, take: number = 10) {
+    try {
+      return await prisma.userPost.findMany({
+        include: {
+          poll: true,
+          packages: true,
+          class: true,
+          comments: {
+            select: {
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profileImage: true,
+                  email: true,
+                  username: true,
+                  role: true,
+                },
+              },
+            },
+          },
+          likedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              email: true,
+              username: true,
+              role: true,
+            },
+          },
+        },
+        skip,
+        take,
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch posts");
     }
   }
 }

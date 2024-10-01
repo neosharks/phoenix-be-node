@@ -1,5 +1,4 @@
 import prisma from "../../prisma";
-
 class _ClassService {
   async getOneClassByProps(query: any) {
     try {
@@ -12,6 +11,7 @@ class _ClassService {
               firstName: true,
               lastName: true,
               profileImage: true,
+              username: true,
               email: true,
               phoneNumber: true,
             },
@@ -44,6 +44,7 @@ class _ClassService {
               firstName: true,
               lastName: true,
               profileImage: true,
+              username: true,
               email: true,
               phoneNumber: true,
             },
@@ -87,10 +88,10 @@ class _ClassService {
     }
   }
 
-  async updateClassByProps(props: any, data: any) {
+  async updateClassByProps(query: any, data: any) {
     try {
       return await prisma.class.update({
-        where: props,
+        where: query,
         data: data,
       });
     } catch (error) {
@@ -108,6 +109,7 @@ class _ClassService {
               firstName: true,
               lastName: true,
               profileImage: true,
+              username: true,
               email: true,
               phoneNumber: true,
             },
@@ -119,10 +121,54 @@ class _ClassService {
     }
   }
 
-  async addMessage(data: any) {
+  async addMessage(dataValues: any) {
     try {
+      const { classId, userId, message, image, isPinned, video, document } = dataValues;
+
       return await prisma.classMessage.create({
-        data: data,
+        data: {
+          classId,
+          userId,
+          message,
+          isPinned,
+          image,
+          video,
+          document,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getAllMessagesOfClass(id: number) {
+    try {
+      return await prisma.classMessage.findMany({
+        where: { classId: id },
+        include: {
+          repliedMessage: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  profileImage: true,
+                  username: true,
+                },
+              },
+            },
+          },
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error(error);
@@ -137,25 +183,144 @@ class _ClassService {
     }
   }
 
-  async getAllMessagesOfClass(id: number) {
+  async getAvailableParticipants(classId: number) {
     try {
-      return await prisma.classMessage.findMany({
-        where: { classId: id },
+      const classData = await prisma.class.findUnique({
+        where: {
+          id: classId,
+        },
+        select: {
+          creatorId: true,
+        },
+      });
+
+      if (!classData) {
+        throw new Error("Class not found");
+      }
+
+      const creatorId = classData.creatorId;
+
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profileImage: true,
+          username: true,
+          email: true,
+          phoneNumber: true,
+        },
+      });
+
+      const participants = await prisma.classParticipants.findMany({
+        where: { classId },
+        select: { userId: true },
+      });
+
+      const participantIds = participants.map((p) => p.userId);
+      const availableParticipants = allUsers.filter(
+        (user) => user.id !== creatorId && !participantIds.includes(user.id),
+      );
+
+      return availableParticipants;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getAllClassesForUser(id: number) {
+    try {
+      const createdClasses = await prisma.class.findMany({
+        where: { creatorId: id },
         include: {
-          user: {
+          ClassParticipants: true,
+          creator: {
             select: {
               firstName: true,
               lastName: true,
               profileImage: true,
+              username: true,
               email: true,
               phoneNumber: true,
             },
           },
         },
       });
+
+      const participatedClasses = await prisma.class.findMany({
+        where: {
+          ClassParticipants: {
+            some: {
+              userId: id,
+            },
+          },
+        },
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+      return { createdClasses, participatedClasses };
     } catch (error) {
       console.error(error);
+      throw error;
     }
+  }
+
+  async leaveClass(classId: number, userId: number) {
+    try {
+      const classParticipant = await prisma.classParticipants.findFirst({
+        where: {
+          classId: classId,
+          userId: userId,
+        },
+      });
+
+      if (!classParticipant) {
+        return false;
+      }
+
+      await prisma.classParticipants.delete({
+        where: {
+          id: classParticipant.id,
+        },
+      });
+      return true;
+    } catch (error) {
+      console.error("Error while leaving the class:", error);
+      return false;
+    }
+  }
+
+  async createClassRequest(userId: number, creatorId: number, message: string) {
+    const existingRequest = await prisma.classRequest.findFirst({
+      where: {
+        userId,
+        creatorId,
+      },
+    });
+
+    if (existingRequest) {
+      return null;
+    }
+
+    return await prisma.classRequest.create({
+      data: {
+        userId,
+        creatorId,
+        message,
+      },
+    });
   }
 }
 
