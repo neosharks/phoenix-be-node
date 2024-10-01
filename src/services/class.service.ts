@@ -286,7 +286,9 @@ class _ClassService {
         },
       });
 
-      if (!classParticipant) return false;
+      if (!classParticipant) {
+        return false;
+      }
 
       await prisma.classParticipants.delete({
         where: {
@@ -308,7 +310,9 @@ class _ClassService {
       },
     });
 
-    if (existingRequest) return null;
+    if (existingRequest) {
+      return null;
+    }
 
     return await prisma.classRequest.create({
       data: {

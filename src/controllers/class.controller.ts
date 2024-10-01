@@ -287,8 +287,9 @@ class _ClassController {
       }
 
       const newRequest = await ClassService.createClassRequest(id, creatorId, message);
-      if (!newRequest)
+      if (!newRequest) {
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.REQUEST_ALREADY });
+      }
       return res.status(201).send({ message: successMessages.CREATED, data: newRequest });
     } catch (error) {
       console.error("ERROR: ", error);

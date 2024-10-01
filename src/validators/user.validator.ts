@@ -5,6 +5,8 @@ export const userUpdateSchema = Joi.object({
   postId: Joi.number(),
   firstName: Joi.string().min(1),
   description: Joi.string(),
+  language: Joi.string(),
+  theme: Joi.string(),
   lastName: Joi.string().min(1),
   password: Joi.string().min(4),
   phoneNumber: Joi.number().min(10),
