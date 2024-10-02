@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const auth_controller_1 = require("../controllers/auth.controller");
 const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middleware");
 const authRoutes = express_1.default.Router();
+// -----------  POST ----------------
 authRoutes.post("/register", auth_controller_1.AuthController.register);
 authRoutes.post("/login", auth_controller_1.AuthController.login);
 authRoutes.post("/sendOtp", auth_controller_1.AuthController.sendOtp);

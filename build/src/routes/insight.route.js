@@ -7,5 +7,6 @@ const express_1 = __importDefault(require("express"));
 const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middleware");
 const insight_controller_1 = require("../controllers/insight.controller");
 const insightRoutes = express_1.default.Router();
+// -----------  GET ----------------
 insightRoutes.get("/get", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), insight_controller_1.InsightController.get);
 exports.default = insightRoutes;

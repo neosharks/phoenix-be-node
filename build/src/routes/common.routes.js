@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middleware");
 const common_controller_1 = require("../controllers/common.controller");
 const commonRoutes = express_1.default.Router();
+// -----------  GET ----------------
 commonRoutes.get("/getS3SignedUrl", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), common_controller_1.CommonController.getS3SignedUrl);
+// -----------  POST ----------------
 commonRoutes.post("/clickStream", common_controller_1.CommonController.clickStream);
 exports.default = commonRoutes;

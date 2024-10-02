@@ -308,5 +308,50 @@ class _ClassService {
             }
         });
     }
+    leaveClass(classId, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const classParticipant = yield prisma_1.default.classParticipants.findFirst({
+                    where: {
+                        classId: classId,
+                        userId: userId,
+                    },
+                });
+                if (!classParticipant) {
+                    return false;
+                }
+                yield prisma_1.default.classParticipants.delete({
+                    where: {
+                        id: classParticipant.id,
+                    },
+                });
+                return true;
+            }
+            catch (error) {
+                console.error("Error while leaving the class:", error);
+                return false;
+            }
+        });
+    }
+    createClassRequest(userId, creatorId, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const existingRequest = yield prisma_1.default.classRequest.findFirst({
+                where: {
+                    userId,
+                    creatorId,
+                },
+            });
+            if (existingRequest) {
+                return null;
+            }
+            return yield prisma_1.default.classRequest.create({
+                data: {
+                    userId,
+                    creatorId,
+                    message,
+                },
+            });
+        });
+    }
 }
 exports.ClassService = new _ClassService();

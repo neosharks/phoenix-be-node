@@ -9,14 +9,17 @@ const checkRoleAuth_middleware_1 = require("../middlewares/checkRoleAuth.middlew
 const role_constant_1 = require("../constant/role.constant");
 const userPost_controller_1 = require("../controllers/userPost.controller");
 const userPostRoutes = express_1.default.Router();
+// -----------  GET ----------------
+userPostRoutes.get("/getAllPostForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPostForUser);
+userPostRoutes.get("/getAllUserPostByUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllUserPostByUser);
+userPostRoutes.get("/getSingleUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getSingleUserPost);
+userPostRoutes.get("/getSingleUserPostUA", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getSingleUserPost);
+userPostRoutes.get("/getAllPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPost);
+// -----------  POST ----------------
 userPostRoutes.post("/createUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), userPost_controller_1.UserPostController.createOneUserPost);
 userPostRoutes.post("/commentOnPostByUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.commentOnPostByUser);
 userPostRoutes.post("/likePostToggle", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.likePostToggle);
 userPostRoutes.post("/voteOnPoll", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.voteOnPoll);
 userPostRoutes.post("/delete", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.delete);
 userPostRoutes.post("/update", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.update);
-userPostRoutes.get("/getAllPostForUser", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getAllPostForUser);
-userPostRoutes.get("/getAllUserPostByUser", userPost_controller_1.UserPostController.getAllUserPostByUser);
-userPostRoutes.get("/getSingleUserPost", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), userPost_controller_1.UserPostController.getSingleUserPost);
-userPostRoutes.get("/getSingleUserPostUA", userPost_controller_1.UserPostController.getSingleUserPost);
 exports.default = userPostRoutes;

@@ -21,6 +21,7 @@ const api_constant_1 = require("../constant/api.constant");
 const helper_lib_1 = require("../lib/helper.lib");
 const userPost_validator_1 = require("../validators/userPost.validator");
 const notification_service_1 = require("../services/notification.service");
+const Moderation_1 = require("../utils/Moderation");
 class _UserPostController {
     getAllUserPostByUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -214,6 +215,9 @@ class _UserPostController {
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (((updates === null || updates === void 0 ? void 0 : updates.description) && (0, Moderation_1.isTextObjectionable)(updates === null || updates === void 0 ? void 0 : updates.description)) ||
+                    ((updates === null || updates === void 0 ? void 0 : updates.title) && (0, Moderation_1.isTextObjectionable)(updates === null || updates === void 0 ? void 0 : updates.title)))
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 yield userPost_service_1.UserPostService.updateOneUserPost({ id: postId }, updates);
                 res.status(201).send({ message: api_constant_1.successMessages.UPDATED });
             }
@@ -240,6 +244,8 @@ class _UserPostController {
                     (type === "VIDEO" && !videoUrl) ||
                     (type === "DOCUMENT" && !document))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                if ((0, Moderation_1.isTextObjectionable)(description) || (0, Moderation_1.isTextObjectionable)(title))
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (type === "POLL") {
@@ -279,9 +285,10 @@ class _UserPostController {
             try {
                 const { description, authorId, userPostId } = req.body;
                 const validation = userPost_validator_1.userPostSchema.validate(req.body);
-                if (validation.error) {
+                if (validation.error)
                     return res.status(400).json({ error: validation.error.details[0].message });
-                }
+                if ((0, Moderation_1.isTextObjectionable)(description))
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 const { id } = res.locals.user;
                 if (!description || !authorId || !userPostId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
@@ -328,6 +335,22 @@ class _UserPostController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    getAllPost(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
+                const take = Number(req.query.per_page) || 10;
+                const allPosts = yield userPost_service_1.UserPostService.getAllPost(skip, take);
+                if (!allPosts || allPosts.length === 0)
+                    return res.status(404).send({ message: api_constant_1.errorMessage.POST_NOT_FOUND, data: [] });
+                return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, data: allPosts });
+            }
+            catch (error) {
+                console.error("Error:", error);
+                return res.status(500).send({ message: "Internal server error", error });
             }
         });
     }

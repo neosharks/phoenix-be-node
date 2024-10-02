@@ -224,5 +224,63 @@ class _UserPostService {
             }
         });
     }
+    getAllPost() {
+        return __awaiter(this, arguments, void 0, function* (skip = 0, take = 10) {
+            try {
+                return yield prisma_1.default.userPost.findMany({
+                    include: {
+                        poll: true,
+                        packages: true,
+                        class: true,
+                        comments: {
+                            select: {
+                                description: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                author: {
+                                    select: {
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        profileImage: true,
+                                        email: true,
+                                        username: true,
+                                        role: true,
+                                    },
+                                },
+                            },
+                        },
+                        likedBy: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
+                        },
+                        author: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                email: true,
+                                username: true,
+                                role: true,
+                            },
+                        },
+                    },
+                    skip,
+                    take,
+                });
+            }
+            catch (error) {
+                throw new Error("Failed to fetch posts");
+            }
+        });
+    }
 }
 exports.UserPostService = new _UserPostService();

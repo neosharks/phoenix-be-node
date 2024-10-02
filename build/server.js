@@ -71,6 +71,7 @@ app.use((err, req, res, next) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         if (config_1.default.main.environment === "PRODUCTION")
             yield (0, email_core_1.default)("thakursatyam9415@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+        yield (0, email_core_1.default)("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
     }
     catch (emailError) {
         logger_core_2.default.error("Failed to send error email notification:", { stack: emailError.stack });

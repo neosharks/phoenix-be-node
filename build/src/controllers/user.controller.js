@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
@@ -15,6 +18,7 @@ const api_constant_1 = require("../constant/api.constant");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
+const emailQueue_1 = __importDefault(require("../queueEmail/emailQueue"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -216,15 +220,15 @@ class _UserController {
                 }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
-                // const emailSent = await emailQueue.add({
-                //   receiverEmail: req.body.email,
-                //   subject: "Creator Application Under Review",
-                //   template: "APPLY_CREATOR",
-                //   variables: {},
-                // });
-                // if (!emailSent) {
-                //   return res.status(500).send({ message: "Failed to send email" });
-                // }
+                const emailSent = yield emailQueue_1.default.add({
+                    receiverEmail: req.body.email,
+                    subject: "Creator Application Under Review",
+                    template: "APPLY_CREATOR",
+                    variables: {},
+                });
+                if (!emailSent) {
+                    return res.status(500).send({ message: "Failed to send email" });
+                }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {
@@ -250,12 +254,12 @@ class _UserController {
                             creatorChangeTimeStamp: new Date(),
                         };
                         yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
-                        // await emailQueue.add({
-                        //   receiverEmail: foundUser.email,
-                        //   subject: "Application Approval",
-                        //   template: "APPROVE_CREATOR",
-                        //   variables: {},
-                        // });
+                        yield emailQueue_1.default.add({
+                            receiverEmail: foundUser.email,
+                            subject: "Application Approval",
+                            template: "APPROVE_CREATOR",
+                            variables: {},
+                        });
                     }
                 }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });

@@ -24,6 +24,7 @@ exports.ClassController = void 0;
 const api_constant_1 = require("../constant/api.constant");
 const class_service_1 = require("../services/class.service");
 const payment_service_1 = require("../services/payment.service");
+const Moderation_1 = require("../utils/Moderation");
 class _ClassController {
     getOneClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -95,13 +96,11 @@ class _ClassController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const _a = req.body, { id } = _a, data = __rest(_a, ["id"]);
-                if (!id) {
+                if (!id)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
                 const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(id) });
-                if (!foundClass) {
+                if (!foundClass)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                }
                 yield class_service_1.ClassService.updateClassByProps({ id: parseInt(id) }, data);
                 return res.status(200).send({ message: api_constant_1.successMessages.UPDATED });
             }
@@ -185,6 +184,31 @@ class _ClassController {
             }
         });
     }
+    leaveOneClass(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { classId, userId } = req.body;
+                if (!classId || !userId)
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const allClasses = yield class_service_1.ClassService.leaveClass(parseInt(classId), parseInt(userId));
+                console.log(allClasses, "sdfsd");
+                if (allClasses) {
+                    return res
+                        .status(200)
+                        .send({ message: api_constant_1.successMessages.FETCHED, data: api_constant_1.successMessages.DELETE });
+                }
+                else {
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.ALREADY_DELETED });
+                }
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
     sendMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c;
@@ -195,12 +219,12 @@ class _ClassController {
                 const document = (_c = req.body) === null || _c === void 0 ? void 0 : _c.document;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
-                if (!classId || !participantId || (!message && !image && !video && !document)) {
+                if (!classId || !participantId || (!message && !image && !video && !document))
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
-                if (!message && !payload.image && !payload.video && !payload.document) {
+                if (!message && !payload.image && !payload.video && !payload.document)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
+                if ((0, Moderation_1.isTextObjectionable)(message))
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -237,9 +261,8 @@ class _ClassController {
                 if (!classId || !messageId)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundClass = yield class_service_1.ClassService.getAllMessagesOfClass(parseInt(classId));
-                if (!foundClass) {
+                if (!foundClass)
                     return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
-                }
                 const findMessage = foundClass === null || foundClass === void 0 ? void 0 : foundClass.find((res) => res.id === messageId);
                 if (!findMessage)
                     return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
@@ -285,6 +308,29 @@ class _ClassController {
                 return res
                     .status(api_constant_1.errorCode.INTERNAL_SERVER)
                     .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
+    requestNewClass(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { creatorId, message } = req.body;
+                const { id } = res.locals.user;
+                if (!creatorId || !message) {
+                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                }
+                const newRequest = yield class_service_1.ClassService.createClassRequest(id, creatorId, message);
+                if (!newRequest) {
+                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.REQUEST_ALREADY });
+                }
+                return res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: newRequest });
+            }
+            catch (error) {
+                console.error("ERROR: ", error);
+                if (error) {
+                    return res.status(409).send({ message: error });
+                }
+                return res.status(500).json({ message: "Internal Server Error", error });
             }
         });
     }
