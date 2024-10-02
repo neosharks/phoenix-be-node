@@ -4,11 +4,15 @@ import { NotificationController } from "../controllers/notification.controller";
 
 const notificationRoutes = express.Router();
 
+// -----------  GET ----------------
+
 notificationRoutes.get(
   "/getAllForUser",
   checkRoleAuth(),
   NotificationController.getAllNotificationByUser,
 );
+
+// -----------  POST ----------------
 
 notificationRoutes.post("/sendNotification", NotificationController.sendNotification);
 

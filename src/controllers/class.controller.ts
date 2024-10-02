@@ -3,6 +3,7 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import { ClassService } from "../services/class.service";
 import { number } from "joi";
 import { PaymentService } from "../services/payment.service";
+import { isTextObjectionable } from "../utils/Moderation";
 
 class _ClassController {
   async getOneClass(req: Request, res: Response) {
@@ -68,14 +69,12 @@ class _ClassController {
     try {
       const { id, ...data } = req.body;
 
-      if (!id) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
-      const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
+      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
-      if (!foundClass) {
+      const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
+      if (!foundClass)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      }
+
       await ClassService.updateClassByProps({ id: parseInt(id) }, data);
 
       return res.status(200).send({ message: successMessages.UPDATED });
@@ -184,13 +183,15 @@ class _ClassController {
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      if (!classId || !participantId || (!message && !image && !video && !document)) {
+      if (!classId || !participantId || (!message && !image && !video && !document))
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
 
-      if (!message && !payload.image && !payload.video && !payload.document) {
+      if (!message && !payload.image && !payload.video && !payload.document)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
+
+      if (isTextObjectionable(message))
+        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+
       await ClassService.addMessage({
         ...payload,
         userId: Number(participantId),
@@ -228,9 +229,8 @@ class _ClassController {
       if (!classId || !messageId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const foundClass = await ClassService.getAllMessagesOfClass(parseInt(classId));
-      if (!foundClass) {
-        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
-      }
+      if (!foundClass) return res.status(200).send({ message: successMessages.FETCHED, data: [] });
+
       const findMessage = foundClass?.find((res: any) => res.id === messageId);
       if (!findMessage)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });

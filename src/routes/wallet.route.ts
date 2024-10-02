@@ -5,7 +5,11 @@ import { WalletController } from "../controllers/wallet.controller";
 
 const walletRoutes = express.Router();
 
+// -----------  GET ----------------
+
 walletRoutes.get("/getAll", checkRoleAuth([userRole.CREATOR]), WalletController.getAll);
+
+// -----------  POST ----------------
 
 walletRoutes.post("/withdraw", checkRoleAuth([userRole.CREATOR]), WalletController.withdraw);
 

@@ -9,7 +9,7 @@
     "build-prod": "cp .env.production ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
     "start": "npm run build-local && npm run relic",
-    "dev": "nodemon --exec ts-node -r dotenv/config index.ts",
+    "dev": " NEW_RELIC_APP_NAME=Qalakar NEW_RELIC_LICENSE_KEY=31844d21b218e7353887bea6a6e15a20FFFFNRAL nodemon --exec ts-node -r dotenv/config index.ts",
     "start-prod": "cross-env NODE_ENV=production npm run build-prod && npm run relic",
     "pretty": "prettier --write \"src/**/*.ts\""
   },

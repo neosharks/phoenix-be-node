@@ -8,6 +8,7 @@ import { errorCode, errorMessage, successMessages } from "../constant/api.consta
 import { generateRandomAlpaNumberic } from "../lib/helper.lib";
 import { userPostSchema } from "../validators/userPost.validator";
 import { NotificationService } from "../services/notification.service";
+import { isTextObjectionable } from "../utils/Moderation";
 
 class _UserPostController {
   async getAllUserPostByUser(req: Request, res: Response) {
@@ -204,6 +205,13 @@ class _UserPostController {
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
       if (!foundPost)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+
+      if (
+        (updates?.description && isTextObjectionable(updates?.description)) ||
+        (updates?.title && isTextObjectionable(updates?.title))
+      )
+        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+
       await UserPostService.updateOneUserPost({ id: postId }, updates);
       res.status(201).send({ message: successMessages.UPDATED });
     } catch (error) {
@@ -231,6 +239,9 @@ class _UserPostController {
         (type === "DOCUMENT" && !document)
       )
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+
+      if (isTextObjectionable(description) || isTextObjectionable(title))
+        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
 
       if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
@@ -275,9 +286,12 @@ class _UserPostController {
     try {
       const { description, authorId, userPostId } = req.body;
       const validation = userPostSchema.validate(req.body);
-      if (validation.error) {
+      if (validation.error)
         return res.status(400).json({ error: validation.error.details[0].message });
-      }
+
+      if (isTextObjectionable(description))
+        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+
       const { id } = res.locals.user;
       if (!description || !authorId || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });

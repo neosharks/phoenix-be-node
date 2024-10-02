@@ -6,9 +6,28 @@ import { ClassController } from "../controllers/class.controller";
 
 const classRoutes = express.Router();
 
+
 classRoutes.get("/getAllClasses", checkRoleAuth(), ClassController.getAllClasses);
 
 classRoutes.get("/getOneClass", checkRoleAuth(), ClassController.getOneClass);
+
+classRoutes.get(
+  "/getAllParticipantOfClass",
+  checkRoleAuth(),
+  ClassController.getAllParticipantOfClass,
+);
+
+classRoutes.get("/getAllMessagesOfClass", checkRoleAuth(), ClassController.getAllMessagesOfClass);
+
+classRoutes.get(
+  "/getAvailableParticipants",
+  checkRoleAuth(),
+  ClassController.getAvailableParticipants,
+);
+
+classRoutes.get("/getAllClassesForUser", checkRoleAuth(), ClassController.getAllClassesForUser);
+
+// -----------  POST ----------------
 
 classRoutes.post("/updateClass", checkRoleAuth(), ClassController.updateClass);
 
@@ -22,24 +41,9 @@ classRoutes.post(
   ClassController.addMultipleParticipants,
 );
 
-classRoutes.get(
-  "/getAllParticipantOfClass",
-  checkRoleAuth(),
-  ClassController.getAllParticipantOfClass,
-);
-
 classRoutes.post("/sendMessage", checkRoleAuth(), ClassController.sendMessage);
+
 classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSendMessage);
-
-classRoutes.get("/getAllMessagesOfClass", checkRoleAuth(), ClassController.getAllMessagesOfClass);
-
-classRoutes.get(
-  "/getAvailableParticipants",
-  checkRoleAuth(),
-  ClassController.getAvailableParticipants,
-);
-
-classRoutes.get("/getAllClassesForUser", checkRoleAuth(), ClassController.getAllClassesForUser);
 
 classRoutes.post("/leaveOneClass", checkRoleAuth(), ClassController.leaveOneClass);
 

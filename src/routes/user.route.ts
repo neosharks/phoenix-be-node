@@ -6,15 +6,21 @@ import { userRole } from "../constant/role.constant";
 
 const userRoutes = express.Router();
 
+// -----------  GET ----------------
+
 userRoutes.get("/get", checkRoleAuth(), UserController.getUser);
 
 userRoutes.get("/getAllLinks/:username", UserController.getAllLinks);
 
-userRoutes.post("/createLink", checkRoleAuth([userRole.CREATOR]), UserController.createLink);
-
 userRoutes.get("/getByUsername/:username", UserController.getUserByUsername);
 
 userRoutes.get("/getAllCreators", checkRoleAuth(), UserController.getAllCreator);
+
+userRoutes.get("/allUser", UserController.getAllTotalUser);
+
+// -----------  POST ----------------
+
+userRoutes.post("/createLink", checkRoleAuth([userRole.CREATOR]), UserController.createLink);
 
 userRoutes.post("/creatorOnboard", checkRoleAuth(), UserController.creatorOnboard);
 
@@ -29,6 +35,5 @@ userRoutes.post("/updateProfileImage", checkRoleAuth(), UserController.updatePro
 userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 
 userRoutes.delete("/delete", UserController.delete);
-userRoutes.get("/allUser", UserController.getAllTotalUser);
 
 export default userRoutes;

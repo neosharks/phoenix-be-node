@@ -6,6 +6,24 @@ import { UserPostController } from "../controllers/userPost.controller";
 
 const userPostRoutes = express.Router();
 
+// -----------  GET ----------------
+
+userPostRoutes.get("/getAllPostForUser", checkRoleAuth(), UserPostController.getAllPostForUser);
+
+userPostRoutes.get(
+  "/getAllUserPostByUser",
+  checkRoleAuth(),
+  UserPostController.getAllUserPostByUser,
+);
+
+userPostRoutes.get("/getSingleUserPost", checkRoleAuth(), UserPostController.getSingleUserPost);
+
+userPostRoutes.get("/getSingleUserPostUA", checkRoleAuth(), UserPostController.getSingleUserPost);
+
+userPostRoutes.get("/getAllPost", checkRoleAuth(), UserPostController.getAllPost);
+
+// -----------  POST ----------------
+
 userPostRoutes.post(
   "/createUserPost",
   checkRoleAuth([userRole.CREATOR]),
@@ -25,19 +43,5 @@ userPostRoutes.post("/voteOnPoll", checkRoleAuth(), UserPostController.voteOnPol
 userPostRoutes.post("/delete", checkRoleAuth(), UserPostController.delete);
 
 userPostRoutes.post("/update", checkRoleAuth(), UserPostController.update);
-
-userPostRoutes.get("/getAllPostForUser", checkRoleAuth(), UserPostController.getAllPostForUser);
-
-userPostRoutes.get(
-  "/getAllUserPostByUser",
-  checkRoleAuth(),
-  UserPostController.getAllUserPostByUser,
-);
-
-userPostRoutes.get("/getSingleUserPost", checkRoleAuth(), UserPostController.getSingleUserPost);
-
-userPostRoutes.get("/getSingleUserPostUA", checkRoleAuth(), UserPostController.getSingleUserPost);
-
-userPostRoutes.get("/getAllPost", checkRoleAuth(), UserPostController.getAllPost);
 
 export default userPostRoutes;

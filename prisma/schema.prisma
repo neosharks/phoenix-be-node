@@ -59,6 +59,11 @@ model User {
   verificationCodeAttempts  Int                       @default(0)
   verificationCodeSource    VERIFICATION_CODE_SOURCE?
 
+  online       Boolean   @default(false)
+  fcmToken     String?
+  lastSeen     DateTime?
+  eulaAccepted Boolean   @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -81,9 +86,9 @@ model User {
   ClassParticipants    ClassParticipants[]
   ClassMessages        ClassMessage[]
   Class                Class[]
-  online               Boolean              @default(false)
-  fcmToken             String?
-  lastSeen             DateTime?
+  Reporter             OffensiveReporting[] @relation("Reporter")
+  Reportee             OffensiveReporting[] @relation("Reportee")
+  ReportResolver       OffensiveReporting[] @relation("ReportResolver")
 
   @@index([email, username, phoneNumber])
 }
@@ -339,6 +344,27 @@ model ClassRequest {
   updatedAt DateTime @updatedAt
 
   @@index([userId, creatorId])
+}
+
+model OffensiveReporting {
+  id               Int            @id @default(autoincrement())
+  type             REPORTING_TYPE
+  reportedByUser   User           @relation("Reporter", fields: [reportedByUserId], references: [id])
+  reportedByUserId Int
+  reportedUser     User           @relation("Reportee", fields: [reportedUserId], references: [id])
+  reportedUserId   Int
+  resolvedBy       User?          @relation("ReportResolver", fields: [resolvedById], references: [id])
+  resolvedById     Int?
+  message          String?
+  resolved         Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum REPORTING_TYPE {
+  USER
+  POST
+  MESSAGE
 }
 
 enum WALLET_STATE {

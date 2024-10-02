@@ -71,6 +71,7 @@ app.use(async (err: any, req: Request, res: Response, next: any) => {
   try {
     if (config.main.environment === "PRODUCTION")
       await sendEmail("thakursatyam9415@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+    await sendEmail("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
   } catch (emailError: any) {
     logger.error("Failed to send error email notification:", { stack: emailError.stack });
   }

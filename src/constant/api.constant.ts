@@ -22,8 +22,9 @@ export const errorMessage = {
   DATA_MISMATCH: "DATA_MISMATCH",
   SMS_ISSUE: "SMS_ISSUE",
   POST_NOT_FOUND: "POST_NOT_FOUND",
-  REQUEST_ALREADY: "You have already requested",
-  ALREADY_DELETED: "You have already deleted",
+  REQUEST_ALREADY: "ALREADY_REQUESTED",
+  ALREADY_DELETED: "ALREADY_DELETED",
+  OFFENSIVE_CONTENT: "OFFENSIVE_CONTENT",
 };
 
 export const errorCode = {

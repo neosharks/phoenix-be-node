@@ -5,6 +5,8 @@ import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 
 const authRoutes = express.Router();
 
+// -----------  POST ----------------
+
 authRoutes.post("/register", AuthController.register);
 
 authRoutes.post("/login", AuthController.login);

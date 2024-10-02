@@ -4,18 +4,18 @@ import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 
 const chatRoutes = express.Router();
 
-//------------ Chat ----------------
+// -----------  GET ----------------
 
 chatRoutes.get("/getAllChatsByUser", checkRoleAuth(), ChatController.getAllChatsByUser);
 
 chatRoutes.get("/getAllSearchableUsers", checkRoleAuth(), ChatController.getAllSearchableUsers);
 
-chatRoutes.post("/createChat", checkRoleAuth(), ChatController.createChat);
+chatRoutes.get("/getAllMessageByChat", checkRoleAuth(), ChatController.getAllMessageByChat);
 
-//------------ Message ----------------
+// -----------  POST ----------------
 
 chatRoutes.post("/createMessage", checkRoleAuth(), ChatController.createMessage);
 
-chatRoutes.get("/getAllMessageByChat", checkRoleAuth(), ChatController.getAllMessageByChat);
+chatRoutes.post("/createChat", checkRoleAuth(), ChatController.createChat);
 
 export default chatRoutes;

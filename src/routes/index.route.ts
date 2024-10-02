@@ -27,5 +27,6 @@ router.use("/payment", paymentRoutes);
 router.use("/insight", insightRoutes);
 router.use("/class", classRoutes);
 router.use("/wallet", walletRoutes);
+router.use("/offensiveReportive", walletRoutes);
 
 export default router;
