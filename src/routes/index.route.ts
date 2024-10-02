@@ -10,6 +10,7 @@ import paymentRoutes from "./payment.route";
 import insightRoutes from "./insight.route";
 import classRoutes from "./class.route";
 import walletRoutes from "./wallet.route";
+import offensiveReportRoute from "./offensiveReport.route";
 
 const router = express.Router();
 
@@ -27,6 +28,6 @@ router.use("/payment", paymentRoutes);
 router.use("/insight", insightRoutes);
 router.use("/class", classRoutes);
 router.use("/wallet", walletRoutes);
-router.use("/offensiveReportive", walletRoutes);
+router.use("/offensiveReportive", offensiveReportRoute);
 
 export default router;

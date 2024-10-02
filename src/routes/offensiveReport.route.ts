@@ -1,15 +1,11 @@
 import express from "express";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
-import { CommonController } from "../controllers/common.controller";
+import { OffensiveReportingController } from "../controllers/offensiveReporting.controller";
 
-const commonRoutes = express.Router();
-
-// -----------  GET ----------------
-
-commonRoutes.get("/getS3SignedUrl", checkRoleAuth(), CommonController.getS3SignedUrl);
+const offensiveReportRoute = express.Router();
 
 // -----------  POST ----------------
 
-commonRoutes.post("/clickStream", CommonController.clickStream);
+offensiveReportRoute.post("/create", checkRoleAuth(), OffensiveReportingController.create);
 
-export default commonRoutes;
+export default offensiveReportRoute;
