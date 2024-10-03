@@ -266,7 +266,7 @@ class _UserController {
 
   async deleteAccount(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = res.locals.user;
       const user = await UserService.getOneUser({ id: parseInt(id) });
 
       if (!user) {
@@ -277,8 +277,11 @@ class _UserController {
       const updatedEmail = `#${currentDate}@${user.email?.split("@")[1]}`;
 
       const deletedUser = await UserService.deleteAccount(parseInt(id), updatedEmail);
-
-      return res.status(200).json({ message: successMessages.DELETE, user: deletedUser });
+      if (deletedUser) {
+        return res.status(200).json({ message: successMessages.DELETE });
+      } else {
+        return res.status(errorCode.INTERNAL_SERVER).json({ message: errorMessage.DELETE_FAILED });
+      }
     } catch (error) {
       console.log("ERROR: ", error);
       return res

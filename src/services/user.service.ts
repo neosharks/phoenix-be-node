@@ -114,6 +114,111 @@ class _UserService {
           status: "DELETED",
         },
       });
+
+      await prisma.message.deleteMany({
+        where: {
+          senderId: id,
+        },
+      });
+
+      // Delete Chats where user is a participant
+      await prisma.chat.deleteMany({
+        where: {
+          OR: [{ participantOneId: id }, { participantTwoId: id }],
+        },
+      });
+
+      // Delete Notifications related to the user
+      await prisma.notification.deleteMany({
+        where: {
+          OR: [{ aboutUserId: id }, { notifiedUserId: id }],
+        },
+      });
+
+      // Delete PatronCreator records for the user
+      await prisma.patronCreator.deleteMany({
+        where: {
+          OR: [{ patronId: id }, { creatorId: id }],
+        },
+      });
+
+      // Delete User Posts
+      await prisma.userPost.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      // Delete Polls created by the user
+      await prisma.poll.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      // Delete Post Comments authored by the user
+      await prisma.postComment.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      // Delete Packages created by the user
+      await prisma.package.deleteMany({
+        where: {
+          creatorId: id,
+        },
+      });
+
+      await prisma.classParticipants.deleteMany({
+        where: {
+          class: {
+            creatorId: id,
+          },
+        },
+      });
+
+      // Ab Class delete karo
+      await prisma.class.deleteMany({
+        where: {
+          creatorId: id,
+        },
+      });
+
+      // Delete Class Messages created by the user
+      await prisma.classMessage.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+
+      // Delete Payments associated with the user
+      await prisma.payment.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+
+      // Delete Wallet Transactions involving the user
+      await prisma.walletTransactions.deleteMany({
+        where: {
+          OR: [{ senderId: id }, { receiverId: id }],
+        },
+      });
+
+      // Delete AllLinks related to the user
+      await prisma.allLinks.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+      // Delete ClickStream entries related to the user
+      await prisma.clickStream.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
       return deletedUser;
     } catch (error) {
       throw error;

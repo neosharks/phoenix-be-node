@@ -24,6 +24,7 @@ export const errorMessage = {
   POST_NOT_FOUND: "POST_NOT_FOUND",
   REQUEST_ALREADY: "You have already requested",
   ALREADY_DELETED: "You have already deleted",
+  DELETE_FAILED: "DELETE_FAILED",
 };
 
 export const errorCode = {
