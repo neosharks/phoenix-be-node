@@ -29,6 +29,9 @@ userRoutes.post("/updateProfileImage", checkRoleAuth(), UserController.updatePro
 userRoutes.post("/joinForFree", checkRoleAuth(), UserController.joinForFree);
 
 userRoutes.delete("/delete", UserController.delete);
+
 userRoutes.get("/allUser", UserController.getAllTotalUser);
+
+userRoutes.delete("/deleteAccount/:id", checkRoleAuth(), UserController.deleteAccount);
 
 export default userRoutes;

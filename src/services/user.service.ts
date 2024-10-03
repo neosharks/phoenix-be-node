@@ -104,6 +104,21 @@ class _UserService {
       throw error;
     }
   }
+
+  async deleteAccount(id: number, updatedEmail: string) {
+    try {
+      const deletedUser = await prisma.user.update({
+        where: { id },
+        data: {
+          email: updatedEmail,
+          status: "DELETED",
+        },
+      });
+      return deletedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const UserService = new _UserService();
