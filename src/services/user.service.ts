@@ -104,6 +104,114 @@ class _UserService {
       throw error;
     }
   }
+
+  async deleteAccount(id: number, updatedEmail: string) {
+    try {
+      const deletedUser = await prisma.user.update({
+        where: { id },
+        data: {
+          email: updatedEmail,
+          status: "DELETED",
+        },
+      });
+
+      await prisma.message.deleteMany({
+        where: {
+          senderId: id,
+        },
+      });
+
+      await prisma.chat.deleteMany({
+        where: {
+          OR: [{ participantOneId: id }, { participantTwoId: id }],
+        },
+      });
+
+      await prisma.notification.deleteMany({
+        where: {
+          OR: [{ aboutUserId: id }, { notifiedUserId: id }],
+        },
+      });
+
+      await prisma.patronCreator.deleteMany({
+        where: {
+          OR: [{ patronId: id }, { creatorId: id }],
+        },
+      });
+
+      await prisma.userPost.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      await prisma.poll.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      await prisma.postComment.deleteMany({
+        where: {
+          authorId: id,
+        },
+      });
+
+      await prisma.package.deleteMany({
+        where: {
+          creatorId: id,
+        },
+      });
+
+      await prisma.classParticipants.deleteMany({
+        where: {
+          class: {
+            creatorId: id,
+          },
+        },
+      });
+
+      await prisma.class.deleteMany({
+        where: {
+          creatorId: id,
+        },
+      });
+
+      await prisma.classMessage.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+
+      await prisma.payment.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+
+      await prisma.walletTransactions.deleteMany({
+        where: {
+          OR: [{ senderId: id }, { receiverId: id }],
+        },
+      });
+
+      await prisma.allLinks.deleteMany({
+        where: {
+          id: id,
+        },
+      });
+
+      await prisma.clickStream.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      return deletedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const UserService = new _UserService();
