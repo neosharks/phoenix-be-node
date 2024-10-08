@@ -20,13 +20,14 @@ class _OffensiveReportingService {
 
   async createOne(dataValues: any) {
     try {
-      const { type, reportedByUserId, reportedUserId, message } = dataValues;
+      const { type, reportedByUserId, reportedUserId, message, userPostId } = dataValues;
       return await prisma.offensiveReporting.create({
         data: {
           type,
           reportedByUserId,
           reportedUserId,
           message,
+          userPostId
         },
       });
     } catch (error) {

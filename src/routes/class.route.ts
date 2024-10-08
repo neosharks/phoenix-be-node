@@ -1,11 +1,9 @@
 import express from "express";
-import { ChatController } from "../controllers/chat.controller";
 import { checkRoleAuth } from "../middlewares/checkRoleAuth.middleware";
 import { userRole } from "../constant/role.constant";
 import { ClassController } from "../controllers/class.controller";
 
 const classRoutes = express.Router();
-
 
 classRoutes.get("/getAllClasses", checkRoleAuth(), ClassController.getAllClasses);
 

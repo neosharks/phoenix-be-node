@@ -23,20 +23,33 @@ class _ClassService {
     }
   }
 
-  async getAllClassesByProps(query: any) {
+  async getAllClassesByCreatorId(id: any) {
     try {
       return await prisma.class.findMany({
-        where: query,
+        where: { creatorId: parseInt(id) },
+        include: {
+          ClassParticipants: true,
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+              username: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error(error);
     }
   }
 
-  async getAllClassesByCreatorId(id: any) {
+  async getAllClassesByProps(props: any) {
     try {
       return await prisma.class.findMany({
-        where: { creatorId: parseInt(id) },
+        where: props,
         include: {
           ClassParticipants: true,
           creator: {

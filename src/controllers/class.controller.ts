@@ -22,13 +22,12 @@ class _ClassController {
 
   async getAllClasses(req: Request, res: Response) {
     try {
-      let { creatorId } = req.query;
-      if (!creatorId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const allClasses = await ClassService.getAllClassesByCreatorId(creatorId);
-      if (!allClasses) {
-        return res.status(200).send({ message: successMessages.FETCHED, data: [] });
-      }
+      let creatorId = req.query.creatorId as any;
+      if (typeof creatorId === "string" && !isNaN(Number(creatorId)))
+        creatorId = parseInt(creatorId, 10);
+      else creatorId = null;
+
+      const allClasses = await ClassService.getAllClassesByProps(creatorId ? { creatorId } : {});
       return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
     } catch (error) {
       console.log("ERROR: ", error);

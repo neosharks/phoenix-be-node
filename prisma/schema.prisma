@@ -109,7 +109,7 @@ model Package {
   name          PACKAGE_NAMES   @default(SUPPORT)
   price         Int
   description   String
-  creator       User            @relation(fields: [creatorId], references: [id])
+  creator       User            @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId     Int
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -122,7 +122,7 @@ model Package {
 model Message {
   id          Int          @id @default(autoincrement())
   chat        Chat         @relation(fields: [chatId], references: [id])
-  sender      User         @relation(fields: [senderId], references: [id])
+  sender      User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   message     String
   senderId    Int
   contentType MESSAGE_TYPE @default(TEXT)
@@ -135,8 +135,8 @@ model Message {
 
 model Chat {
   id               Int               @id @default(autoincrement())
-  participantOne   User              @relation("participantOne", fields: [participantOneId], references: [id])
-  participantTwo   User              @relation("participantTwo", fields: [participantTwoId], references: [id])
+  participantOne   User              @relation("participantOne", fields: [participantOneId], references: [id], onDelete: Cascade)
+  participantTwo   User              @relation("participantTwo", fields: [participantTwoId], references: [id], onDelete: Cascade)
   participantOneId Int
   participantTwoId Int
   type             CONVERSATION_TYPE @default(ONE_TO_ONE)
@@ -149,8 +149,8 @@ model Chat {
 
 model Notification {
   id             Int          @id @default(autoincrement())
-  aboutUser      User?        @relation("aboutUser", fields: [aboutUserId], references: [id])
-  notifiedUser   User         @relation("notifiedUser", fields: [notifiedUserId], references: [id])
+  aboutUser      User?        @relation("aboutUser", fields: [aboutUserId], references: [id], onDelete: Cascade)
+  notifiedUser   User         @relation("notifiedUser", fields: [notifiedUserId], references: [id], onDelete: Cascade)
   aboutUserId    Int
   notifiedUserId Int
   message        String
@@ -165,9 +165,9 @@ model Notification {
 
 model PatronCreator {
   id        Int                   @id @default(autoincrement())
-  patron    User                  @relation("patronId", fields: [patronId], references: [id])
+  patron    User                  @relation("patronId", fields: [patronId], references: [id], onDelete: Cascade)
   patronId  Int
-  creator   User                  @relation("creatorId", fields: [creatorId], references: [id])
+  creator   User                  @relation("creatorId", fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId Int
   package   Package?              @relation(fields: [packageId], references: [id])
   packageId Int?
@@ -179,36 +179,37 @@ model PatronCreator {
 }
 
 model UserPost {
-  id            Int            @id @default(autoincrement())
-  author        User           @relation("userPostAuthor", fields: [authorId], references: [id])
-  authorId      Int
-  type          USER_POST_TYPE @default(TEXT)
-  comments      PostComment[]
-  likedBy       User[]         @relation("likedByUser")
-  image         String?
-  title         String?
-  description   String?
-  videoUrl      String?
-  document      String?
-  visibility    VISIBILITY     @default(EVERYONE)
-  packages      Package[]
-  allowComments Boolean        @default(true)
-  poll          Poll?          @relation(fields: [pollId], references: [id])
-  pollId        Int?
-  class         Class?         @relation(fields: [classId], references: [id])
-  classId       Int?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                 Int                  @id @default(autoincrement())
+  author             User                 @relation("userPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId           Int
+  type               USER_POST_TYPE       @default(TEXT)
+  comments           PostComment[]
+  likedBy            User[]               @relation("likedByUser")
+  image              String?
+  title              String?
+  description        String?
+  videoUrl           String?
+  document           String?
+  visibility         VISIBILITY           @default(EVERYONE)
+  packages           Package[]
+  allowComments      Boolean              @default(true)
+  poll               Poll?                @relation(fields: [pollId], references: [id])
+  pollId             Int?
+  class              Class?               @relation(fields: [classId], references: [id])
+  classId            Int?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  OffensiveReporting OffensiveReporting[]
 
   @@index([visibility, authorId])
 }
 
 model PostComment {
   id          Int      @id @default(autoincrement())
-  author      User     @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId    Int
   description String
-  post        UserPost @relation(fields: [userPostId], references: [id])
+  post        UserPost @relation(fields: [userPostId], references: [id], onDelete: Cascade)
   userPostId  Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -216,7 +217,7 @@ model PostComment {
 
 model Poll {
   id              Int        @id @default(autoincrement())
-  author          User       @relation(fields: [authorId], references: [id])
+  author          User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId        Int
   options         Json[]
   selectedOptions Json[]
@@ -230,7 +231,7 @@ model Poll {
 
 model Payment {
   id                 Int                  @id @default(autoincrement())
-  user               User                 @relation(fields: [userId], references: [id])
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             Int
   orderId            String               @unique
   amount             Int                  @default(0)
@@ -250,7 +251,7 @@ model Payment {
 
 model ClickStream {
   id        Int      @id @default(autoincrement())
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int?
   info      Json?
   type      String?
@@ -262,9 +263,9 @@ model ClickStream {
 
 model WalletTransactions {
   id         Int           @id @default(autoincrement())
-  receiver   User          @relation(name: "ReceiverTransactions", fields: [receiverId], references: [id])
+  receiver   User          @relation(name: "ReceiverTransactions", fields: [receiverId], references: [id], onDelete: Cascade)
   receiverId Int
-  sender     User?         @relation(name: "SenderTransactions", fields: [senderId], references: [id])
+  sender     User?         @relation(name: "SenderTransactions", fields: [senderId], references: [id], onDelete: Cascade)
   senderId   Int?
   source     WALLET_SOURCE @default(PURCHASE)
   amount     Int
@@ -279,7 +280,7 @@ model WalletTransactions {
 
 model AllLinks {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   url       String
   platform  String?
@@ -290,7 +291,7 @@ model AllLinks {
 
 model Class {
   id                Int                 @id @default(autoincrement())
-  creator           User                @relation(fields: [creatorId], references: [id])
+  creator           User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId         Int
   name              String
   isPaid            Boolean             @default(false)
@@ -318,7 +319,7 @@ model ClassMessage {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   class            Class          @relation(fields: [classId], references: [id])
-  user             User           @relation(fields: [userId], references: [id])
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   repliedMessage   ClassMessage?  @relation("MessageReplies", fields: [repliedMessageId], references: [id])
   replies          ClassMessage[] @relation("MessageReplies")
 }
@@ -327,7 +328,7 @@ model ClassParticipants {
   id        Int      @id @default(autoincrement())
   class     Class    @relation(fields: [classId], references: [id])
   classId   Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -349,13 +350,15 @@ model ClassRequest {
 model OffensiveReporting {
   id               Int            @id @default(autoincrement())
   type             REPORTING_TYPE
-  reportedByUser   User           @relation("Reporter", fields: [reportedByUserId], references: [id])
+  reportedByUser   User           @relation("Reporter", fields: [reportedByUserId], references: [id], onDelete: Cascade)
   reportedByUserId Int
-  reportedUser     User           @relation("Reportee", fields: [reportedUserId], references: [id])
-  reportedUserId   Int
-  resolvedBy       User?          @relation("ReportResolver", fields: [resolvedById], references: [id])
+  reportedUser     User?          @relation("Reportee", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reportedUserId   Int?
+  resolvedBy       User?          @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: Cascade)
   resolvedById     Int?
   message          String?
+  userPost         UserPost?      @relation(fields: [userPostId], references: [id])
+  userPostId       Int?
   resolved         Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
