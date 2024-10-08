@@ -40,11 +40,24 @@ class _ClassService {
             }
         });
     }
-    getAllClassesByProps(query) {
+    getAllClassesByCreatorId(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.class.findMany({
-                    where: query,
+                    where: { creatorId: parseInt(id) },
+                    include: {
+                        ClassParticipants: true,
+                        creator: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                profileImage: true,
+                                username: true,
+                                email: true,
+                                phoneNumber: true,
+                            },
+                        },
+                    },
                 });
             }
             catch (error) {
@@ -52,11 +65,11 @@ class _ClassService {
             }
         });
     }
-    getAllClassesByCreatorId(id) {
+    getAllClassesByProps(props) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield prisma_1.default.class.findMany({
-                    where: { creatorId: parseInt(id) },
+                    where: props,
                     include: {
                         ClassParticipants: true,
                         creator: {

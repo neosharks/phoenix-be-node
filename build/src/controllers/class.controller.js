@@ -46,13 +46,12 @@ class _ClassController {
     getAllClasses(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let { creatorId } = req.query;
-                if (!creatorId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const allClasses = yield class_service_1.ClassService.getAllClassesByCreatorId(creatorId);
-                if (!allClasses) {
-                    return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
-                }
+                let creatorId = req.query.creatorId;
+                if (typeof creatorId === "string" && !isNaN(Number(creatorId)))
+                    creatorId = parseInt(creatorId, 10);
+                else
+                    creatorId = null;
+                const allClasses = yield class_service_1.ClassService.getAllClassesByProps(creatorId ? { creatorId } : {});
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allClasses });
             }
             catch (error) {

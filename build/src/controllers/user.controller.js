@@ -303,5 +303,21 @@ class _UserController {
             }
         });
     }
+    deleteAccount(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = res.locals.user;
+                const deletedUser = yield user_service_1.UserService.deleteOneUser(parseInt(id));
+                if (deletedUser)
+                    return res.status(200).json({ message: api_constant_1.successMessages.DELETE });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
 }
 exports.UserController = new _UserController();

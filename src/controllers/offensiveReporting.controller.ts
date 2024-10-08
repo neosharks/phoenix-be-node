@@ -5,13 +5,18 @@ import { OffensiveReportingService } from "../services/offensiveReporting.servic
 class _OffensiveReportingController {
   async create(req: Request, res: Response) {
     try {
-      const { type, reportedByUserId, message } = req.body;
-      if (!type || !reportedByUserId || !message)
+      const { id } = res.locals.user;
+      const { type, message, reportedUserId, userPostId } = req.body;
+      if (!type || !message)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (type === "USER" || !reportedUserId)
+        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (type === "POST" || !userPostId)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
       await OffensiveReportingService.createOne({
         type,
-        reportedByUserId,
+        reportedByUserId: id,
         message,
         ...req.body,
       });
