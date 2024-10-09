@@ -44,8 +44,8 @@ class _AuthController {
       body.username = body.email.split("@")[0];
       body.language = body.language;
       body.theme = body.theme;
-      const randomNum = (Math.random() * 25) | 1;
-      const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
+      const randomNum = (Math.random() * 20) | 1;
+      const profileImage = `https://qalakar-public.s3.ap-south-1.amazonaws.com/avatars/${randomNum}.jpg`;
       const created = await UserService.createOneUser(
         isCreator
           ? { ...body, profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }
@@ -54,7 +54,7 @@ class _AuthController {
       if (body.email && body.email.length > 0) {
         await sendEmail(body.email, "Welcome to Qalakar!", "SIGNUP");
       }
-      const accessToken = await signJwt(created);
+      const accessToken: any = await signJwt(created);
       return res.status(201).json({ messge: successMessages.CREATED, accessToken, user: created });
     } catch (err) {
       console.log("Error in register", err);

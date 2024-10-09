@@ -28,21 +28,29 @@ function generateOrderId() {
 class _PaymentController {
   async buyClass(req: Request, res: Response) {
     const { classId } = req.body;
-    if (!classId) {
+    if (!classId)
       return res
         .status(errorCode.GENERIC)
         .json({ message: errorMessage.MISSING_PARAMS, info: "Provide classId" });
-    }
 
     const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
 
     try {
-      const foundClass = await ClassService.getOneClassByProps({ id: classId });
+      const foundClass = await ClassService.getOneClassByProps({ id: parseInt(classId, 10) });
       if (!foundClass)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+        return res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.NOT_FOUND, info: "Class not found" });
+      const foundPayment = await PaymentService.getOnePaymentByProps({ userId: id, classId });
+      if (foundPayment)
+        return res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.REDUNDANT_REQUEST, info: "Class already purchased" });
       const { price } = foundClass;
       if (!price)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.INCORRECT_DATA });
+        return res
+          .status(errorCode.GENERIC)
+          .send({ message: errorMessage.INCORRECT_DATA, info: "Price not found" });
 
       const order_id = await generateOrderId();
       const request = {
@@ -67,7 +75,7 @@ class _PaymentController {
 
       await PaymentService.createOneClassPayment({
         userId: id,
-        classId,
+        classId: parseInt(classId, 10),
         orderId: order_id,
         amount: price,
         currency: "INR",
@@ -166,7 +174,8 @@ class _PaymentController {
       );
       if (response?.data?.order_status === "PAID")
         await WalletService.createOneWalletTransactions({
-          userId: foundPayment.userId,
+          receiverId: foundPayment?.class?.creatorId,
+          senderId: foundPayment.userId,
           source: "PURCHASE",
           paymentId: foundPayment.id,
           amount: foundPayment.amount,

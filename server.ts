@@ -32,9 +32,8 @@ const io = new Server(server, {
 
 chatSocket(io);
 
-// connection sequelize
 connection();
-// MIDDLEWARES
+
 const corsUrl = config.main.corsUrl;
 
 app.use(express.json({ limit: "10mb" }));
@@ -42,7 +41,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true, parameterLimit: 5000
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));
 
 app.use(
-  morgan((tokens, req, res) => {
+  morgan((tokens, req, res: any) => {
     const user = res.locals.user;
     const userId = user ? user.id : "N/A";
     const msg = {
@@ -69,9 +68,10 @@ app.use((req, res, next) => res.status(404).json({ message: "Route not found" })
 app.use(async (err: any, req: Request, res: Response, next: any) => {
   logger.error(err.message, { stack: err.stack });
   try {
-    if (config.main.environment === "PRODUCTION")
+    if (config.main.environment === "PRODUCTION") {
       await sendEmail("thakursatyam9415@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
-    await sendEmail("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+      await sendEmail("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+    }
   } catch (emailError: any) {
     logger.error("Failed to send error email notification:", { stack: emailError.stack });
   }

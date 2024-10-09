@@ -10,7 +10,16 @@ class _PaymentService {
 
   async getOnePaymentByProps(query: any) {
     try {
-      return await prisma.payment.findFirst({ where: query });
+      return await prisma.payment.findFirst({
+        where: query,
+        include: {
+          class: {
+            select: {
+              creatorId: true,
+            },
+          },
+        },
+      });
     } catch (error) {
       console.error(error);
       throw error;
