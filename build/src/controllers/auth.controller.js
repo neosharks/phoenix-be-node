@@ -50,8 +50,8 @@ class _AuthController {
                 body.username = body.email.split("@")[0];
                 body.language = body.language;
                 body.theme = body.theme;
-                const randomNum = (Math.random() * 25) | 1;
-                const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
+                const randomNum = (Math.random() * 20) | 1;
+                const profileImage = `https://qalakar-public.s3.ap-south-1.amazonaws.com/avatars/${randomNum}.jpg`;
                 const created = yield user_service_1.UserService.createOneUser(isCreator
                     ? Object.assign(Object.assign({}, body), { profileImage, isCreator: true, role: ["PATRON", "CREATOR"] }) : Object.assign(Object.assign({}, body), { profileImage }));
                 if (body.email && body.email.length > 0) {

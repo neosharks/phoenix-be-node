@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("newrelic");
 const helper_lib_1 = require("./src/lib/helper.lib");
 const logger_core_1 = __importDefault(require("./src/core/logger.core"));
 const config_1 = __importDefault(require("./config"));

@@ -1,4 +1,3 @@
-import "newrelic";
 import { checkForNullOrUndefinedKeys } from "./src/lib/helper.lib";
 import logger from "./src/core/logger.core";
 import config from "./config";
