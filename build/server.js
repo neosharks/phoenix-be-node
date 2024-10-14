@@ -40,9 +40,7 @@ const io = new socket_io_1.Server(server, {
     },
 });
 (0, Socket_1.default)(io);
-// connection sequelize
 (0, sequelize_1.connection)();
-// MIDDLEWARES
 const corsUrl = config_1.default.main.corsUrl;
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));
@@ -69,9 +67,10 @@ app.use((req, res, next) => res.status(404).json({ message: "Route not found" })
 app.use((err, req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     logger_core_2.default.error(err.message, { stack: err.stack });
     try {
-        if (config_1.default.main.environment === "PRODUCTION")
+        if (config_1.default.main.environment === "PRODUCTION") {
             yield (0, email_core_1.default)("thakursatyam9415@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
-        yield (0, email_core_1.default)("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+            yield (0, email_core_1.default)("vaibhavshukla182@gmail.com", "500 SERVER ERROR", "SERVER_ERROR");
+        }
     }
     catch (emailError) {
         logger_core_2.default.error("Failed to send error email notification:", { stack: emailError.stack });

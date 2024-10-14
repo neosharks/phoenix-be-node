@@ -41,7 +41,11 @@ class _PaymentController {
         return res
           .status(errorCode.GENERIC)
           .send({ message: errorMessage.NOT_FOUND, info: "Class not found" });
-      const foundPayment = await PaymentService.getOnePaymentByProps({ userId: id, classId });
+      const foundPayment = await PaymentService.getOnePaymentByProps({
+        userId: id,
+        classId,
+        status: "PAID",
+      });
       if (foundPayment)
         return res
           .status(errorCode.GENERIC)

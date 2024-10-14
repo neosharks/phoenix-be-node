@@ -28,7 +28,16 @@ class _PaymentService {
     getOnePaymentByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield prisma_1.default.payment.findFirst({ where: query });
+                return yield prisma_1.default.payment.findFirst({
+                    where: query,
+                    include: {
+                        class: {
+                            select: {
+                                creatorId: true,
+                            },
+                        },
+                    },
+                });
             }
             catch (error) {
                 console.error(error);

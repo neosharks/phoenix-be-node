@@ -40,19 +40,31 @@ class _PaymentController {
     buyClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { classId } = req.body;
-            if (!classId) {
+            if (!classId)
                 return res
                     .status(api_constant_1.errorCode.GENERIC)
                     .json({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide classId" });
-            }
             const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
             try {
-                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: classId });
+                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(classId, 10) });
                 if (!foundClass)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Class not found" });
+                const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({
+                    userId: id,
+                    classId,
+                    status: "PAID",
+                });
+                if (foundPayment)
+                    return res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST, info: "Class already purchased" });
                 const { price } = foundClass;
                 if (!price)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
+                    return res
+                        .status(api_constant_1.errorCode.GENERIC)
+                        .send({ message: api_constant_1.errorMessage.INCORRECT_DATA, info: "Price not found" });
                 const order_id = yield generateOrderId();
                 const request = {
                     order_amount: price,
@@ -75,7 +87,7 @@ class _PaymentController {
                 }
                 yield payment_service_1.PaymentService.createOneClassPayment({
                     userId: id,
-                    classId,
+                    classId: parseInt(classId, 10),
                     orderId: order_id,
                     amount: price,
                     currency: "INR",
@@ -148,7 +160,7 @@ class _PaymentController {
     }
     verify(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             try {
                 const { orderId } = req.body;
                 if (!orderId)
@@ -169,7 +181,8 @@ class _PaymentController {
                 yield payment_service_1.PaymentService.updateOneByProps({ orderId }, { status: ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.order_status) || "FAILED" });
                 if (((_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.order_status) === "PAID")
                     yield wallet_service_1.WalletService.createOneWalletTransactions({
-                        userId: foundPayment.userId,
+                        receiverId: (_c = foundPayment === null || foundPayment === void 0 ? void 0 : foundPayment.class) === null || _c === void 0 ? void 0 : _c.creatorId,
+                        senderId: foundPayment.userId,
                         source: "PURCHASE",
                         paymentId: foundPayment.id,
                         amount: foundPayment.amount,
@@ -177,7 +190,7 @@ class _PaymentController {
                         cashFlow: "CREDIT",
                         state: "CREDITED",
                     });
-                return res.status(200).json({ status: (_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.order_status });
+                return res.status(200).json({ status: (_d = response === null || response === void 0 ? void 0 : response.data) === null || _d === void 0 ? void 0 : _d.order_status });
             }
             catch (error) {
                 console.error(error);

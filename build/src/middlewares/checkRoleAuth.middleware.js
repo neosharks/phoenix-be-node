@@ -25,8 +25,6 @@ const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
             const foundUser = yield user_service_1.UserService.getOneUser({ id });
             if (!foundUser)
                 return res.status(403).json({ message: api_constant_1.errorMessage.UNAUTHORISED, info: "User not found" });
-            // if (foundUser.status !== "ACTIVE")
-            //   return res.status(403).json({ message: errorMessage.USER_BLOCKED, info: "User blocked" });
             res.locals.user = foundUser;
             const userRoles = (foundUser === null || foundUser === void 0 ? void 0 : foundUser.role) || [];
             let hasRequiredRole = false;
@@ -50,21 +48,15 @@ exports.checkRoleAuth = checkRoleAuth;
 // Socket.IO middleware for authentication
 const socketAuthMiddleware = (socket, next) => __awaiter(void 0, void 0, void 0, function* () {
     const token = socket.handshake.auth.token;
-    console.log(token, "tokenSocket");
-    if (!token) {
+    if (!token)
         return next(new Error("Authentication error: No token"));
-    }
     const { decoded } = (0, jwt_core_1.verifyJwt)(token);
-    console.log(decoded, "tokenSocket");
-    if (!decoded) {
+    if (!decoded)
         return next(new Error("Authentication error: Invalid token"));
-    }
     const { id } = decoded;
-    console.log(id, "tokenSocket");
     const foundUser = yield user_service_1.UserService.getOneUser({ id });
-    if (!foundUser) {
+    if (!foundUser)
         return next(new Error("Authentication error: User not found"));
-    }
     socket.data.user = foundUser;
     next();
 });
