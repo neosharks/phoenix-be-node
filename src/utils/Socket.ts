@@ -1,9 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import firebase from "firebase-admin";
-import { serviceAccountKey } from "../firebseNotification/serviceAccountKey";
+import { serviceAccountKey } from "../firebaseNotification/serviceAccountKey";
 
 const prisma = new PrismaClient();
 const socketIdToUserId = new Map<string, number>();
+const roomUserCount = new Map<string, Set<string>>(); // Track users in rooms
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -18,8 +19,17 @@ const Socket = (io: any) => {
     console.log("User connected:", socket.id);
 
     socket.on("join_room", (classId: number) => {
-      socket.join(classId.toString());
+      const roomId = classId.toString();
+      socket.join(roomId);
       console.log(`User ${socket.id} joined room ${classId}`);
+
+      if (!roomUserCount.has(roomId)) {
+        roomUserCount.set(roomId, new Set());
+      }
+      roomUserCount.get(roomId)?.add(socket.id);
+
+      const userCount = roomUserCount.get(roomId)?.size || 0;
+      io.to(roomId).emit("user_count", userCount);
     });
 
     socket.on("send_class_message", async (data: any) => {
@@ -96,6 +106,7 @@ const Socket = (io: any) => {
     socket.on("disconnect", async () => {
       console.log("Socket disconnected:", socket.id);
       const userId = socketIdToUserId.get(socket.id);
+
       if (userId) {
         await prisma.user.update({
           where: { id: userId },
@@ -104,17 +115,30 @@ const Socket = (io: any) => {
         socketIdToUserId.delete(socket.id);
         io.emit("user_status_update", { userId, isOnline: false });
       }
+
+      roomUserCount.forEach((users, roomId) => {
+        if (users.has(socket.id)) {
+          users.delete(socket.id);
+          const userCount = users.size;
+          io.to(roomId).emit("user_count", userCount);
+        }
+      });
     });
 
     socket.on("leave_room", (classId: number) => {
-      socket.leave(classId.toString());
+      const roomId = classId.toString();
+      socket.leave(roomId);
       console.log(`User ${socket.id} left room ${classId}`);
+      roomUserCount.get(roomId)?.delete(socket.id);
+      const userCount = roomUserCount.get(roomId)?.size || 0;
+      io.to(roomId).emit("user_count", userCount);
     });
   });
 };
 
 export default Socket;
 
+// Function to send notifications
 const sendNotification = async (notificationData: any) => {
   try {
     const findUser = await prisma.user.findUnique({

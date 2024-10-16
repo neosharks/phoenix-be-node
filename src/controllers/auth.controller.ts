@@ -17,6 +17,7 @@ import {
 import logger from "../core/logger.core";
 import sendEmail from "../core/email.core";
 import sendOtpSms from "../core/sms.core";
+import config from "../../config";
 
 class _AuthController {
   async register(req: Request, res: Response) {
@@ -96,6 +97,7 @@ class _AuthController {
       if (!number)
         return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
       const numberString = number.toString();
+
       const checkRes = numberString.includes("99999");
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
       const commonProps: any = {
@@ -103,7 +105,7 @@ class _AuthController {
         verificationCodeSource: "SMS",
         verificationCodeTimestamp: new Date(),
       };
-      if (checkRes) {
+      if (checkRes && config.main.environment !== "PRODUCTION") {
         otpGenerated = 1111;
         commonProps.verificationCode = otpGenerated;
       } else {
@@ -134,8 +136,8 @@ class _AuthController {
           }
         }
         const username = generateRandomUsername();
-        const randomNum = (Math.random() * 25) | 1;
-        const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
+        const randomNum = (Math.random() * 20) | 1;
+        const profileImage = `https://qalakar-public.s3.ap-south-1.amazonaws.com/avatars/${randomNum}.jpg`;
         await UserService.createOneUser({
           username,
           phoneNumber: number,

@@ -23,6 +23,7 @@ const auth_validator_1 = require("../validators/auth.validator");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
 const sms_core_1 = __importDefault(require("../core/sms.core"));
+const config_1 = __importDefault(require("../../config"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -113,7 +114,7 @@ class _AuthController {
                     verificationCodeSource: "SMS",
                     verificationCodeTimestamp: new Date(),
                 };
-                if (checkRes) {
+                if (checkRes && config_1.default.main.environment !== "PRODUCTION") {
                     otpGenerated = 1111;
                     commonProps.verificationCode = otpGenerated;
                 }
@@ -144,8 +145,8 @@ class _AuthController {
                         }
                     }
                     const username = (0, helper_lib_1.generateRandomUsername)();
-                    const randomNum = (Math.random() * 25) | 1;
-                    const profileImage = `https://phoenix-test-bucket9415.s3.ap-south-1.amazonaws.com/avatars/avatar_${randomNum}.jpg`;
+                    const randomNum = (Math.random() * 20) | 1;
+                    const profileImage = `https://qalakar-public.s3.ap-south-1.amazonaws.com/avatars/${randomNum}.jpg`;
                     yield user_service_1.UserService.createOneUser(Object.assign({ username, phoneNumber: number, profileImage, verificationCodeAttempts: 1 }, commonProps));
                 }
                 return res.status(200).json({ message: api_constant_1.successMessages.SUCCESS });

@@ -7,7 +7,6 @@ import path from "path";
 //----------------------------------
 import routes from "./src/routes/index.route";
 //----------------------------------
-import { connection } from "./sequelize";
 import config from "./config";
 import Logger from "./src/core/logger.core";
 import chatSocket from "./src/utils/Socket";
@@ -31,8 +30,6 @@ const io = new Server(server, {
 });
 
 chatSocket(io);
-
-connection();
 
 const corsUrl = config.main.corsUrl;
 

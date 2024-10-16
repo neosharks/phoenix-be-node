@@ -21,7 +21,6 @@ const path_1 = __importDefault(require("path"));
 //----------------------------------
 const index_route_1 = __importDefault(require("./src/routes/index.route"));
 //----------------------------------
-const sequelize_1 = require("./sequelize");
 const config_1 = __importDefault(require("./config"));
 const logger_core_1 = __importDefault(require("./src/core/logger.core"));
 const Socket_1 = __importDefault(require("./src/utils/Socket"));
@@ -40,7 +39,6 @@ const io = new socket_io_1.Server(server, {
     },
 });
 (0, Socket_1.default)(io);
-(0, sequelize_1.connection)();
 const corsUrl = config_1.default.main.corsUrl;
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ limit: "10mb", extended: true, parameterLimit: 50000 }));

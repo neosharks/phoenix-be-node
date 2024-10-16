@@ -13,7 +13,7 @@ exports.NotificationController = void 0;
 const admin = require("firebase-admin");
 const notification_service_1 = require("../services/notification.service");
 const api_constant_1 = require("../constant/api.constant");
-const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
+const serviceAccountKey_1 = require("../firebaseNotification/serviceAccountKey");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccountKey_1.serviceAccountKey),
 });

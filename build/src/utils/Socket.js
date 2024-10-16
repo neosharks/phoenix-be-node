@@ -14,9 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
-const serviceAccountKey_1 = require("../firebseNotification/serviceAccountKey");
+const serviceAccountKey_1 = require("../firebaseNotification/serviceAccountKey");
 const prisma = new client_1.PrismaClient();
 const socketIdToUserId = new Map();
+const roomUserCount = new Map(); // Track users in rooms
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp({
         credential: firebase_admin_1.default.credential.cert(serviceAccountKey_1.serviceAccountKey),
@@ -29,8 +30,16 @@ const Socket = (io) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
         socket.on("join_room", (classId) => {
-            socket.join(classId.toString());
+            var _a, _b;
+            const roomId = classId.toString();
+            socket.join(roomId);
             console.log(`User ${socket.id} joined room ${classId}`);
+            if (!roomUserCount.has(roomId)) {
+                roomUserCount.set(roomId, new Set());
+            }
+            (_a = roomUserCount.get(roomId)) === null || _a === void 0 ? void 0 : _a.add(socket.id);
+            const userCount = ((_b = roomUserCount.get(roomId)) === null || _b === void 0 ? void 0 : _b.size) || 0;
+            io.to(roomId).emit("user_count", userCount);
         });
         socket.on("send_class_message", (data) => __awaiter(void 0, void 0, void 0, function* () {
             try {
@@ -105,14 +114,27 @@ const Socket = (io) => {
                 socketIdToUserId.delete(socket.id);
                 io.emit("user_status_update", { userId, isOnline: false });
             }
+            roomUserCount.forEach((users, roomId) => {
+                if (users.has(socket.id)) {
+                    users.delete(socket.id);
+                    const userCount = users.size;
+                    io.to(roomId).emit("user_count", userCount);
+                }
+            });
         }));
         socket.on("leave_room", (classId) => {
-            socket.leave(classId.toString());
+            var _a, _b;
+            const roomId = classId.toString();
+            socket.leave(roomId);
             console.log(`User ${socket.id} left room ${classId}`);
+            (_a = roomUserCount.get(roomId)) === null || _a === void 0 ? void 0 : _a.delete(socket.id);
+            const userCount = ((_b = roomUserCount.get(roomId)) === null || _b === void 0 ? void 0 : _b.size) || 0;
+            io.to(roomId).emit("user_count", userCount);
         });
     });
 };
 exports.default = Socket;
+// Function to send notifications
 const sendNotification = (notificationData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const findUser = yield prisma.user.findUnique({
