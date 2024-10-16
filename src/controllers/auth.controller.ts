@@ -105,7 +105,7 @@ class _AuthController {
         verificationCodeSource: "SMS",
         verificationCodeTimestamp: new Date(),
       };
-      if (checkRes && config.main.environment !== "PRODUCTION") {
+      if (checkRes) {
         otpGenerated = 1111;
         commonProps.verificationCode = otpGenerated;
       } else {
