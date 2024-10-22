@@ -1,6 +1,7 @@
 import prisma from "../../prisma";
 import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import { userCommonObject } from "../lib/commonObjects.lib";
 
 class _ChatService {
   async getOneChat(query: any) {
@@ -9,26 +10,10 @@ class _ChatService {
         where: query,
         include: {
           participantOne: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
           participantTwo: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -46,26 +31,10 @@ class _ChatService {
         where: query,
         include: {
           participantOne: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
           participantTwo: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
         skip,

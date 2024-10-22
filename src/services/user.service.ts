@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { userCommonObject } from "../lib/commonObjects.lib";
 
 class _UserService {
   async getOneUser(query: any) {
@@ -55,16 +56,7 @@ class _UserService {
   async getAllUser(skip: number = 0, take: number = 10) {
     try {
       return await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          profileImage: true,
-          email: true,
-          username: true,
-          phoneNumber: true,
-          role: true,
-        },
+        select: userCommonObject,
         skip,
         take,
       });

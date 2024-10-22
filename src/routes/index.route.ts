@@ -11,6 +11,7 @@ import insightRoutes from "./insight.route";
 import classRoutes from "./class.route";
 import walletRoutes from "./wallet.route";
 import offensiveReportRoute from "./offensiveReport.route";
+import combinedCommunityRoutes from "./combinedCommunity.route";
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use("/insight", insightRoutes);
 router.use("/class", classRoutes);
 router.use("/wallet", walletRoutes);
 router.use("/offensiveReportive", offensiveReportRoute);
+router.use("/combinedCommunity", combinedCommunityRoutes);
 
 export default router;

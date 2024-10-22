@@ -225,7 +225,17 @@ class _UserPostController {
   async createOneUserPost(req: any, res: Response) {
     try {
       const body = req.body;
-      const { description, type, visibility, videoUrl, document, image, title, packages } = body;
+      const {
+        description,
+        type,
+        visibility,
+        videoUrl,
+        document,
+        image,
+        title,
+        packages,
+        combinedCommunityId,
+      } = body;
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
@@ -270,6 +280,7 @@ class _UserPostController {
         videoUrl,
         document,
         title,
+        combinedCommunityId,
         packages: visibility === "PAID_MEMBER" ? packages : [],
       });
       return res.status(201).send({ message: successMessages.CREATED, data: created });

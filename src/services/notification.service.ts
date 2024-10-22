@@ -1,6 +1,7 @@
 import prisma from "../../prisma";
 import { errorMessage } from "../constant/api.constant";
 import logger from "../core/logger.core";
+import { userCommonObject } from "../lib/commonObjects.lib";
 
 class _NotificationService {
   async getAllNotificationOfUser(query: any, skip: number = 0, take: number = 10) {
@@ -9,12 +10,7 @@ class _NotificationService {
         where: query,
         include: {
           aboutUser: {
-            select: {
-              profileImage: true,
-              firstName: true,
-              lastName: true,
-              username: true,
-            },
+            select: userCommonObject,
           },
         },
         skip,

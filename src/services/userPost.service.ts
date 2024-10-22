@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { userCommonObject } from "../lib/commonObjects.lib";
 
 class _UserPostService {
   async getAllUserPostByUser(query: any, skip: number = 0, take: number = 10) {
@@ -15,39 +16,15 @@ class _UserPostService {
               createdAt: true,
               updatedAt: true,
               author: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  email: true,
-                  username: true,
-                  role: true,
-                },
+                select: userCommonObject,
               },
             },
           },
           likedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
           author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
         skip,
@@ -70,14 +47,7 @@ class _UserPostService {
           },
           author: true,
           likedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -108,6 +78,7 @@ class _UserPostService {
         document,
         pollId,
         packages,
+        combinedCommunityId,
       } = dataValues;
       const packagesToConnect = Array.isArray(packages) ? packages.map((id: any) => ({ id })) : [];
 
@@ -123,21 +94,14 @@ class _UserPostService {
           videoUrl,
           document,
           pollId,
+          combinedCommunityId,
           packages: { connect: packagesToConnect },
         },
         include: {
           likedBy: true,
           comments: true,
           author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -153,15 +117,7 @@ class _UserPostService {
         data: { description, authorId, userPostId },
         include: {
           author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -218,39 +174,15 @@ class _UserPostService {
               createdAt: true,
               updatedAt: true,
               author: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  email: true,
-                  username: true,
-                  role: true,
-                },
+                select: userCommonObject,
               },
             },
           },
           likedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
           author: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              role: true,
-            },
+            select: userCommonObject,
           },
         },
         skip,

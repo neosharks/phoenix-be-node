@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { userCommonObject } from "../lib/commonObjects.lib";
 class _ClassService {
   async getOneClassByProps(query: any) {
     try {
@@ -7,14 +8,7 @@ class _ClassService {
         include: {
           ClassParticipants: true,
           creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -30,14 +24,7 @@ class _ClassService {
         include: {
           ClassParticipants: true,
           creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -53,14 +40,7 @@ class _ClassService {
         include: {
           ClassParticipants: true,
           creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -118,14 +98,7 @@ class _ClassService {
         where: { classId: id },
         include: {
           user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -162,24 +135,12 @@ class _ClassService {
           repliedMessage: {
             include: {
               user: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  profileImage: true,
-                  username: true,
-                },
+                select: userCommonObject,
               },
             },
           },
           user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -214,15 +175,7 @@ class _ClassService {
       const creatorId = classData.creatorId;
 
       const allUsers = await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          profileImage: true,
-          username: true,
-          email: true,
-          phoneNumber: true,
-        },
+        select: userCommonObject,
       });
 
       const participants = await prisma.classParticipants.findMany({
@@ -249,14 +202,7 @@ class _ClassService {
         include: {
           ClassParticipants: true,
           creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });
@@ -272,14 +218,7 @@ class _ClassService {
         include: {
           ClassParticipants: true,
           creator: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              username: true,
-              email: true,
-              phoneNumber: true,
-            },
+            select: userCommonObject,
           },
         },
       });

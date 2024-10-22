@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { userCommonObject } from "../lib/commonObjects.lib";
 class _PatronCreatorService {
   async getFirst(query: any) {
     try {
@@ -23,26 +24,10 @@ class _PatronCreatorService {
         include: {
           package: true,
           creator: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              industry: true,
-            },
+            select: userCommonObject,
           },
           patron: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-              email: true,
-              username: true,
-              industry: true,
-            },
+            select: userCommonObject,
           },
         },
         skip,
