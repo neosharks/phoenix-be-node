@@ -233,7 +233,7 @@ class _UserPostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const body = req.body;
-                const { description, type, visibility, videoUrl, document, image, title, packages } = body;
+                const { description, type, visibility, videoUrl, document, image, title, packages, combinedCommunityId, } = body;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
                 if (!description ||
@@ -268,7 +268,8 @@ class _UserPostController {
                     image,
                     videoUrl,
                     document,
-                    title, packages: visibility === "PAID_MEMBER" ? packages : [] }));
+                    title,
+                    combinedCommunityId, packages: visibility === "PAID_MEMBER" ? packages : [] }));
                 return res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: created });
             }
             catch (error) {

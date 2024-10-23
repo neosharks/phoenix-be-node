@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClassService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _ClassService {
     getOneClassByProps(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,14 +24,7 @@ class _ClassService {
                     include: {
                         ClassParticipants: true,
                         creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -48,14 +42,7 @@ class _ClassService {
                     include: {
                         ClassParticipants: true,
                         creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -73,14 +60,7 @@ class _ClassService {
                     include: {
                         ClassParticipants: true,
                         creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -148,14 +128,7 @@ class _ClassService {
                     where: { classId: id },
                     include: {
                         user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -195,24 +168,12 @@ class _ClassService {
                         repliedMessage: {
                             include: {
                                 user: {
-                                    select: {
-                                        firstName: true,
-                                        lastName: true,
-                                        profileImage: true,
-                                        username: true,
-                                    },
+                                    select: commonObjects_lib_1.userCommonObject,
                                 },
                             },
                         },
                         user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -248,15 +209,7 @@ class _ClassService {
                 }
                 const creatorId = classData.creatorId;
                 const allUsers = yield prisma_1.default.user.findMany({
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        profileImage: true,
-                        username: true,
-                        email: true,
-                        phoneNumber: true,
-                    },
+                    select: commonObjects_lib_1.userCommonObject,
                 });
                 const participants = yield prisma_1.default.classParticipants.findMany({
                     where: { classId },
@@ -280,14 +233,7 @@ class _ClassService {
                     include: {
                         ClassParticipants: true,
                         creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -302,14 +248,7 @@ class _ClassService {
                     include: {
                         ClassParticipants: true,
                         creator: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                username: true,
-                                email: true,
-                                phoneNumber: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });

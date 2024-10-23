@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _UserService {
     getOneUser(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -78,16 +79,7 @@ class _UserService {
         return __awaiter(this, arguments, void 0, function* (skip = 0, take = 10) {
             try {
                 return yield prisma_1.default.user.findMany({
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        profileImage: true,
-                        email: true,
-                        username: true,
-                        phoneNumber: true,
-                        role: true,
-                    },
+                    select: commonObjects_lib_1.userCommonObject,
                     skip,
                     take,
                 });

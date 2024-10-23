@@ -220,15 +220,15 @@ class _UserController {
                 }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
-                const emailSent = yield emailQueue_1.default.add({
-                    receiverEmail: req.body.email,
-                    subject: "Creator Application Under Review",
-                    template: "APPLY_CREATOR",
-                    variables: {},
-                });
-                if (!emailSent) {
-                    return res.status(500).send({ message: "Failed to send email" });
-                }
+                // const emailSent = await emailQueue.add({
+                //   receiverEmail: req.body.email,
+                //   subject: "Creator Application Under Review",
+                //   template: "APPLY_CREATOR",
+                //   variables: {},
+                // });
+                // if (!emailSent) {
+                //   return res.status(500).send({ message: "Failed to send email" });
+                // }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });
             }
             catch (error) {

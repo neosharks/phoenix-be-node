@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserPostService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _UserPostService {
     getAllUserPostByUser(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
@@ -30,39 +31,15 @@ class _UserPostService {
                                 createdAt: true,
                                 updatedAt: true,
                                 author: {
-                                    select: {
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        profileImage: true,
-                                        email: true,
-                                        username: true,
-                                        role: true,
-                                    },
+                                    select: commonObjects_lib_1.userCommonObject,
                                 },
                             },
                         },
                         likedBy: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                         author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                     skip,
@@ -87,14 +64,7 @@ class _UserPostService {
                         },
                         author: true,
                         likedBy: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -117,7 +87,7 @@ class _UserPostService {
     createOneUserPost(dataValues) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { description, authorId, title, type, image, visibility, allowComments, videoUrl, document, pollId, packages, } = dataValues;
+                const { description, authorId, title, type, image, visibility, allowComments, videoUrl, document, pollId, packages, combinedCommunityId, } = dataValues;
                 const packagesToConnect = Array.isArray(packages) ? packages.map((id) => ({ id })) : [];
                 return yield prisma_1.default.userPost.create({
                     data: {
@@ -131,21 +101,14 @@ class _UserPostService {
                         videoUrl,
                         document,
                         pollId,
+                        combinedCommunityId,
                         packages: { connect: packagesToConnect },
                     },
                     include: {
                         likedBy: true,
                         comments: true,
                         author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -163,15 +126,7 @@ class _UserPostService {
                     data: { description, authorId, userPostId },
                     include: {
                         author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -238,39 +193,15 @@ class _UserPostService {
                                 createdAt: true,
                                 updatedAt: true,
                                 author: {
-                                    select: {
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        profileImage: true,
-                                        email: true,
-                                        username: true,
-                                        role: true,
-                                    },
+                                    select: commonObjects_lib_1.userCommonObject,
                                 },
                             },
                         },
                         likedBy: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                         author: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                     skip,

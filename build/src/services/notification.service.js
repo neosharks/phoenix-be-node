@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _NotificationService {
     getAllNotificationOfUser(query_1) {
         return __awaiter(this, arguments, void 0, function* (query, skip = 0, take = 10) {
@@ -23,12 +24,7 @@ class _NotificationService {
                     where: query,
                     include: {
                         aboutUser: {
-                            select: {
-                                profileImage: true,
-                                firstName: true,
-                                lastName: true,
-                                username: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                     skip,

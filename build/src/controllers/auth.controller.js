@@ -23,7 +23,6 @@ const auth_validator_1 = require("../validators/auth.validator");
 const logger_core_1 = __importDefault(require("../core/logger.core"));
 const email_core_1 = __importDefault(require("../core/email.core"));
 const sms_core_1 = __importDefault(require("../core/sms.core"));
-const config_1 = __importDefault(require("../../config"));
 class _AuthController {
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -114,7 +113,7 @@ class _AuthController {
                     verificationCodeSource: "SMS",
                     verificationCodeTimestamp: new Date(),
                 };
-                if (checkRes && config_1.default.main.environment !== "PRODUCTION") {
+                if (checkRes) {
                     otpGenerated = 1111;
                     commonProps.verificationCode = otpGenerated;
                 }

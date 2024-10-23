@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const api_constant_1 = require("../constant/api.constant");
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _ChatService {
     getOneChat(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,26 +24,10 @@ class _ChatService {
                     where: query,
                     include: {
                         participantOne: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                         participantTwo: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                 });
@@ -62,26 +47,10 @@ class _ChatService {
                     where: query,
                     include: {
                         participantOne: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                         participantTwo: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                role: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                     skip,

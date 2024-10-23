@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PatronCreatorService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const commonObjects_lib_1 = require("../lib/commonObjects.lib");
 class _PatronCreatorService {
     getFirst(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -43,26 +44,10 @@ class _PatronCreatorService {
                     include: {
                         package: true,
                         creator: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                industry: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                         patron: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                profileImage: true,
-                                email: true,
-                                username: true,
-                                industry: true,
-                            },
+                            select: commonObjects_lib_1.userCommonObject,
                         },
                     },
                     skip,
