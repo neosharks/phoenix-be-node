@@ -42,6 +42,13 @@ class _CombinedCommunityService {
           createdBy: {
             select: userCommonObject,
           },
+          CommunityCreator: {
+            select: {
+              user: {
+                select: userCommonObject,
+              },
+            },
+          },
         },
       });
     } catch (error) {
