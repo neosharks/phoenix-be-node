@@ -7,7 +7,23 @@ class _CombinedCommunityService {
       return await prisma.combinedCommunity.findUnique({
         where: query,
         include: {
-          UserPost: true,
+          UserPost: {
+            include: {
+              comments: {
+                include: {
+                  author: {
+                    select: userCommonObject,
+                  },
+                },
+              },
+              likedBy: {
+                select: userCommonObject,
+              },
+              author: {
+                select: userCommonObject,
+              },
+            },
+          },
           createdBy: {
             select: userCommonObject,
           },

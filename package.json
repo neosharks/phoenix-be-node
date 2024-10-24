@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "relic": "NEW_RELIC_APP_NAME=Qalakar NEW_RELIC_LICENSE_KEY=31844d21b218e7353887bea6a6e15a20FFFFNRAL pm2 start ./build/index.js",
+    "relic": "NEW_RELIC_APP_NAME=Qalakar NEW_RELIC_LICENSE_KEY=31844d21b218e7353887bea6a6e15a20FFFFNRAL pm2 restart ./build/index.js",
     "build-local": "cp .env ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "build-prod": "cp .env.production ./build/.env && cp -r ./src/mailTemplates ./build/src/mailTemplates && tsc",
     "clean": "tsc --build --clean",
