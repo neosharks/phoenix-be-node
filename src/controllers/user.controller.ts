@@ -221,12 +221,12 @@ class _UserController {
             creatorChangeTimeStamp: new Date(),
           };
           await UserService.updateOneUser({ id: ele }, updatedBody);
-          await emailQueue.add({
-            receiverEmail: foundUser.email,
-            subject: "Application Approval",
-            template: "APPROVE_CREATOR",
-            variables: {},
-          });
+          // await emailQueue.add({
+          //   receiverEmail: foundUser.email,
+          //   subject: "Application Approval",
+          //   template: "APPROVE_CREATOR",
+          //   variables: {},
+          // });
         }
       }
       return res.status(201).send({ message: successMessages.SUCCESS });
