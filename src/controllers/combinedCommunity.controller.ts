@@ -55,7 +55,7 @@ class _CombinedCommunityController {
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
       const createdRes = await CombinedCommunityService.createOne({
         name,
-        tags,
+        tags: [],
         createdById: id,
         description,
       });
