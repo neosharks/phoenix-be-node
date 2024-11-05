@@ -37,7 +37,7 @@ const Socket = (io: any) => {
         if (
           !data.classId ||
           !data.userId ||
-          (!data.message && !data.image && !data.video && !data.document)
+          (!data.message && !data.image && !data.video && !data.document && !data.audio)
         ) {
           console.error("Invalid data received:", data);
           socket.emit("error", { message: "Invalid data received" });
