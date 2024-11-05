@@ -179,13 +179,14 @@ class _ClassController {
       const image = req.body?.image;
       const video = req.body?.video;
       const document = req.body?.document;
+      const audio = req.body?.audio;
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      if (!classId || !participantId || (!message && !image && !video && !document))
+      if (!classId || !participantId || (!message && !image && !video && !document && !audio))
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
-      if (!message && !payload.image && !payload.video && !payload.document)
+      if (!message && !payload.image && !payload.video && !payload.document && !payload.audio)
         return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
 
       if (isTextObjectionable(message))
