@@ -347,6 +347,7 @@ model ClassMessage {
   userId           Int
   message          String?
   image            String?
+  audio            String?
   video            String?
   document         String?
   repliedMessageId Int?
