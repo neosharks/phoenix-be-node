@@ -7,12 +7,11 @@ class _OffensiveReportingController {
     try {
       const { id } = res.locals.user;
       const { type, message, reportedUserId, userPostId } = req.body;
-      if (!type || !message)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!type || !message) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       if (type === "USER" || !reportedUserId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       if (type === "POST" || !userPostId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       await OffensiveReportingService.createOne({
         type,

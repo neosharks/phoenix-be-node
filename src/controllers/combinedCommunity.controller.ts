@@ -7,7 +7,7 @@ class _CombinedCommunityController {
   async getOne(req: Request, res: Response) {
     try {
       let { id }: any = req.query;
-      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const found = await CombinedCommunityService.getOneByProps({ id: parseInt(id) });
       if (!found) res.status(404).send({ message: errorMessage.NOT_FOUND });
       return res.status(200).send({ message: successMessages.FETCHED, data: found });
@@ -51,8 +51,7 @@ class _CombinedCommunityController {
     try {
       const { id } = res.locals.user;
       let { name, tags, creators, description }: any = req.body;
-      if (!name || !creators)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!name || !creators) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const createdRes = await CombinedCommunityService.createOne({
         name,
         tags: [],

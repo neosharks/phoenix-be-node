@@ -138,10 +138,35 @@ class _ClassService {
             }
         });
     }
-    addMessage(dataValues) {
+    getOneMessageByProps(props) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { classId, userId, message, image, isPinned, video, document } = dataValues;
+                return yield prisma_1.default.classMessage.findFirst({
+                    where: props,
+                });
+            }
+            catch (error) {
+                console.error(error);
+            }
+        });
+    }
+    deleteOneMessageByProps(props) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield prisma_1.default.classMessage.delete({
+                    where: props,
+                });
+            }
+            catch (error) {
+                console.error(error);
+            }
+        });
+    }
+    addMessage(dataValues) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(dataValues);
+            try {
+                const { classId, userId, message, image, isPinned, audio, video, document } = dataValues;
                 return yield prisma_1.default.classMessage.create({
                     data: {
                         classId,
@@ -150,12 +175,14 @@ class _ClassService {
                         isPinned,
                         image,
                         video,
+                        audio,
                         document,
                     },
                 });
             }
-            catch (error) {
-                console.error(error);
+            catch (err) {
+                console.error(err);
+                throw err;
             }
         });
     }
@@ -183,8 +210,10 @@ class _ClassService {
             }
         });
     }
-    updateSendMessage(query, data) {
+    updateMessage(query, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (data.messageId)
+                delete data.messageId;
             try {
                 return yield prisma_1.default.classMessage.update({ where: query, data: data });
             }

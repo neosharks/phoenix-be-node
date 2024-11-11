@@ -42,15 +42,13 @@ class _PaymentController {
             const { classId } = req.body;
             if (!classId)
                 return res
-                    .status(api_constant_1.errorCode.GENERIC)
+                    .status(400)
                     .json({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide classId" });
             const { id, firstName, lastName, username, phoneNumber, email } = res.locals.user;
             try {
                 const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(classId, 10) });
                 if (!foundClass)
-                    return res
-                        .status(api_constant_1.errorCode.GENERIC)
-                        .send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Class not found" });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Class not found" });
                 const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({
                     userId: id,
                     classId,
@@ -58,12 +56,12 @@ class _PaymentController {
                 });
                 if (foundPayment)
                     return res
-                        .status(api_constant_1.errorCode.GENERIC)
+                        .status(400)
                         .send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST, info: "Class already purchased" });
                 const { price } = foundClass;
                 if (!price)
                     return res
-                        .status(api_constant_1.errorCode.GENERIC)
+                        .status(400)
                         .send({ message: api_constant_1.errorMessage.INCORRECT_DATA, info: "Price not found" });
                 const order_id = yield generateOrderId();
                 const request = {
@@ -83,7 +81,7 @@ class _PaymentController {
                 }
                 catch (error) {
                     console.error(error);
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
+                    return res.status(400).send({ message: "Payment failed" });
                 }
                 yield payment_service_1.PaymentService.createOneClassPayment({
                     userId: id,
@@ -105,14 +103,14 @@ class _PaymentController {
             const { packageId } = req.body;
             if (!packageId) {
                 return res
-                    .status(api_constant_1.errorCode.GENERIC)
+                    .status(400)
                     .json({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide packageId" });
             }
             const user = res.locals.user;
             try {
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
                 if (!foundPackage) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 }
                 const { price } = foundPackage;
                 if (price === 0) {
@@ -120,7 +118,7 @@ class _PaymentController {
                     return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS });
                 }
                 if (!price) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 }
                 const order_id = yield generateOrderId();
                 const request = {
@@ -140,7 +138,7 @@ class _PaymentController {
                 }
                 catch (error) {
                     console.error(error);
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Payment failed" });
+                    return res.status(400).send({ message: "Payment failed" });
                 }
                 // fix this
                 yield payment_service_1.PaymentService.createOneClassPayment({
@@ -164,12 +162,10 @@ class _PaymentController {
             try {
                 const { orderId } = req.body;
                 if (!orderId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPayment = yield payment_service_1.PaymentService.getOnePaymentByProps({ orderId });
                 if (!foundPayment)
-                    return res
-                        .status(api_constant_1.errorCode.NOT_FOUND)
-                        .json({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Payment not found" });
+                    return res.status(404).json({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Payment not found" });
                 const url = `${config_1.default.payment.cashfree.url}/orders/${orderId}`;
                 const headers = {
                     accept: "application/json",

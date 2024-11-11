@@ -16,11 +16,9 @@ class _UserPostController {
       const { author } = req.query;
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
       const take = Number(req.query.per_page) || 10;
-      if (!author)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!author) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ username: author });
-      if (!foundUser)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundUser) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       let returnPosts = await UserPostService.getAllUserPostByUser(
         {
           authorId: foundUser.id,
@@ -89,7 +87,7 @@ class _UserPostController {
   async getSingleUserPost(req: Request, res: Response) {
     try {
       const { id } = req.query;
-      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const postId = parseInt(id as string, 10);
       const found = await UserPostService.getOneUserPost({ id: postId });
       if (!found) return res.status(404).send({ message: errorMessage.NOT_FOUND });
@@ -113,7 +111,7 @@ class _UserPostController {
       }
 
       if (!postId) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       }
 
       const foundPost = await prisma.userPost.findUnique({
@@ -125,7 +123,7 @@ class _UserPostController {
       });
 
       if (!foundPost) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+        return res.status(400).send({ message: errorMessage.NOT_FOUND });
       }
 
       const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
@@ -167,10 +165,9 @@ class _UserPostController {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
       if (!pollId || !selectedId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPoll: any = await UserPostService.getOnePoll({ id: pollId });
-      if (!foundPoll)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPoll) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       const userIndex = foundPoll.selectedOptions.findIndex((user: any) => user.userId === id);
       if (userIndex === -1) {
         await prisma.poll.update({
@@ -200,20 +197,18 @@ class _UserPostController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      if (!postId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
 
       if (
         (updates?.description && isTextObjectionable(updates?.description)) ||
         (updates?.title && isTextObjectionable(updates?.title))
       )
-        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+        return res.status(403).send({ message: errorMessage.OFFENSIVE_CONTENT });
 
       await UserPostService.updateOneUserPost({ id: postId }, updates);
-      res.status(201).send({ message: successMessages.UPDATED });
+      res.status(201).send({ message: "UPDATED" });
     } catch (error) {
       console.log("Error: ", error);
       return res
@@ -248,13 +243,13 @@ class _UserPostController {
         (type === "VIDEO" && !videoUrl) ||
         (type === "DOCUMENT" && !document)
       )
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       if (isTextObjectionable(description) || isTextObjectionable(title))
-        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+        return res.status(403).send({ message: errorMessage.OFFENSIVE_CONTENT });
 
       if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       if (type === "POLL") {
         const { options } = req.body;
@@ -301,11 +296,11 @@ class _UserPostController {
         return res.status(400).json({ error: validation.error.details[0].message });
 
       if (isTextObjectionable(description))
-        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+        return res.status(403).send({ message: errorMessage.OFFENSIVE_CONTENT });
 
       const { id } = res.locals.user;
       if (!description || !authorId || !userPostId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const created: any = await UserPostService.createOneComment({
         description,
         authorId,
@@ -331,13 +326,11 @@ class _UserPostController {
     try {
       const { postId } = req.body;
       const { id } = res.locals.user;
-      if (!postId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!postId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPost = await UserPostService.getOneUserPost({ id: postId });
-      if (!foundPost)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundPost) return res.status(400).send({ message: errorMessage.NOT_FOUND });
       if (id !== foundPost.authorId) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_ALLOWED });
+        return res.status(400).send({ message: errorMessage.NOT_ALLOWED });
       }
       await UserPostService.delete(postId);
       res.status(201).send({ message: successMessages.SUCCESS });

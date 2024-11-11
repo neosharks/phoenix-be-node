@@ -96,7 +96,7 @@ class _ChatController {
                 if (!foundChat)
                     return res.status(400).json({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (!isCreator && foundChat.pendingAllowed === 0)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.LIMIT_EXHAUSTED });
+                    return res.status(400).json({ message: api_constant_1.errorMessage.LIMIT_EXHAUSTED });
                 const createdChat = yield chat_service_1.ChatService.createOneMessage({
                     chatId,
                     senderId,

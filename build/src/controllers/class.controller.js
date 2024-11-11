@@ -31,7 +31,7 @@ class _ClassController {
             try {
                 let { id } = req.query;
                 if (!id)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(id) });
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: foundClass });
             }
@@ -51,7 +51,7 @@ class _ClassController {
                     creatorId = parseInt(creatorId, 10);
                 else
                     creatorId = null;
-                const allClasses = yield class_service_1.ClassService.getAllClassesByProps(creatorId ? { creatorId } : {});
+                const allClasses = yield class_service_1.ClassService.getAllClassesByProps(creatorId ? { creatorId, isActive: true } : { isActive: true });
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allClasses });
             }
             catch (error) {
@@ -68,10 +68,10 @@ class _ClassController {
                 const { id } = res.locals.user;
                 const { name, isPaid = false, price, paymentFrequency } = req.body;
                 if (!name)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (isPaid && !price)
                     return res
-                        .status(api_constant_1.errorCode.FORBIDDEN)
+                        .status(403)
                         .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Provide price for paid class" });
                 yield class_service_1.ClassService.createClass({
                     name,
@@ -96,12 +96,12 @@ class _ClassController {
             try {
                 const _a = req.body, { id } = _a, data = __rest(_a, ["id"]);
                 if (!id)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: parseInt(id) });
                 if (!foundClass)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 yield class_service_1.ClassService.updateClassByProps({ id: parseInt(id) }, data);
-                return res.status(200).send({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).send({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -116,19 +116,17 @@ class _ClassController {
             try {
                 const { classId, participantId } = req.body;
                 if (!classId || !participantId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: classId });
                 if (!foundClass)
-                    return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (foundClass.isPaid) {
                     const foundPaidEntry = yield payment_service_1.PaymentService.getOnePaymentByProps({
                         classId,
                         userId: participantId,
                     });
                     if (!foundPaidEntry || foundPaidEntry.status !== "PAID")
-                        return res
-                            .status(api_constant_1.errorCode.FORBIDDEN)
-                            .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Class is paid" });
+                        return res.status(403).send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Class is paid" });
                 }
                 const addMember = yield class_service_1.ClassService.addClassParticipant({
                     classId: Number(classId),
@@ -149,7 +147,7 @@ class _ClassController {
             try {
                 const { classId, participants } = req.body;
                 if (!classId || !participants || !Array.isArray(participants)) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 }
                 const participantData = participants.map((participantId) => ({
                     userId: participantId,
@@ -171,7 +169,7 @@ class _ClassController {
             try {
                 let { classId } = req.query;
                 if (!classId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const allClasses = yield class_service_1.ClassService.getAllParticipantOfClass(parseInt(classId));
                 return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: allClasses });
             }
@@ -188,7 +186,7 @@ class _ClassController {
             try {
                 let { classId, userId } = req.body;
                 if (!classId || !userId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const allClasses = yield class_service_1.ClassService.leaveClass(parseInt(classId), parseInt(userId));
                 console.log(allClasses, "sdfsd");
                 if (allClasses) {
@@ -197,7 +195,7 @@ class _ClassController {
                         .send({ message: api_constant_1.successMessages.FETCHED, data: api_constant_1.successMessages.DELETE });
                 }
                 else {
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.ALREADY_DELETED });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.ALREADY_DELETED });
                 }
             }
             catch (error) {
@@ -210,21 +208,22 @@ class _ClassController {
     }
     sendMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             try {
-                const { classId, participantId, message } = req.body;
+                const { classId, message } = req.body;
                 const image = (_a = req.body) === null || _a === void 0 ? void 0 : _a.image;
                 const video = (_b = req.body) === null || _b === void 0 ? void 0 : _b.video;
                 const document = (_c = req.body) === null || _c === void 0 ? void 0 : _c.document;
+                const audio = (_d = req.body) === null || _d === void 0 ? void 0 : _d.audio;
                 const { id } = res.locals.user;
                 const payload = { authorId: id };
-                if (!classId || !participantId || (!message && !image && !video && !document))
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                if (!message && !payload.image && !payload.video && !payload.document)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                if (!classId || (!message && !image && !video && !document && !audio))
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                if (!message && !payload.image && !payload.video && !payload.document && !payload.audio)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if ((0, Moderation_1.isTextObjectionable)(message))
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
-                yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(participantId), classId: Number(classId), message: message || "", isPinned: false }));
+                    return res.status(403).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
+                yield class_service_1.ClassService.addMessage(Object.assign(Object.assign({}, payload), { userId: Number(id), classId: Number(classId), message: message || "", isPinned: false }));
                 return res.status(200).send({ message: api_constant_1.successMessages.CREATED });
             }
             catch (error) {
@@ -233,12 +232,31 @@ class _ClassController {
             }
         });
     }
+    deleteOneMessage(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { messageId } = req.body;
+                if (!messageId)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundMessage = yield class_service_1.ClassService.getOneMessageByProps({ id: messageId });
+                if (!foundMessage)
+                    return res.status(403).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                yield class_service_1.ClassService.deleteOneMessageByProps({ id: messageId });
+            }
+            catch (error) {
+                console.log("ERROR: ", error);
+                return res
+                    .status(api_constant_1.errorCode.INTERNAL_SERVER)
+                    .json({ message: api_constant_1.errorMessage.INTERNAL_SERVER, error: error });
+            }
+        });
+    }
     getAllMessagesOfClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let { id } = req.query;
                 if (!id)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const allClasses = yield class_service_1.ClassService.getAllMessagesOfClass(parseInt(id));
                 if (!allClasses) {
                     return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
@@ -253,20 +271,20 @@ class _ClassController {
             }
         });
     }
-    updateSendMessage(req, res) {
+    updateMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { classId, messageId, isPinned = false } = req.body;
-                if (!classId || !messageId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                const foundClass = yield class_service_1.ClassService.getAllMessagesOfClass(parseInt(classId));
-                if (!foundClass)
-                    return res.status(200).send({ message: api_constant_1.successMessages.FETCHED, data: [] });
-                const findMessage = foundClass === null || foundClass === void 0 ? void 0 : foundClass.find((res) => res.id === messageId);
-                if (!findMessage)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
-                yield class_service_1.ClassService.updateSendMessage({ id: messageId }, { isPinned });
-                return res.status(200).send({ message: api_constant_1.successMessages.UPDATED });
+                const { messageId } = req.body;
+                const { id } = res.locals.user;
+                if (!messageId)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundMessage = yield class_service_1.ClassService.getOneMessageByProps({ id: messageId });
+                if (!foundMessage)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (id !== foundMessage.userId)
+                    return res.status(403).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                yield class_service_1.ClassService.updateMessage({ id: messageId }, req.body);
+                return res.status(200).send({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -281,7 +299,7 @@ class _ClassController {
             try {
                 let { classId } = req.query;
                 if (!classId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const availableParticipants = yield class_service_1.ClassService.getAvailableParticipants(parseInt(classId));
                 return res
                     .status(200)
@@ -310,18 +328,37 @@ class _ClassController {
             }
         });
     }
+    deactivateOneClass(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { classId } = req.body;
+                const { id } = res.locals.user;
+                if (!classId)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                const foundClass = yield class_service_1.ClassService.getOneClassByProps({ id: classId });
+                if (!foundClass)
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                if (foundClass.creatorId !== id)
+                    return res.status(403).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                yield class_service_1.ClassService.updateClassByProps({ id: classId }, { isActive: false });
+                return res.status(201).send({ message: "UPDATED" });
+            }
+            catch (error) {
+                console.error("ERROR: ", error);
+                return res.status(500).json({ message: "Internal Server Error", error });
+            }
+        });
+    }
     requestNewClass(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { creatorId, message } = req.body;
                 const { id } = res.locals.user;
-                if (!creatorId || !message) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
-                }
+                if (!creatorId || !message)
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const newRequest = yield class_service_1.ClassService.createClassRequest(id, creatorId, message);
-                if (!newRequest) {
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.REQUEST_ALREADY });
-                }
+                if (!newRequest)
+                    return res.status(403).json({ message: api_constant_1.errorMessage.REQUEST_ALREADY });
                 return res.status(201).send({ message: api_constant_1.successMessages.CREATED, data: newRequest });
             }
             catch (error) {

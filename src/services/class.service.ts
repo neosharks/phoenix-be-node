@@ -107,6 +107,26 @@ class _ClassService {
     }
   }
 
+  async getOneMessageByProps(props: any) {
+    try {
+      return await prisma.classMessage.findFirst({
+        where: props,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async deleteOneMessageByProps(props: any) {
+    try {
+      return await prisma.classMessage.delete({
+        where: props,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async addMessage(dataValues: any) {
     console.log(dataValues);
     try {
@@ -123,8 +143,9 @@ class _ClassService {
           document,
         },
       });
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      console.error(err);
+      throw err;
     }
   }
 
@@ -150,7 +171,8 @@ class _ClassService {
     }
   }
 
-  async updateSendMessage(query: any, data: any) {
+  async updateMessage(query: any, data: any) {
+    if (data.messageId) delete data.messageId;
     try {
       return await prisma.classMessage.update({ where: query, data: data });
     } catch (error) {

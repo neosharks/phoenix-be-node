@@ -28,7 +28,7 @@ class _CommonController {
                 if (userId) {
                     const foundUser = yield user_service_1.UserService.getOneUser({ id: userId });
                     if (!foundUser)
-                        return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                        return res.status(400).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
                     payload.userId = userId;
                 }
                 yield common_service_1.CommonService.createClickStream(payload);

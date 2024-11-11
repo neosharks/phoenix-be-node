@@ -20,7 +20,7 @@ class _InsightController {
                 const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
                 const take = Number(req.query.per_page) || 10;
                 if (!isCreator)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.NOT_ALLOWED });
                 const d = new Date().getMonth() - 6;
                 const result = yield insights_service_1.InsightService.getAllPackagesOfCreator({
                     creatorId: id,

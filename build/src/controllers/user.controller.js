@@ -8,9 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
@@ -18,7 +15,6 @@ const api_constant_1 = require("../constant/api.constant");
 const package_service_1 = require("../services/package.service");
 const patronCreator_service_1 = require("../services/patronCreator.service");
 const user_validator_1 = require("../validators/user.validator");
-const emailQueue_1 = __importDefault(require("../queueEmail/emailQueue"));
 class _UserController {
     getUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -63,7 +59,7 @@ class _UserController {
                 const { url, platform, highlight } = req.body;
                 const { id } = res.locals.user;
                 if (!url)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 yield user_service_1.UserService.createLink({ userId: id, url, platform, highlight });
                 return res.status(200).json({ message: api_constant_1.successMessages.CREATED });
             }
@@ -123,7 +119,7 @@ class _UserController {
                     update.coverImage = image;
                 console.log(update, "sdfg");
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).json({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -141,7 +137,7 @@ class _UserController {
                 if (image)
                     update.profileImage = image;
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, update);
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).json({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -162,7 +158,7 @@ class _UserController {
                 if (image)
                     req.body.profileImage = image;
                 yield user_service_1.UserService.updateOneUser({ id: res.locals.user.id }, req.body);
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).json({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -178,16 +174,16 @@ class _UserController {
                 const { user } = res.locals;
                 const { creatorId } = req.body;
                 if (!creatorId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPatronCreator = yield patronCreator_service_1.PatronCreatorService.getFirst({
                     creatorId,
                     patronId: user.id,
                     type: "FREE",
                 });
                 if (foundPatronCreator)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
                 yield package_service_1.PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).json({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -211,12 +207,12 @@ class _UserController {
                     return res.status(400).send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST });
                 const foundUsername = yield user_service_1.UserService.getOneUser({ username });
                 if (foundUsername && foundUsername.id !== id)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.DUPLICATE_USERNAME });
                 // Ensure email uniqueness check before update
                 if (req.body.email) {
                     const existingUserWithEmail = yield user_service_1.UserService.getOneUser({ email: req.body.email });
                     if (existingUserWithEmail && existingUserWithEmail.id !== id)
-                        return res.status(api_constant_1.errorCode.GENERIC).send({ message: "Email already exists" });
+                        return res.status(400).send({ message: "Email already exists" });
                 }
                 const updatedBody = Object.assign(Object.assign({}, req.body), { creatorApprovalStatus: "PENDING" });
                 yield user_service_1.UserService.updateOneUser({ id }, updatedBody);
@@ -254,12 +250,12 @@ class _UserController {
                             creatorChangeTimeStamp: new Date(),
                         };
                         yield user_service_1.UserService.updateOneUser({ id: ele }, updatedBody);
-                        yield emailQueue_1.default.add({
-                            receiverEmail: foundUser.email,
-                            subject: "Application Approval",
-                            template: "APPROVE_CREATOR",
-                            variables: {},
-                        });
+                        // await emailQueue.add({
+                        //   receiverEmail: foundUser.email,
+                        //   subject: "Application Approval",
+                        //   template: "APPROVE_CREATOR",
+                        //   variables: {},
+                        // });
                     }
                 }
                 return res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });

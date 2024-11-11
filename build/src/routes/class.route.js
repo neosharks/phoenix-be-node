@@ -20,7 +20,9 @@ classRoutes.post("/create", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_
 classRoutes.post("/addOneParticipant", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.addOneParticipant);
 classRoutes.post("/addMultipleParticipants", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.addMultipleParticipants);
 classRoutes.post("/sendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.sendMessage);
-classRoutes.post("/updateSendMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.updateSendMessage);
+classRoutes.post("/deleteOneMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.deleteOneMessage);
+classRoutes.post("/updateMessage", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.updateMessage);
 classRoutes.post("/leaveOneClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.leaveOneClass);
 classRoutes.post("/requestClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)(), class_controller_1.ClassController.requestNewClass);
+classRoutes.post("/deactivateOneClass", (0, checkRoleAuth_middleware_1.checkRoleAuth)([role_constant_1.userRole.CREATOR]), class_controller_1.ClassController.deactivateOneClass);
 exports.default = classRoutes;

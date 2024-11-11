@@ -15,8 +15,7 @@ class _CommonController {
       const payload: any = { type, info, ipAddress: ip };
       if (userId) {
         const foundUser = await UserService.getOneUser({ id: userId });
-        if (!foundUser)
-          return res.status(errorCode.GENERIC).send({ message: errorMessage.USER_NOT_FOUND });
+        if (!foundUser) return res.status(400).send({ message: errorMessage.USER_NOT_FOUND });
         payload.userId = userId;
       }
       await CommonService.createClickStream(payload);

@@ -9,7 +9,7 @@ class _ClassController {
   async getOneClass(req: Request, res: Response) {
     try {
       let { id }: any = req.query;
-      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
       return res.status(200).send({ message: successMessages.FETCHED, data: foundClass });
     } catch (error) {
@@ -27,7 +27,9 @@ class _ClassController {
         creatorId = parseInt(creatorId, 10);
       else creatorId = null;
 
-      const allClasses = await ClassService.getAllClassesByProps(creatorId ? { creatorId } : {});
+      const allClasses = await ClassService.getAllClassesByProps(
+        creatorId ? { creatorId, isActive: true } : { isActive: true },
+      );
       return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
     } catch (error) {
       console.log("ERROR: ", error);
@@ -41,11 +43,10 @@ class _ClassController {
     try {
       const { id } = res.locals.user;
       const { name, isPaid = false, price, paymentFrequency } = req.body;
-      if (!name)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!name) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       if (isPaid && !price)
         return res
-          .status(errorCode.FORBIDDEN)
+          .status(403)
           .send({ message: errorMessage.NOT_ALLOWED, info: "Provide price for paid class" });
       await ClassService.createClass({
         name,
@@ -68,15 +69,14 @@ class _ClassController {
     try {
       const { id, ...data } = req.body;
 
-      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       const foundClass = await ClassService.getOneClassByProps({ id: parseInt(id) });
-      if (!foundClass)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
+      if (!foundClass) return res.status(400).send({ message: errorMessage.NOT_FOUND });
 
       await ClassService.updateClassByProps({ id: parseInt(id) }, data);
 
-      return res.status(200).send({ message: successMessages.UPDATED });
+      return res.status(200).send({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -89,19 +89,16 @@ class _ClassController {
     try {
       const { classId, participantId } = req.body;
       if (!classId || !participantId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundClass = await ClassService.getOneClassByProps({ id: classId });
-      if (!foundClass)
-        return res.status(errorCode.NOT_FOUND).send({ message: errorMessage.NOT_FOUND });
+      if (!foundClass) return res.status(404).send({ message: errorMessage.NOT_FOUND });
       if (foundClass.isPaid) {
         const foundPaidEntry = await PaymentService.getOnePaymentByProps({
           classId,
           userId: participantId,
         });
         if (!foundPaidEntry || foundPaidEntry.status !== "PAID")
-          return res
-            .status(errorCode.FORBIDDEN)
-            .send({ message: errorMessage.NOT_ALLOWED, info: "Class is paid" });
+          return res.status(403).send({ message: errorMessage.NOT_ALLOWED, info: "Class is paid" });
       }
       const addMember = await ClassService.addClassParticipant({
         classId: Number(classId),
@@ -120,7 +117,7 @@ class _ClassController {
     try {
       const { classId, participants } = req.body;
       if (!classId || !participants || !Array.isArray(participants)) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       }
       const participantData = participants.map((participantId) => ({
         userId: participantId,
@@ -139,8 +136,7 @@ class _ClassController {
   async getAllParticipantOfClass(req: Request, res: Response) {
     try {
       let { classId }: any = req.query;
-      if (!classId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!classId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.getAllParticipantOfClass(parseInt(classId));
       return res.status(200).send({ message: successMessages.FETCHED, data: allClasses });
     } catch (error) {
@@ -155,7 +151,7 @@ class _ClassController {
     try {
       let { classId, userId } = req.body;
       if (!classId || !userId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.leaveClass(parseInt(classId), parseInt(userId));
       console.log(allClasses, "sdfsd");
       if (allClasses) {
@@ -163,7 +159,7 @@ class _ClassController {
           .status(200)
           .send({ message: successMessages.FETCHED, data: successMessages.DELETE });
       } else {
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.ALREADY_DELETED });
+        return res.status(403).json({ message: errorMessage.ALREADY_DELETED });
       }
     } catch (error) {
       console.log("ERROR: ", error);
@@ -175,7 +171,7 @@ class _ClassController {
 
   async sendMessage(req: Request, res: Response) {
     try {
-      const { classId, participantId, message } = req.body;
+      const { classId, message } = req.body;
       const image = req.body?.image;
       const video = req.body?.video;
       const document = req.body?.document;
@@ -183,18 +179,18 @@ class _ClassController {
       const { id } = res.locals.user;
       const payload: any = { authorId: id };
 
-      if (!classId || !participantId || (!message && !image && !video && !document && !audio))
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!classId || (!message && !image && !video && !document && !audio))
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       if (!message && !payload.image && !payload.video && !payload.document && !payload.audio)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       if (isTextObjectionable(message))
-        return res.status(errorCode.FORBIDDEN).send({ message: errorMessage.OFFENSIVE_CONTENT });
+        return res.status(403).send({ message: errorMessage.OFFENSIVE_CONTENT });
 
       await ClassService.addMessage({
         ...payload,
-        userId: Number(participantId),
+        userId: Number(id),
         classId: Number(classId),
         message: message || "",
         isPinned: false,
@@ -206,10 +202,25 @@ class _ClassController {
     }
   }
 
+  async deleteOneMessage(req: Request, res: Response) {
+    try {
+      let { messageId } = req.body;
+      if (!messageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+      const foundMessage = await ClassService.getOneMessageByProps({ id: messageId });
+      if (!foundMessage) return res.status(403).send({ message: errorMessage.NOT_ALLOWED });
+      await ClassService.deleteOneMessageByProps({ id: messageId });
+    } catch (error) {
+      console.log("ERROR: ", error);
+      return res
+        .status(errorCode.INTERNAL_SERVER)
+        .json({ message: errorMessage.INTERNAL_SERVER, error: error });
+    }
+  }
+
   async getAllMessagesOfClass(req: Request, res: Response) {
     try {
       let { id }: any = req.query;
-      if (!id) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!id) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const allClasses = await ClassService.getAllMessagesOfClass(parseInt(id));
       if (!allClasses) {
         return res.status(200).send({ message: successMessages.FETCHED, data: [] });
@@ -223,20 +234,19 @@ class _ClassController {
     }
   }
 
-  async updateSendMessage(req: Request, res: Response) {
+  async updateMessage(req: Request, res: Response) {
     try {
-      const { classId, messageId, isPinned = false } = req.body;
-      if (!classId || !messageId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      const foundClass = await ClassService.getAllMessagesOfClass(parseInt(classId));
-      if (!foundClass) return res.status(200).send({ message: successMessages.FETCHED, data: [] });
+      const { messageId } = req.body;
+      const { id } = res.locals.user;
+      if (!messageId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
-      const findMessage = foundClass?.find((res: any) => res.id === messageId);
-      if (!findMessage)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.NOT_FOUND });
-      await ClassService.updateSendMessage({ id: messageId }, { isPinned });
+      const foundMessage = await ClassService.getOneMessageByProps({ id: messageId });
+      if (!foundMessage) return res.status(400).send({ message: errorMessage.NOT_FOUND });
+      if (id !== foundMessage.userId)
+        return res.status(403).send({ message: errorMessage.NOT_ALLOWED });
+      await ClassService.updateMessage({ id: messageId }, req.body);
 
-      return res.status(200).send({ message: successMessages.UPDATED });
+      return res.status(200).send({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -248,8 +258,7 @@ class _ClassController {
   async getAvailableParticipants(req: Request, res: Response) {
     try {
       let { classId }: any = req.query;
-      if (!classId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!classId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       const availableParticipants = await ClassService.getAvailableParticipants(parseInt(classId));
 
@@ -277,19 +286,39 @@ class _ClassController {
     }
   }
 
+  async deactivateOneClass(req: Request, res: Response) {
+    try {
+      const { classId } = req.body;
+      const { id } = res.locals.user;
+
+      if (!classId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
+
+      const foundClass = await ClassService.getOneClassByProps({ id: classId });
+      if (!foundClass) return res.status(404).send({ message: errorMessage.NOT_FOUND });
+
+      if (foundClass.creatorId !== id)
+        return res.status(403).send({ message: errorMessage.NOT_ALLOWED });
+
+      await ClassService.updateClassByProps({ id: classId }, { isActive: false });
+
+      return res.status(201).send({ message: "UPDATED" });
+    } catch (error) {
+      console.error("ERROR: ", error);
+      return res.status(500).json({ message: "Internal Server Error", error });
+    }
+  }
+
   async requestNewClass(req: Request, res: Response) {
     try {
       const { creatorId, message } = req.body;
       const { id } = res.locals.user;
 
-      if (!creatorId || !message) {
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
-      }
+      if (!creatorId || !message)
+        return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
 
       const newRequest = await ClassService.createClassRequest(id, creatorId, message);
-      if (!newRequest) {
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.REQUEST_ALREADY });
-      }
+      if (!newRequest) return res.status(403).json({ message: errorMessage.REQUEST_ALREADY });
+
       return res.status(201).send({ message: successMessages.CREATED, data: newRequest });
     } catch (error) {
       console.error("ERROR: ", error);

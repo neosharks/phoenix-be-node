@@ -45,7 +45,7 @@ class _UserController {
     try {
       const { url, platform, highlight } = req.body;
       const { id } = res.locals.user;
-      if (!url) return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!url) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       await UserService.createLink({ userId: id, url, platform, highlight });
       return res.status(200).json({ message: successMessages.CREATED });
     } catch (error) {
@@ -96,7 +96,7 @@ class _UserController {
       if (image) update.coverImage = image;
       console.log(update, "sdfg");
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
-      return res.status(200).json({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -111,7 +111,7 @@ class _UserController {
       let update: any = {};
       if (image) update.profileImage = image;
       await UserService.updateOneUser({ id: res.locals.user.id }, update);
-      return res.status(200).json({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -129,7 +129,7 @@ class _UserController {
       const image = req.body.image;
       if (image) req.body.profileImage = image;
       await UserService.updateOneUser({ id: res.locals.user.id }, req.body);
-      return res.status(200).json({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -142,17 +142,16 @@ class _UserController {
     try {
       const { user } = res.locals;
       const { creatorId } = req.body;
-      if (!creatorId)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.MISSING_PARAMS });
+      if (!creatorId) return res.status(400).send({ message: errorMessage.MISSING_PARAMS });
       const foundPatronCreator = await PatronCreatorService.getFirst({
         creatorId,
         patronId: user.id,
         type: "FREE",
       });
       if (foundPatronCreator)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.REDUNDANT_REQUEST });
+        return res.status(400).send({ message: errorMessage.REDUNDANT_REQUEST });
       await PackageService.linkPatronCreator(user.id, creatorId, "FREE", undefined);
-      return res.status(200).json({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -176,13 +175,13 @@ class _UserController {
 
       const foundUsername = await UserService.getOneUser({ username });
       if (foundUsername && foundUsername.id !== id)
-        return res.status(errorCode.GENERIC).send({ message: errorMessage.DUPLICATE_USERNAME });
+        return res.status(400).send({ message: errorMessage.DUPLICATE_USERNAME });
 
       // Ensure email uniqueness check before update
       if (req.body.email) {
         const existingUserWithEmail = await UserService.getOneUser({ email: req.body.email });
         if (existingUserWithEmail && existingUserWithEmail.id !== id)
-          return res.status(errorCode.GENERIC).send({ message: "Email already exists" });
+          return res.status(400).send({ message: "Email already exists" });
       }
       const updatedBody = {
         ...req.body,

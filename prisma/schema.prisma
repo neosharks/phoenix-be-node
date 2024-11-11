@@ -332,6 +332,7 @@ model Class {
   isPaid            Boolean             @default(false)
   type              String?
   price             Int?
+  isActive          Boolean             @default(true)
   paymentFrequency  PAYMENT_FREQUENCY?  @default(ONE_TIME)
   ClassParticipants ClassParticipants[]
   ClassMessage      ClassMessage[]
@@ -351,6 +352,7 @@ model ClassMessage {
   video            String?
   document         String?
   repliedMessageId Int?
+  reactions        Json?
   isPinned         Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -366,6 +368,7 @@ model ClassParticipants {
   classId   Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
+  isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

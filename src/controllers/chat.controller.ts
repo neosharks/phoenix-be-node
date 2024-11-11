@@ -83,7 +83,7 @@ class _ChatController {
       const foundChat = await ChatService.getOneChat({ id: chatId });
       if (!foundChat) return res.status(400).json({ message: errorMessage.NOT_FOUND });
       if (!isCreator && foundChat.pendingAllowed === 0)
-        return res.status(errorCode.GENERIC).json({ message: errorMessage.LIMIT_EXHAUSTED });
+        return res.status(400).json({ message: errorMessage.LIMIT_EXHAUSTED });
       const createdChat = await ChatService.createOneMessage({
         chatId,
         senderId,

@@ -30,10 +30,10 @@ class _UserPostController {
                 const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
                 const take = Number(req.query.per_page) || 10;
                 if (!author)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username: author });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 let returnPosts = yield userPost_service_1.UserPostService.getAllUserPostByUser({
                     authorId: foundUser.id,
                 }, skip, take);
@@ -97,7 +97,7 @@ class _UserPostController {
             try {
                 const { id } = req.query;
                 if (!id)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const postId = parseInt(id, 10);
                 const found = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!found)
@@ -122,7 +122,7 @@ class _UserPostController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!postId) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 }
                 const foundPost = yield prisma_1.default.userPost.findUnique({
                     where: { id: postId },
@@ -132,7 +132,7 @@ class _UserPostController {
                     },
                 });
                 if (!foundPost) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 }
                 const userIndex = foundPost.likedBy.findIndex((user) => user.id === id);
                 if (userIndex === -1) {
@@ -174,10 +174,10 @@ class _UserPostController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!pollId || !selectedId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPoll = yield userPost_service_1.UserPostService.getOnePoll({ id: pollId });
                 if (!foundPoll)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const userIndex = foundPoll.selectedOptions.findIndex((user) => user.userId === id);
                 if (userIndex === -1) {
                     yield prisma_1.default.poll.update({
@@ -211,15 +211,15 @@ class _UserPostController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!postId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (((updates === null || updates === void 0 ? void 0 : updates.description) && (0, Moderation_1.isTextObjectionable)(updates === null || updates === void 0 ? void 0 : updates.description)) ||
                     ((updates === null || updates === void 0 ? void 0 : updates.title) && (0, Moderation_1.isTextObjectionable)(updates === null || updates === void 0 ? void 0 : updates.title)))
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
+                    return res.status(403).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 yield userPost_service_1.UserPostService.updateOneUserPost({ id: postId }, updates);
-                res.status(201).send({ message: api_constant_1.successMessages.UPDATED });
+                res.status(201).send({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("Error: ", error);
@@ -243,11 +243,11 @@ class _UserPostController {
                     (type === "IMAGE" && !image) ||
                     (type === "VIDEO" && !videoUrl) ||
                     (type === "DOCUMENT" && !document))
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if ((0, Moderation_1.isTextObjectionable)(description) || (0, Moderation_1.isTextObjectionable)(title))
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
+                    return res.status(403).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 if (visibility === "PAID_MEMBER" && (!packages || packages.length === 0))
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (type === "POLL") {
                     const { options } = req.body;
                     let redefinedOptions = options.map((ele) => {
@@ -289,10 +289,10 @@ class _UserPostController {
                 if (validation.error)
                     return res.status(400).json({ error: validation.error.details[0].message });
                 if ((0, Moderation_1.isTextObjectionable)(description))
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
+                    return res.status(403).send({ message: api_constant_1.errorMessage.OFFENSIVE_CONTENT });
                 const { id } = res.locals.user;
                 if (!description || !authorId || !userPostId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const created = yield userPost_service_1.UserPostService.createOneComment({
                     description,
                     authorId,
@@ -321,12 +321,12 @@ class _UserPostController {
                 const { postId } = req.body;
                 const { id } = res.locals.user;
                 if (!postId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundPost = yield userPost_service_1.UserPostService.getOneUserPost({ id: postId });
                 if (!foundPost)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (id !== foundPost.authorId) {
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_ALLOWED });
                 }
                 yield userPost_service_1.UserPostService.delete(postId);
                 res.status(201).send({ message: api_constant_1.successMessages.SUCCESS });

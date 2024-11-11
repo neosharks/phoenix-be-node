@@ -29,8 +29,7 @@ class _AuthController {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
       const foundUser = await UserService.getOneUser({ email: body.email });
-      if (foundUser)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.USER_EXISTS });
+      if (foundUser) return res.status(403).json({ message: errorMessage.USER_EXISTS });
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(body.password, salt);
@@ -94,8 +93,7 @@ class _AuthController {
   async sendOtp(req: Request, res: Response) {
     try {
       const { number, referralUsername } = req.body;
-      if (!number)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!number) return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const numberString = number.toString();
 
       const checkRes = numberString.includes("99999");
@@ -110,7 +108,7 @@ class _AuthController {
         commonProps.verificationCode = otpGenerated;
       } else {
         const smsRes = await sendOtpSms(number, otpGenerated);
-        if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+        if (!smsRes) return res.status(400).json({ message: errorMessage.SMS_ISSUE });
       }
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       if (foundUser) {
@@ -162,11 +160,9 @@ class _AuthController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      if (!number)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!number) return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
-      if (!foundUser)
-        return res.status(errorCode.GENERIC).json({ message: errorMessage.USER_NOT_FOUND });
+      if (!foundUser) return res.status(400).json({ message: errorMessage.USER_NOT_FOUND });
       const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
       if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
         const fiveMinutesAgo = new Date();
@@ -174,12 +170,12 @@ class _AuthController {
         const dateVC = new Date(verificationCodeTimestamp);
         if (dateVC < fiveMinutesAgo)
           return res
-            .status(errorCode.GENERIC)
+            .status(400)
             .json({ message: errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
       }
       let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
       const smsRes = await sendOtpSms(number, otpGenerated);
-      if (!smsRes) return res.status(errorCode.GENERIC).json({ message: errorMessage.SMS_ISSUE });
+      if (!smsRes) return res.status(400).json({ message: errorMessage.SMS_ISSUE });
       const commonProps: any = {
         verificationCode: otpGenerated,
         verificationCodeSource: "SMS",
@@ -203,11 +199,9 @@ class _AuthController {
       if (error) {
         return res.status(400).json({ error: error.details[0].message });
       }
-      if (!email)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!email) return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ email });
-      if (!foundUser)
-        return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+      if (!foundUser) return res.status(404).json({ message: errorMessage.NOT_FOUND });
       const code = generateOtp();
       await UserService.updateOneUser(
         { email },
@@ -241,11 +235,9 @@ class _AuthController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      if (!email)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!email) return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ email });
-      if (!foundUser)
-        return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+      if (!foundUser) return res.status(404).json({ message: errorMessage.NOT_FOUND });
       const code = generateOtp();
       await UserService.updateOneUser(
         { email },
@@ -281,12 +273,11 @@ class _AuthController {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
       if (!email || !code || !password)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+        return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser: any = await UserService.getOneUser({ email });
-      if (!foundUser)
-        return res.status(errorCode.NOT_FOUND).json({ message: errorMessage.NOT_FOUND });
+      if (!foundUser) return res.status(404).json({ message: errorMessage.NOT_FOUND });
       if (parseInt(foundUser.verificationCode) !== parseInt(code))
-        return res.status(errorCode.UNAUTHORISED).json({ message: errorMessage.INCORRECT_DATA });
+        return res.status(403).json({ message: errorMessage.INCORRECT_DATA });
       const saltRounds = 10;
       const salt = await bcrypt.genSaltSync(saltRounds);
       const hash = await bcrypt.hashSync(password, salt);
@@ -299,7 +290,7 @@ class _AuthController {
           verificationCodeTimestamp: null,
         },
       );
-      return res.status(200).json({ message: successMessages.UPDATED });
+      return res.status(200).json({ message: "UPDATED" });
     } catch (error) {
       console.log("ERROR: ", error);
       return res
@@ -317,7 +308,7 @@ class _AuthController {
       }
       const { password, id } = res.locals.user;
       if (!oldPassword || !newPassword)
-        return res.status(errorCode.GENERIC).json({ message: errorMessage.MISSING_PARAMS });
+        return res.status(400).json({ message: errorMessage.MISSING_PARAMS });
       if (!password) return res.status(403).json({ message: errorMessage.WRONG_AUTH_METHOD });
       let isMatch = false;
       isMatch = await bcrypt.compareSync(oldPassword, password);
@@ -343,8 +334,7 @@ class _AuthController {
       if (validation.error) {
         return res.status(400).json({ error: validation.error.details[0].message });
       }
-      if (!number || !otp)
-        res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!number || !otp) res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const foundUser = await UserService.getOneUser({ phoneNumber: number });
       if (!foundUser) return res.status(403).json({ message: errorMessage.NOT_FOUND });
       let isMatch = false;
@@ -388,8 +378,7 @@ class _AuthController {
   async googleAuth(req: Request, res: Response) {
     try {
       const { googleAccessToken } = req.body;
-      if (!googleAccessToken)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.MISSING_PARAMS });
+      if (!googleAccessToken) return res.status(403).json({ message: errorMessage.MISSING_PARAMS });
       const FetchResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: {
           Authorization: `Bearer ${googleAccessToken}`,

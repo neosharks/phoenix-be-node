@@ -35,7 +35,7 @@ class _AuthController {
                 }
                 const foundUser = yield user_service_1.UserService.getOneUser({ email: body.email });
                 if (foundUser)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.USER_EXISTS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.USER_EXISTS });
                 const saltRounds = 10;
                 const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
                 const hash = yield bcrypt_1.default.hashSync(body.password, salt);
@@ -104,7 +104,7 @@ class _AuthController {
             try {
                 const { number, referralUsername } = req.body;
                 if (!number)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const numberString = number.toString();
                 const checkRes = numberString.includes("99999");
                 let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
@@ -120,7 +120,7 @@ class _AuthController {
                 else {
                     const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
                     if (!smsRes)
-                        return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
+                        return res.status(400).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
                 }
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 if (foundUser) {
@@ -167,10 +167,10 @@ class _AuthController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!number)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                    return res.status(400).json({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
                 const { verificationCodeTimestamp, verificationCodeAttempts } = foundUser;
                 if (verificationCodeTimestamp && verificationCodeAttempts > 1) {
                     const fiveMinutesAgo = new Date();
@@ -178,13 +178,13 @@ class _AuthController {
                     const dateVC = new Date(verificationCodeTimestamp);
                     if (dateVC < fiveMinutesAgo)
                         return res
-                            .status(api_constant_1.errorCode.GENERIC)
+                            .status(400)
                             .json({ message: api_constant_1.errorMessage.NOT_ALLOWED, verificationCodeTimestamp });
                 }
                 let otpGenerated = Math.floor(Math.random() * 9000) + 1000;
                 const smsRes = yield (0, sms_core_1.default)(number, otpGenerated);
                 if (!smsRes)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
+                    return res.status(400).json({ message: api_constant_1.errorMessage.SMS_ISSUE });
                 const commonProps = {
                     verificationCode: otpGenerated,
                     verificationCodeSource: "SMS",
@@ -212,10 +212,10 @@ class _AuthController {
                     return res.status(400).json({ error: error.details[0].message });
                 }
                 if (!email)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(404).json({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const code = (0, helper_lib_1.generateOtp)();
                 yield user_service_1.UserService.updateOneUser({ email }, {
                     verificationCode: code,
@@ -244,10 +244,10 @@ class _AuthController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!email)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(404).json({ message: api_constant_1.errorMessage.NOT_FOUND });
                 const code = (0, helper_lib_1.generateOtp)();
                 yield user_service_1.UserService.updateOneUser({ email }, {
                     verificationCode: code,
@@ -277,12 +277,12 @@ class _AuthController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!email || !code || !password)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ email });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.NOT_FOUND).json({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(404).json({ message: api_constant_1.errorMessage.NOT_FOUND });
                 if (parseInt(foundUser.verificationCode) !== parseInt(code))
-                    return res.status(api_constant_1.errorCode.UNAUTHORISED).json({ message: api_constant_1.errorMessage.INCORRECT_DATA });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.INCORRECT_DATA });
                 const saltRounds = 10;
                 const salt = yield bcrypt_1.default.genSaltSync(saltRounds);
                 const hash = yield bcrypt_1.default.hashSync(password, salt);
@@ -292,7 +292,7 @@ class _AuthController {
                     verificationCodeSource: null,
                     verificationCodeTimestamp: null,
                 });
-                return res.status(200).json({ message: api_constant_1.successMessages.UPDATED });
+                return res.status(200).json({ message: "UPDATED" });
             }
             catch (error) {
                 console.log("ERROR: ", error);
@@ -312,7 +312,7 @@ class _AuthController {
                 }
                 const { password, id } = res.locals.user;
                 if (!oldPassword || !newPassword)
-                    return res.status(api_constant_1.errorCode.GENERIC).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 if (!password)
                     return res.status(403).json({ message: api_constant_1.errorMessage.WRONG_AUTH_METHOD });
                 let isMatch = false;
@@ -343,7 +343,7 @@ class _AuthController {
                     return res.status(400).json({ error: validation.error.details[0].message });
                 }
                 if (!number || !otp)
-                    res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ phoneNumber: number });
                 if (!foundUser)
                     return res.status(403).json({ message: api_constant_1.errorMessage.NOT_FOUND });
@@ -383,7 +383,7 @@ class _AuthController {
             try {
                 const { googleAccessToken } = req.body;
                 if (!googleAccessToken)
-                    return res.status(api_constant_1.errorCode.FORBIDDEN).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(403).json({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const FetchResponse = yield axios_1.default.get("https://www.googleapis.com/oauth2/v3/userinfo", {
                     headers: {
                         Authorization: `Bearer ${googleAccessToken}`,

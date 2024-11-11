@@ -10,8 +10,7 @@ class _InsightController {
       const { id, isCreator } = res.locals.user;
       const skip = (Number(req.query.page) - 1) * Number(req.query.per_page) || 0;
       const take = Number(req.query.per_page) || 10;
-      if (!isCreator)
-        return res.status(errorCode.FORBIDDEN).json({ message: errorMessage.NOT_ALLOWED });
+      if (!isCreator) return res.status(403).json({ message: errorMessage.NOT_ALLOWED });
 
       const d = new Date().getMonth() - 6;
 

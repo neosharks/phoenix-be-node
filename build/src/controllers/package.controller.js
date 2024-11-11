@@ -64,12 +64,12 @@ class _PackageController {
                     return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
                 const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                     creatorId: foundUser.id,
                 }, skip, take);
                 if (!found)
-                    return res.status(api_constant_1.errorCode.NOT_FOUND).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 return res.status(200).send({ message: api_constant_1.successMessages.SUCCESS, packages: found });
             }
             catch (error) {
@@ -103,10 +103,10 @@ class _PackageController {
             const { username } = res.locals.user;
             try {
                 if (!username)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const foundUser = yield user_service_1.UserService.getOneUser({ username });
                 if (!foundUser)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.USER_NOT_FOUND });
                 const found = yield package_service_1.PackageService.getAllPackagesOfCreator({
                     creatorId: foundUser.id,
                 });
@@ -188,7 +188,7 @@ class _PackageController {
                 const allUserPackages = yield package_service_1.PackageService.getAllPackagesOfCreator({ creatorId: id });
                 const packageIndex = allUserPackages.findIndex((pac) => pac.name === name);
                 if (packageIndex !== -1)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.DUPLICATE_ENTRY });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.DUPLICATE_ENTRY });
                 yield package_service_1.PackageService.createOnePackage({ tier, name, price, description, creatorId: id });
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -206,7 +206,7 @@ class _PackageController {
                 const postId = req.body.id;
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: postId });
                 if (!foundPackage)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.NOT_FOUND });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.NOT_FOUND });
                 yield package_service_1.PackageService.updatePackage({ id: postId }, req.body);
                 res.status(201).send({ message: api_constant_1.successMessages.CREATED });
             }
@@ -223,13 +223,11 @@ class _PackageController {
             try {
                 const { packageId, orderId } = req.body;
                 if (!packageId)
-                    return res.status(api_constant_1.errorCode.GENERIC).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
+                    return res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS });
                 const user = res.locals.user;
                 const foundPackage = yield package_service_1.PackageService.getOnePackage({ id: packageId });
                 if (!foundPackage)
-                    return res
-                        .status(api_constant_1.errorCode.NOT_FOUND)
-                        .send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Package not found" });
+                    return res.status(404).send({ message: api_constant_1.errorMessage.NOT_FOUND, info: "Package not found" });
                 const { tier, creatorId } = foundPackage;
                 const tierUserPackage = yield package_service_1.PackageService.getOnePackage({
                     id: packageId,
@@ -237,7 +235,7 @@ class _PackageController {
                 });
                 if (tierUserPackage)
                     return res
-                        .status(api_constant_1.errorCode.GENERIC)
+                        .status(400)
                         .send({ message: api_constant_1.errorMessage.NOT_ALLOWED, info: "Cannot buy own package" });
                 const foundAlreadyPurchase = yield patronCreator_service_1.PatronCreatorService.getFirst({
                     patronId: user.id,
@@ -250,7 +248,7 @@ class _PackageController {
                         .send({ message: api_constant_1.errorMessage.REDUNDANT_REQUEST, info: "Package already purchased" });
                 if (foundPackage.price !== 0) {
                     if (!orderId)
-                        return res.status(api_constant_1.errorCode.GENERIC).send({
+                        return res.status(400).send({
                             message: api_constant_1.errorMessage.MISSING_PARAMS,
                             info: "Missing orderId for paid purchase",
                         });
@@ -325,9 +323,7 @@ class _PackageController {
             try {
                 const { tiers } = req.body;
                 if (!tiers || tiers.length < 1)
-                    res
-                        .status(api_constant_1.errorCode.GENERIC)
-                        .send({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide tiers" });
+                    res.status(400).send({ message: api_constant_1.errorMessage.MISSING_PARAMS, info: "Provide tiers" });
                 tiers.map((ele) => __awaiter(this, void 0, void 0, function* () {
                     yield package_service_1.PackageService.createOneTier(ele);
                 }));

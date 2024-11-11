@@ -41,10 +41,18 @@ classRoutes.post(
 
 classRoutes.post("/sendMessage", checkRoleAuth(), ClassController.sendMessage);
 
-classRoutes.post("/updateSendMessage", checkRoleAuth(), ClassController.updateSendMessage);
+classRoutes.post("/deleteOneMessage", checkRoleAuth(), ClassController.deleteOneMessage);
+
+classRoutes.post("/updateMessage", checkRoleAuth(), ClassController.updateMessage);
 
 classRoutes.post("/leaveOneClass", checkRoleAuth(), ClassController.leaveOneClass);
 
 classRoutes.post("/requestClass", checkRoleAuth(), ClassController.requestNewClass);
+
+classRoutes.post(
+  "/deactivateOneClass",
+  checkRoleAuth([userRole.CREATOR]),
+  ClassController.deactivateOneClass,
+);
 
 export default classRoutes;
