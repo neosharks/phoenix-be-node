@@ -71,30 +71,36 @@ const handleJoinRoom = async (socket: Socket, io: Server, classId: number) => {
     socket.join(roomId);
     console.log(`User ${user.id} (${socket.id}) joined room ${classId}`);
 
+    // Initialize roomUserCount for this room if not already initialized
     if (!roomUserCount.has(roomId)) roomUserCount.set(roomId, new Set());
+
+    // Add socket ID to the room's user set
     roomUserCount.get(roomId)?.add(socket.id);
 
-    // Send the updated user list
+    // Send the updated user list (filtering by user.id to avoid duplicates)
     const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
     const userCount = activeUsers.length;
 
-    // Get user details for the active users
-    const userDetails = activeUsers
-      .map((socketId) => {
-        const user = io.sockets.sockets.get(socketId)?.data?.user;
-        return user
-          ? {
-              id: user.id,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-              username: user.username,
-              profileImage: user.profileImage,
-            }
-          : null;
-      })
-      .filter((user) => user !== null);
+    // Get user details for the active users, ensuring unique user IDs
+    const userDetails: any = [];
+    const seenUserIds = new Set<number>(); // Track seen user IDs to prevent duplicates
 
+    activeUsers.forEach((socketId) => {
+      const user = io.sockets.sockets.get(socketId)?.data?.user;
+      if (user && !seenUserIds.has(user.id)) {
+        seenUserIds.add(user.id);
+        userDetails.push({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          username: user.username,
+          profileImage: user.profileImage,
+        });
+      }
+    });
+
+    // Emit updated user count and user details
     io.to(roomId).emit("CLASS_USER_COUNT", userCount);
     io.to(roomId).emit("ACTIVE_USERS", userDetails);
     io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: true });
@@ -187,16 +193,20 @@ const handleDisconnect = async (socket: Socket, io: Server) => {
     }
 
     console.log(`Socket disconnected: ${socket.id}, User: ${user.id}`);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { online: false },
-    });
 
     roomUserCount.forEach((users, roomId) => {
-      if (users.has(socket.id)) {
-        users.delete(socket.id);
+      // Check if the user is in the room by user ID
+      const userSocket = Array.from(users).find(
+        (socketId) => io.sockets.sockets.get(socketId)?.data?.user?.id === user.id,
+      );
+
+      if (userSocket) {
+        users.delete(userSocket);
         const userCount = users.size;
         io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+
+        // Emit user status update only for the user
+        io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: false });
       }
     });
 
@@ -205,7 +215,6 @@ const handleDisconnect = async (socket: Socket, io: Server) => {
     console.error("Error during disconnection:", error.message);
   }
 };
-
 // Handle leaving a room
 const handleLeaveRoom = (socket: Socket, io: Server, classId: number) => {
   try {
@@ -216,13 +225,23 @@ const handleLeaveRoom = (socket: Socket, io: Server, classId: number) => {
     socket.leave(roomId);
     console.log(`User ${user.id} (${socket.id}) left room ${classId}`);
 
-    roomUserCount.get(roomId)?.delete(socket.id);
-    const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
-    const userCount = activeUsers.length;
+    const roomUsers = roomUserCount.get(roomId);
+    if (roomUsers) {
+      // Remove the socket from the set of users based on user.id
+      const userSocket = Array.from(roomUsers).find(
+        (socketId) => io.sockets.sockets.get(socketId)?.data?.user?.id === user.id,
+      );
 
-    io.to(roomId).emit("CLASS_USER_COUNT", userCount);
-    io.to(roomId).emit("ACTIVE_USERS", activeUsers);
-    io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: false });
+      if (userSocket) {
+        roomUsers.delete(userSocket);
+        const activeUsers = Array.from(roomUsers);
+        const userCount = activeUsers.length;
+
+        io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+        io.to(roomId).emit("ACTIVE_USERS", activeUsers);
+        io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: false });
+      }
+    }
   } catch (error: any) {
     handleError(socket, error.message || "Failed to leave room");
   }
