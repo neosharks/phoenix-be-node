@@ -1,174 +1,167 @@
 import { PrismaClient } from "@prisma/client";
-import firebase from "firebase-admin";
-import { serviceAccountKey } from "../firebaseNotification/serviceAccountKey";
+import { Socket, Server } from "socket.io";
 
 const prisma = new PrismaClient();
-const socketIdToUserId = new Map<string, number>();
-const roomUserCount = new Map<string, Set<string>>(); // Track users in rooms
 
-if (!firebase.apps.length) {
-  firebase.initializeApp({
-    credential: firebase.credential.cert(serviceAccountKey),
-  });
-} else {
-  firebase.app();
-}
+const roomUserCount = new Map<string, Set<string>>(); // roomId -> Set of socketIds
+const socketIdToUserId = new Map<string, string>(); // socketId -> userId
 
-const Socket = (io: any) => {
-  io.on("connection", (socket: any) => {
-    console.log("User connected:", socket.id);
-
-    socket.on("join_room", (classId: number) => {
-      const roomId = classId.toString();
-      socket.join(roomId);
-      console.log(`User ${socket.id} joined room ${classId}`);
-
-      if (!roomUserCount.has(roomId)) {
-        roomUserCount.set(roomId, new Set());
-      }
-      roomUserCount.get(roomId)?.add(socket.id);
-
-      const userCount = roomUserCount.get(roomId)?.size || 0;
-      io.to(roomId).emit("user_count", userCount);
-    });
-
-    socket.on("send_class_message", async (data: any) => {
-      try {
-        if (
-          !data.classId ||
-          !data.userId ||
-          (!data.message && !data.image && !data.video && !data.document && !data.audio)
-        ) {
-          console.error("Invalid data received:", data);
-          socket.emit("error", { message: "Invalid data received" });
-          return;
-        }
-
-        const findUser = await prisma.user.findUnique({
-          where: { id: data.userId },
-        });
-
-        if (!findUser) {
-          console.error("User not found:", data.userId);
-          socket.emit("error", { message: "User not found" });
-          return;
-        }
-
-        const classExists = await prisma.class.findUnique({
-          where: { id: data.classId },
-        });
-
-        if (!classExists) {
-          console.error("Class not found:", data.classId);
-          socket.emit("error", { message: "Class not found" });
-          return;
-        }
-
-        const createdMessage = await prisma.classMessage.create({
-          data: {
-            classId: data.classId,
-            userId: data.userId,
-            message: data.message,
-            image: data.image || null,
-            video: data.video || null,
-            document: data.document || null,
-            repliedMessageId: data.repliedMessageId || null,
-          },
-          include: {
-            repliedMessage: true,
-          },
-        });
-
-        io.to(data.classId.toString()).emit("receive_class_message", createdMessage);
-        sendNotification(createdMessage);
-      } catch (error) {
-        console.error("Error handling send_class_message event:", error);
-        socket.emit("error", { message: "An error occurred while sending the message" });
-      }
-    });
-
-    socket.on("update_message", async (data: { messageId: number; isPinned: boolean }) => {
-      try {
-        const updatedMessage = await prisma.classMessage.update({
-          where: { id: data.messageId },
-          data: { isPinned: data.isPinned },
-        });
-
-        io.to(updatedMessage.classId.toString()).emit("message_updated", {
-          messageId: updatedMessage.id,
-          isPinned: updatedMessage.isPinned,
-        });
-      } catch (error) {
-        console.error("Error updating message:", error);
-      }
-    });
-
-    socket.on("disconnect", async () => {
-      console.log("Socket disconnected:", socket.id);
-      const userId = socketIdToUserId.get(socket.id);
-
-      if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { online: false },
-        });
-        socketIdToUserId.delete(socket.id);
-        io.emit("user_status_update", { userId, isOnline: false });
-      }
-
-      roomUserCount.forEach((users, roomId) => {
-        if (users.has(socket.id)) {
-          users.delete(socket.id);
-          const userCount = users.size;
-          io.to(roomId).emit("user_count", userCount);
-        }
-      });
-    });
-
-    socket.on("leave_room", (classId: number) => {
-      const roomId = classId.toString();
-      socket.leave(roomId);
-      console.log(`User ${socket.id} left room ${classId}`);
-      roomUserCount.get(roomId)?.delete(socket.id);
-      const userCount = roomUserCount.get(roomId)?.size || 0;
-      io.to(roomId).emit("user_count", userCount);
-    });
-  });
+// Helper function for common error handling
+const handleError = (socket: Socket, message: string) => {
+  console.error(message);
+  socket.emit("ERROR", { message });
 };
 
-export default Socket;
+// Handle user connection
+const handleUserConnection = (socket: Socket, io: Server) => {
+  console.log("New connected:", socket.id);
+  // --------
+  socket.on("JOIN_ROOM", handleJoinRoom(socket, io));
+  socket.on("SEND_CLASS_MESSAGE", handleSendClassMessage(socket, io));
+  socket.on("UPDATE_MESSAGE", handleUpdateMessage(socket, io));
+  socket.on("DELETE_MESSAGE", handleDeleteMessage(socket, io));
+  socket.on("DISCONNECT", handleDisconnect(socket, io));
+  socket.on("LEAVE_ROOM", handleLeaveRoom(socket, io));
+  socket.on("TYPING", handleTyping(socket, io));
+};
 
-// Function to send notifications
-const sendNotification = async (notificationData: any) => {
+// Handle joining a room
+const handleJoinRoom = (socket: Socket, io: Server) => async (classId: number) => {
+  const roomId = classId.toString();
+  socket.join(roomId);
+  console.log(`User ${socket.id} joined room ${classId}`);
+
+  // Initialize room if it's the first user
+  if (!roomUserCount.has(roomId)) roomUserCount.set(roomId, new Set());
+  roomUserCount.get(roomId)?.add(socket.id);
+
+  // Get the list of active users in the room
+  const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
+  const userCount = activeUsers.length;
+
+  // Emit the user count and the list of active users to the room
+  io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+  io.to(roomId).emit("ACTIVE_USERS", activeUsers);
+
+  // Emit user status update for the newly joined user
+  io.to(roomId).emit("USER_STATUS_UPDATE", { userId: socket.id, isOnline: true });
+};
+
+const handleSendClassMessage = (socket: Socket, io: Server) => async (data: any) => {
   try {
-    const findUser = await prisma.user.findUnique({
-      where: { id: notificationData.userId },
+    const { classId, userId, message, image, video, document, audio, repliedMessageId } = data;
+
+    if (!classId || !userId || (!message && !image && !video && !document && !audio))
+      return handleError(socket, "Invalid data received");
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return handleError(socket, "User not found");
+
+    const classExists = await prisma.class.findUnique({ where: { id: classId } });
+    if (!classExists) return handleError(socket, "Class not found");
+
+    const createdMessage = await prisma.classMessage.create({
+      data: {
+        classId,
+        userId,
+        message,
+        image: image || null,
+        video: video || null,
+        document: document || null,
+        audio: audio || null,
+        repliedMessageId: repliedMessageId || null,
+      },
+      include: { repliedMessage: true },
     });
 
-    if (findUser?.fcmToken) {
-      const notificationPayload = {
-        roomId: notificationData.chatId,
-        roomName: findUser.username,
-        receiverIds: notificationData.userId,
-        type: notificationData.roomData.type,
-      };
-
-      const res = await firebase.messaging().send({
-        token: findUser.fcmToken,
-        notification: {
-          title: "New Message",
-          body: notificationData.text,
-        },
-        data: {
-          notification_type: "chat",
-          navigationId: "messages",
-          data: JSON.stringify(notificationPayload),
-        },
-      });
-
-      console.log("Notification sent successfully:", res);
-    }
+    io.to(classId.toString()).emit("RECEIVE_CLASS_MESSAGE", createdMessage);
   } catch (error) {
-    console.error("Notification failed:", error);
+    console.error("Error handling SEND_CLASS_MESSAGE event:", error);
+    handleError(socket, "An error occurred while sending the message");
   }
 };
+
+const handleUpdateMessage = (socket: Socket, io: Server) => async (recivedData: any) => {
+  const { messageId, data } = recivedData;
+  try {
+    const updatedMessage = await prisma.classMessage.update({
+      where: { id: messageId },
+      data,
+    });
+
+    io.to(updatedMessage.classId.toString()).emit("MESSAGE_UPDATED", {
+      messageId: updatedMessage.id,
+      data,
+    });
+  } catch (error) {
+    console.error("Error updating message:", error);
+  }
+};
+
+const handleDeleteMessage = (socket: Socket, io: Server) => async (recivedData: any) => {
+  const { messageId } = recivedData;
+  try {
+    const updatedMessage = await prisma.classMessage.delete({
+      where: { id: messageId },
+    });
+    io.to(updatedMessage.classId.toString()).emit("MESSAGE_DELETED", {
+      messageId: updatedMessage.id,
+    });
+  } catch (error) {
+    console.error("Error deleting message:", error);
+  }
+};
+
+const handleDisconnect = (socket: Socket, io: Server) => async () => {
+  console.log("Socket disconnected:", socket.id);
+  const userId = socketIdToUserId.get(socket.id);
+
+  if (userId) {
+    await prisma.user.update({
+      where: { id: parseInt(userId) },
+      data: { online: false },
+    });
+    socketIdToUserId.delete(socket.id);
+    io.emit("USER_STATUS_UPDATE", { userId, isOnline: false });
+  }
+
+  roomUserCount.forEach((users, roomId) => {
+    if (users.has(socket.id)) {
+      users.delete(socket.id);
+      const userCount = users.size;
+      io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+    }
+  });
+};
+
+const handleLeaveRoom = (socket: Socket, io: Server) => (classId: number) => {
+  const roomId = classId.toString();
+  socket.leave(roomId);
+  console.log(`User ${socket.id} left room ${classId}`);
+
+  // Remove the user from the room
+  roomUserCount.get(roomId)?.delete(socket.id);
+
+  // Get the updated list of active users in the room
+  const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
+  const userCount = activeUsers.length;
+
+  // Emit the user count and the list of active users to the room
+  io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+  io.to(roomId).emit("ACTIVE_USERS", activeUsers);
+
+  // Emit user status update for the user who left
+  io.to(roomId).emit("USER_STATUS_UPDATE", { userId: socket.id, isOnline: false });
+};
+
+const handleTyping =
+  (socket: Socket, io: Server) => (data: { classId: number; isTyping: boolean }) => {
+    const { classId, isTyping } = data;
+    io.to(classId.toString()).emit("USER_TYPING", { userId: socket.id, isTyping });
+  };
+
+export const SocketConnection = (io: Server) => {
+  io.on("connection", (socket: Socket) => handleUserConnection(socket, io));
+};
+
+export default SocketConnection;

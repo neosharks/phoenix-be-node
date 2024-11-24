@@ -1,5 +1,6 @@
 import "newrelic";
 import { checkForNullOrUndefinedKeys } from "./src/lib/helper.lib";
+import { Server } from "socket.io";
 import logger from "./src/core/logger.core";
 import config from "./config";
 import app from "./server";
@@ -13,7 +14,6 @@ if (res.length < 1) {
     .on("error", (e) => console.log("Error in starting server", e));
 
   // Initialize socket.io
-  const { Server } = require("socket.io");
   const io = new Server(server, {
     cors: {
       origin: "*",
