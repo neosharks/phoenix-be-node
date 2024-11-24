@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { Socket, Server } from "socket.io";
+import { UserService } from "../services/user.service";
+import { verifyJwt } from "../core/jwt.core";
 
 const prisma = new PrismaClient();
-
 const roomUserCount = new Map<string, Set<string>>(); // roomId -> Set of socketIds
-const socketIdToUserId = new Map<string, string>(); // socketId -> userId
 
 // Helper function for common error handling
 const handleError = (socket: Socket, message: string) => {
@@ -13,57 +13,114 @@ const handleError = (socket: Socket, message: string) => {
 };
 
 // Handle user connection
-const handleUserConnection = (socket: Socket, io: Server) => {
-  console.log("New connected:", socket.id);
-  // --------
-  socket.on("JOIN_ROOM", handleJoinRoom(socket, io));
-  socket.on("SEND_CLASS_MESSAGE", handleSendClassMessage(socket, io));
-  socket.on("UPDATE_MESSAGE", handleUpdateMessage(socket, io));
-  socket.on("DELETE_MESSAGE", handleDeleteMessage(socket, io));
-  socket.on("DISCONNECT", handleDisconnect(socket, io));
-  socket.on("LEAVE_ROOM", handleLeaveRoom(socket, io));
-  socket.on("TYPING", handleTyping(socket, io));
+const handleUserConnection = async (socket: Socket, io: Server) => {
+  try {
+    const token = socket?.handshake?.auth?.token;
+    if (!token) {
+      socket.disconnect();
+      throw new Error("Authentication failed: Token is required.");
+    }
+
+    const { decoded }: any = verifyJwt(token);
+    if (!decoded) {
+      socket.disconnect();
+      throw new Error("Authentication failed: Invalid token.");
+    }
+
+    const { id } = decoded;
+    const foundUser = await UserService.getOneUser({ id });
+    if (!foundUser) {
+      socket.disconnect();
+      throw new Error("Authentication failed: User not found.");
+    }
+
+    // Attach user data to the socket
+    socket.data.user = {
+      id: foundUser.id,
+      firstName: foundUser.firstName,
+      lastName: foundUser.lastName,
+      email: foundUser.email,
+      username: foundUser.username,
+      profileImage: foundUser.profileImage,
+    };
+
+    console.log(`New connection: ${socket.id}, User: ${socket.data.user.id}`);
+
+    // Bind event handlers
+    socket.on("JOIN_ROOM", (classId: number) => handleJoinRoom(socket, io, classId));
+    socket.on("SEND_CLASS_MESSAGE", (data: any) => handleSendClassMessage(socket, io, data));
+    socket.on("UPDATE_MESSAGE", (data: any) => handleUpdateMessage(socket, io, data));
+    socket.on("DELETE_MESSAGE", (data: any) => handleDeleteMessage(socket, io, data));
+    socket.on("DISCONNECT", () => handleDisconnect(socket, io));
+    socket.on("LEAVE_ROOM", (classId: number) => handleLeaveRoom(socket, io, classId));
+    socket.on("TYPING", (data: { classId: number; isTyping: boolean }) =>
+      handleTyping(socket, io, data),
+    );
+  } catch (error: any) {
+    console.error(`Error during connection handling: ${error.message}`);
+  }
 };
 
 // Handle joining a room
-const handleJoinRoom = (socket: Socket, io: Server) => async (classId: number) => {
-  const roomId = classId.toString();
-  socket.join(roomId);
-  console.log(`User ${socket.id} joined room ${classId}`);
+const handleJoinRoom = async (socket: Socket, io: Server, classId: number) => {
+  try {
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
 
-  // Initialize room if it's the first user
-  if (!roomUserCount.has(roomId)) roomUserCount.set(roomId, new Set());
-  roomUserCount.get(roomId)?.add(socket.id);
+    const roomId = classId.toString();
+    socket.join(roomId);
+    console.log(`User ${user.id} (${socket.id}) joined room ${classId}`);
 
-  // Get the list of active users in the room
-  const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
-  const userCount = activeUsers.length;
+    if (!roomUserCount.has(roomId)) roomUserCount.set(roomId, new Set());
+    roomUserCount.get(roomId)?.add(socket.id);
 
-  // Emit the user count and the list of active users to the room
-  io.to(roomId).emit("CLASS_USER_COUNT", userCount);
-  io.to(roomId).emit("ACTIVE_USERS", activeUsers);
+    // Send the updated user list
+    const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
+    const userCount = activeUsers.length;
 
-  // Emit user status update for the newly joined user
-  io.to(roomId).emit("USER_STATUS_UPDATE", { userId: socket.id, isOnline: true });
+    // Get user details for the active users
+    const userDetails = activeUsers
+      .map((socketId) => {
+        const user = io.sockets.sockets.get(socketId)?.data?.user;
+        return user
+          ? {
+              id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              username: user.username,
+              profileImage: user.profileImage,
+            }
+          : null;
+      })
+      .filter((user) => user !== null);
+
+    io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+    io.to(roomId).emit("ACTIVE_USERS", userDetails);
+    io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: true });
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to join room");
+  }
 };
 
-const handleSendClassMessage = (socket: Socket, io: Server) => async (data: any) => {
+// Handle sending a class message
+const handleSendClassMessage = async (socket: Socket, io: Server, data: any) => {
   try {
-    const { classId, userId, message, image, video, document, audio, repliedMessageId } = data;
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
 
-    if (!classId || !userId || (!message && !image && !video && !document && !audio))
-      return handleError(socket, "Invalid data received");
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return handleError(socket, "User not found");
+    const { classId, message, image, video, document, audio, repliedMessageId } = data;
+    if (!classId || (!message && !image && !video && !document && !audio)) {
+      throw new Error("Invalid data received. Message or media is required.");
+    }
 
     const classExists = await prisma.class.findUnique({ where: { id: classId } });
-    if (!classExists) return handleError(socket, "Class not found");
+    if (!classExists) throw new Error("Class not found");
 
     const createdMessage = await prisma.classMessage.create({
       data: {
         classId,
-        userId,
+        userId: user.id,
         message,
         image: image || null,
         video: video || null,
@@ -75,15 +132,18 @@ const handleSendClassMessage = (socket: Socket, io: Server) => async (data: any)
     });
 
     io.to(classId.toString()).emit("RECEIVE_CLASS_MESSAGE", createdMessage);
-  } catch (error) {
-    console.error("Error handling SEND_CLASS_MESSAGE event:", error);
-    handleError(socket, "An error occurred while sending the message");
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to send message");
   }
 };
 
-const handleUpdateMessage = (socket: Socket, io: Server) => async (recivedData: any) => {
-  const { messageId, data } = recivedData;
+// Handle updating a message
+const handleUpdateMessage = async (socket: Socket, io: Server, receivedData: any) => {
   try {
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
+
+    const { messageId, data } = receivedData;
     const updatedMessage = await prisma.classMessage.update({
       where: { id: messageId },
       data,
@@ -93,73 +153,95 @@ const handleUpdateMessage = (socket: Socket, io: Server) => async (recivedData: 
       messageId: updatedMessage.id,
       data,
     });
-  } catch (error) {
-    console.error("Error updating message:", error);
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to update message");
   }
 };
 
-const handleDeleteMessage = (socket: Socket, io: Server) => async (recivedData: any) => {
-  const { messageId } = recivedData;
+// Handle deleting a message
+const handleDeleteMessage = async (socket: Socket, io: Server, receivedData: any) => {
   try {
-    const updatedMessage = await prisma.classMessage.delete({
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
+
+    const { messageId } = receivedData;
+    const deletedMessage = await prisma.classMessage.delete({
       where: { id: messageId },
     });
-    io.to(updatedMessage.classId.toString()).emit("MESSAGE_DELETED", {
-      messageId: updatedMessage.id,
+
+    io.to(deletedMessage.classId.toString()).emit("MESSAGE_DELETED", {
+      messageId: deletedMessage.id,
     });
-  } catch (error) {
-    console.error("Error deleting message:", error);
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to delete message");
   }
 };
 
-const handleDisconnect = (socket: Socket, io: Server) => async () => {
-  console.log("Socket disconnected:", socket.id);
-  const userId = socketIdToUserId.get(socket.id);
+// Handle user disconnection
+const handleDisconnect = async (socket: Socket, io: Server) => {
+  try {
+    const user = socket.data.user;
+    if (!user) {
+      console.log(`Unauthenticated socket disconnected: ${socket.id}`);
+      return;
+    }
 
-  if (userId) {
+    console.log(`Socket disconnected: ${socket.id}, User: ${user.id}`);
     await prisma.user.update({
-      where: { id: parseInt(userId) },
+      where: { id: user.id },
       data: { online: false },
     });
-    socketIdToUserId.delete(socket.id);
-    io.emit("USER_STATUS_UPDATE", { userId, isOnline: false });
+
+    roomUserCount.forEach((users, roomId) => {
+      if (users.has(socket.id)) {
+        users.delete(socket.id);
+        const userCount = users.size;
+        io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+      }
+    });
+
+    io.emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: false });
+  } catch (error: any) {
+    console.error("Error during disconnection:", error.message);
   }
-
-  roomUserCount.forEach((users, roomId) => {
-    if (users.has(socket.id)) {
-      users.delete(socket.id);
-      const userCount = users.size;
-      io.to(roomId).emit("CLASS_USER_COUNT", userCount);
-    }
-  });
 };
 
-const handleLeaveRoom = (socket: Socket, io: Server) => (classId: number) => {
-  const roomId = classId.toString();
-  socket.leave(roomId);
-  console.log(`User ${socket.id} left room ${classId}`);
+// Handle leaving a room
+const handleLeaveRoom = (socket: Socket, io: Server, classId: number) => {
+  try {
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
 
-  // Remove the user from the room
-  roomUserCount.get(roomId)?.delete(socket.id);
+    const roomId = classId.toString();
+    socket.leave(roomId);
+    console.log(`User ${user.id} (${socket.id}) left room ${classId}`);
 
-  // Get the updated list of active users in the room
-  const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
-  const userCount = activeUsers.length;
+    roomUserCount.get(roomId)?.delete(socket.id);
+    const activeUsers = Array.from(roomUserCount.get(roomId)?.values() || []);
+    const userCount = activeUsers.length;
 
-  // Emit the user count and the list of active users to the room
-  io.to(roomId).emit("CLASS_USER_COUNT", userCount);
-  io.to(roomId).emit("ACTIVE_USERS", activeUsers);
-
-  // Emit user status update for the user who left
-  io.to(roomId).emit("USER_STATUS_UPDATE", { userId: socket.id, isOnline: false });
+    io.to(roomId).emit("CLASS_USER_COUNT", userCount);
+    io.to(roomId).emit("ACTIVE_USERS", activeUsers);
+    io.to(roomId).emit("USER_STATUS_UPDATE", { userId: user.id, isOnline: false });
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to leave room");
+  }
 };
 
-const handleTyping =
-  (socket: Socket, io: Server) => (data: { classId: number; isTyping: boolean }) => {
+// Handle typing event
+const handleTyping = (socket: Socket, io: Server, data: { classId: number; isTyping: boolean }) => {
+  try {
+    const user = socket.data.user;
+    if (!user) throw new Error("User not authenticated");
+
     const { classId, isTyping } = data;
-    io.to(classId.toString()).emit("USER_TYPING", { userId: socket.id, isTyping });
-  };
+    io.to(classId.toString()).emit("USER_TYPING", { userId: user.id, isTyping });
+  } catch (error: any) {
+    handleError(socket, error.message || "Failed to emit typing event");
+  }
+};
 
+// Export SocketConnection
 export const SocketConnection = (io: Server) => {
   io.on("connection", (socket: Socket) => handleUserConnection(socket, io));
 };

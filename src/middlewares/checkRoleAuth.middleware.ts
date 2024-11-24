@@ -36,19 +36,3 @@ export const checkRoleAuth = (requiredRoles = ["PATRON"]) => {
     }
   };
 };
-
-// Socket.IO middleware for authentication
-export const socketAuthMiddleware = async (socket: Socket, next: (err?: any) => void) => {
-  const token = socket.handshake.auth.token;
-  if (!token) return next(new Error("Authentication error: No token"));
-
-  const { decoded }: any = verifyJwt(token);
-  if (!decoded) return next(new Error("Authentication error: Invalid token"));
-
-  const { id } = decoded;
-  const foundUser = await UserService.getOneUser({ id });
-  if (!foundUser) return next(new Error("Authentication error: User not found"));
-
-  socket.data.user = foundUser;
-  next();
-};

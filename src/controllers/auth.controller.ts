@@ -17,7 +17,6 @@ import {
 import logger from "../core/logger.core";
 import sendEmail from "../core/email.core";
 import sendOtpSms from "../core/sms.core";
-import config from "../../config";
 
 class _AuthController {
   async register(req: Request, res: Response) {
